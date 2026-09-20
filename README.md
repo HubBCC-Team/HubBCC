@@ -633,9 +633,9 @@ O backend deve implementar os endpoints listados na [seção 10](#10-api-simulad
 ## 15. Equipe
 
 | Integrante |
-|---|---|
-| Geovanne Gomes de Souza 
-| Marina Motta Sampaio | 
+|---|---|---|
+| Geovanne Gomes de Souza|   
+| Marina Motta Sampaio |       
 | Mina Iura Mathias Monteiro | 
 | Samuel Trindade Sabino da Silva | 
 
