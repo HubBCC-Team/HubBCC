@@ -1,103 +1,100 @@
-import { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { login as apiLogin, register as apiRegister } from "../api/axios";
-import api from "../api/axios";
-import { PERFIS_CADASTRAVEIS } from "../utils/perfis";
+/* ---------------------------------------------------------------------------
+   contexts/AuthContext.jsx
+   CONTEXTO DE AUTENTICACAO.
 
-const AuthContext = createContext(undefined);
+   O QUE E UM CONTEXTO (para quem esta comecando em React):
+   E uma "caixa" de dados que fica disponivel para TODOS os componentes da
+   aplicacao, sem precisar passar props de pai para filho. Aqui guardamos o
+   usuario logado e as funcoes de entrar/sair.
 
-export const AuthProvider = ({ children }) => {
+   COMO USAR EM QUALQUER TELA:
+     import { useAuth } from "../../contexts/useAuth";
+     const { usuario, entrar, sair } = useAuth();
+--------------------------------------------------------------------------- */
+
+import { createContext, useState, useEffect, useCallback } from "react";
+import * as authService from "../service/authService";
+
+// O contexto em si. O arquivo useAuth.js e quem le este objeto.
+// eslint-disable-next-line react-refresh/only-export-components
+export const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  // usuario = objeto do usuario logado, ou null quando ninguem esta logado.
   const [usuario, setUsuario] = useState(null);
-  const [token, setToken] = useState("");
-  const [isLoading, setIsLoading] = useState(true); // só cobre a restauração da sessão no boot
 
+  // carregando = true enquanto verificamos se ja existe sessao salva.
+  // Sem isso, o app "pisca" na tela de login ao dar F5 estando logado.
+  const [carregando, setCarregando] = useState(true);
+
+  // Ao abrir o app, tentamos recuperar a sessao salva no localStorage.
   useEffect(() => {
-    const storedToken = localStorage.getItem("user_token");
-    const storedUser = localStorage.getItem("user_data");
-
-    if (storedToken && storedUser) {
+    const salvo = localStorage.getItem("hubbcc_usuario");
+    if (salvo) {
       try {
-        const userData = JSON.parse(storedUser);
-        setUsuario(userData);
-        setToken(storedToken);
-        api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
-      } catch (error) {
-        console.error("Falha ao processar dados salvos de sessão:", error);
-        handleLogout();
+        setUsuario(JSON.parse(salvo));
+      } catch {
+        localStorage.removeItem("hubbcc_usuario");
       }
     }
-    setIsLoading(false);
+    setCarregando(false);
   }, []);
 
-  const isAuthenticated = !!token;
-  const perfil = usuario?.profileType ?? null;
+  // Guarda token e usuario tanto no estado quanto no localStorage.
+  const salvarSessao = useCallback(({ token, usuario: dadosUsuario }) => {
+    localStorage.setItem("hubbcc_token", token);
+    localStorage.setItem("hubbcc_usuario", JSON.stringify(dadosUsuario));
+    setUsuario(dadosUsuario);
+  }, []);
 
-  async function handleLogin(dadosLogin) {
-    const resposta = await apiLogin("/auth/login", dadosLogin);
+  // ENTRAR: chama o service, salva a sessao e devolve o usuario.
+  // Se der erro, o service ja lanca uma Error com mensagem amigavel,
+  // e a tela de login mostra essa mensagem.
+  const entrar = useCallback(
+    async (email, senha) => {
+      const resposta = await authService.login(email, senha);
+      salvarSessao(resposta);
+      return resposta.usuario;
+    },
+    [salvarSessao]
+  );
 
-    if (!resposta?.token || !resposta?.user) {
-      throw new Error("Resposta inesperada do servidor ao fazer login.");
-    }
+  // CADASTRAR: cria a conta e ja deixa o usuario logado.
+  const cadastrar = useCallback(
+    async (dados) => {
+      const resposta = await authService.cadastrar(dados);
+      salvarSessao(resposta);
+      return resposta.usuario;
+    },
+    [salvarSessao]
+  );
 
-    setUsuario(resposta.user);
-    setToken(resposta.token);
-    localStorage.setItem("user_token", resposta.token);
-    localStorage.setItem("user_data", JSON.stringify(resposta.user));
-    api.defaults.headers.common["Authorization"] = `Bearer ${resposta.token}`;
-
-    return resposta.user;
-  }
-
-  async function handleRegister(registerData) {
-    if (!PERFIS_CADASTRAVEIS.includes(registerData.profileType)) {
-      throw new Error("Perfil inválido para autocadastro.");
-    }
-
-    return apiRegister("/auth/cadastro", registerData);
-  }
-
-  function handleLogout() {
+  // SAIR: limpa tudo.
+  const sair = useCallback(() => {
+    localStorage.removeItem("hubbcc_token");
+    localStorage.removeItem("hubbcc_usuario");
     setUsuario(null);
-    setToken("");
-    localStorage.removeItem("user_token");
-    localStorage.removeItem("user_data");
-    delete api.defaults.headers.common["Authorization"];
-  }
+  }, []);
 
-  function updateUserData(newUserData) {
-    setUsuario((atual) => {
-      const atualizado = { ...atual, ...newUserData };
-      localStorage.setItem("user_data", JSON.stringify(atualizado));
+  // Atualiza dados do perfil em memoria (usado na tela de Perfil).
+  const atualizarUsuario = useCallback((novosDados) => {
+    setUsuario((anterior) => {
+      const atualizado = { ...anterior, ...novosDados };
+      localStorage.setItem("hubbcc_usuario", JSON.stringify(atualizado));
       return atualizado;
     });
-  }
+  }, []);
 
-  const authContextValue = useMemo(
-    () => ({
-      usuario,
-      perfil,
-      isAuthenticated,
-      isLoading,
-      handleLogin,
-      handleRegister,
-      handleLogout,
-      updateUserData,
-    }),
-    [usuario, perfil, isAuthenticated, isLoading]
-  );
+  // Tudo que colocarmos em "value" fica acessivel via useAuth().
+  const value = {
+    usuario,
+    carregando,
+    autenticado: Boolean(usuario),
+    entrar,
+    cadastrar,
+    sair,
+    atualizarUsuario,
+  };
 
-  return (
-    <AuthContext.Provider value={authContextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-
-  if (context === undefined) {
-    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
-  }
-
-  return context;
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}

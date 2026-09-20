@@ -1,68 +1,90 @@
-// Cliente falso para o front funcionar isolado, sem backend.
-// Mesma assinatura que o AuthContext espera (login/register), então trocar
-// por chamadas reais de API depois é só trocar este arquivo.
-import { listarUsuarios, salvarUsuarios } from "./mockDb";
-import { PERFIS_CADASTRAVEIS } from "../utils/perfis";
+/* ---------------------------------------------------------------------------
+   api/axios.js
+   INSTANCIA UNICA DO AXIOS usada por todo o sistema.
 
-const atraso = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+   Toda chamada HTTP do HubBCC passa por aqui. Isso permite configurar em um
+   unico lugar: URL base, timeout, token de autenticacao e tratamento de erro.
 
-function gerarToken(usuario) {
-  return btoa(`${usuario.id}:${usuario.email}:${Date.now()}`);
-}
+   >>> COMO LIGAR O BACKEND REAL (quando existir) <<<
+   1) Crie um arquivo ".env" na pasta frontend com:
+        VITE_API_URL=http://localhost:8080/api
+        VITE_USAR_MOCK=false
+   2) Pronto. Com VITE_USAR_MOCK=false o mock nao e ativado e o axios passa a
+      falar com o servidor de verdade. Nenhuma tela precisa ser alterada,
+      porque todas elas conversam com src/service/*, e nao com o axios direto.
+--------------------------------------------------------------------------- */
 
-export async function login(_url, dados) {
-  await atraso(400);
-  const usuarios = listarUsuarios();
-  const encontrado = usuarios.find(
-    (u) => u.email === dados.email && u.senha === dados.senha
-  );
+import axios from "axios";
 
-  if (!encontrado) {
-    const erro = new Error("Credenciais inválidas");
-    erro.response = { status: 401, data: { error: "E-mail ou senha incorretos." } };
-    throw erro;
+// Le as variaveis de ambiente do Vite (tudo que comeca com VITE_).
+// Se nao existirem, usamos valores padrao voltados para o modo mock.
+const URL_BASE = import.meta.env.VITE_API_URL ?? "/api";
+const USAR_MOCK = import.meta.env.VITE_USAR_MOCK !== "false";
+
+// Instancia configurada do axios.
+export const api = axios.create({
+  baseURL: URL_BASE,
+  timeout: 10000, // 10s: se o servidor nao responder, a promessa e rejeitada
+  headers: { "Content-Type": "application/json" },
+});
+
+/* -------------------------------------------------------------------------
+   INTERCEPTOR DE REQUISICAO
+   Roda ANTES de cada chamada sair do navegador. Usamos para anexar o token
+   do usuario logado no cabecalho Authorization.
+------------------------------------------------------------------------- */
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("hubbcc_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+});
 
-  const { senha, ...usuarioSemSenha } = encontrado;
-  return { token: gerarToken(encontrado), user: usuarioSemSenha };
-}
+/* -------------------------------------------------------------------------
+   INTERCEPTOR DE RESPOSTA
+   Roda DEPOIS que o servidor responde. Usamos para:
+   - devolver um erro com mensagem amigavel (em vez do objeto cru do axios);
+   - deslogar automaticamente quando o token expira (HTTP 401).
+------------------------------------------------------------------------- */
+api.interceptors.response.use(
+  // Caso de sucesso: nao mexemos em nada, so repassamos a resposta.
+  (resposta) => resposta,
 
-export async function register(_url, dados) {
-  await atraso(400);
-  const usuarios = listarUsuarios();
+  // Caso de erro:
+  (erro) => {
+    const status = erro.response?.status;
 
-  if (!PERFIS_CADASTRAVEIS.includes(dados.profileType)) {
-    const erro = new Error("Perfil inválido");
-    erro.response = { status: 400, data: { error: "Perfil inválido para autocadastro." } };
-    throw erro;
+    // 401 = nao autenticado. Limpamos a sessao e mandamos para o login.
+    if (status === 401) {
+      localStorage.removeItem("hubbcc_token");
+      localStorage.removeItem("hubbcc_usuario");
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+    }
+
+    // Mensagem amigavel: prioriza a mensagem enviada pelo servidor.
+    const mensagem =
+      erro.response?.data?.mensagem ||
+      erro.response?.data?.message ||
+      (status === 403 ? "Voce nao tem permissao para esta acao." : null) ||
+      (status === 404 ? "Registro nao encontrado." : null) ||
+      "Nao foi possivel completar a operacao. Tente novamente.";
+
+    return Promise.reject(new Error(mensagem));
   }
+);
 
-  if (usuarios.some((u) => u.email === dados.email)) {
-    const erro = new Error("E-mail já cadastrado");
-    erro.response = { status: 409, data: { error: "Este e-mail já está cadastrado." } };
-    throw erro;
-  }
-
-  const novo = {
-    id: usuarios.length + 1,
-    firstName: dados.firstName,
-    lastName: dados.lastName,
-    email: dados.email,
-    matricula: dados.matricula,
-    profileType: dados.profileType,
-    senha: dados.password,
-  };
-
-  salvarUsuarios([...usuarios, novo]);
-  return { message: "Cadastro realizado com sucesso." };
+/* -------------------------------------------------------------------------
+   ATIVACAO DO MOCK
+   Só entra em acao no modo mock. O import dinamico garante que o codigo do
+   mock nem sequer entra no build de producao quando VITE_USAR_MOCK=false.
+------------------------------------------------------------------------- */
+if (USAR_MOCK) {
+  const { ativarMock } = await import("./mockAdapter.js");
+  ativarMock(api);
+  console.info("[HubBCC] Modo MOCK ativo — os dados vem de src/mocks/db.js");
 }
-
-const api = {
-  defaults: {
-    headers: {
-      common: {},
-    },
-  },
-};
 
 export default api;
