@@ -120,4 +120,4 @@ Assim, a coluna "Responsável" significa que aquela pessoa fica encarregada de a
 
 ## Referências
 
-O documento de prototipagem inicial pode ser consultado em [01-prototipagem.md](./01-prototipagem.md).
+O documento de prototipagem inicial pode ser consultado em [01-prototipagem.md](../initial-prototyping/01-prototipagem.md).
