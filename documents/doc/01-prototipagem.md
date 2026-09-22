@@ -1,8 +1,8 @@
 # Prototipagem – Semana 04
 
-**Disciplina:** [preencher]  
+**Disciplina:** PSW
 **Equipe:** Geovanne Gomes de Souza, Marina Motta Sampaio, Mina Iura Mathias Monteiro e Samuel Trindade Sabino da Silva  
-**Data de entrega:** [preencher]
+**Data de entrega:** 29/09/2026
 
 ## Sumário
 
