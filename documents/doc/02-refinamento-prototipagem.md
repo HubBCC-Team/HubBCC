@@ -119,3 +119,5 @@ Por isso:
 Assim, a coluna "Responsável" significa que aquela pessoa fica encarregada de acompanhar e desenvolver aquele caso de uso no trabalho, incluindo sua especificação, implementação/prototipação e verificação de que a funcionalidade está de acordo com os requisitos definidos.
 
 ## Referências
+
+O documento de prototipagem inicial pode ser consultado em [01-prototipagem.md](./01-prototipagem.md).
