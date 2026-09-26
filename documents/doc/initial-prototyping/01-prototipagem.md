@@ -83,6 +83,10 @@ Dessa forma, o HubBCC permite que o aluno encontre oportunidades, obtenha ou ofe
 19. Registrar atividade complementar
 20. Consultar atividades e horas complementares
 
+### Diagrama de Casos de Uso
+
+![Diagrama de casos de uso do HubBCC](../../assets/diagrama-casos-de-uso.png)
+
 ## 5. Definição das entidades de domínio
 
 Entidades:
