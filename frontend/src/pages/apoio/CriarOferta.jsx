@@ -18,6 +18,7 @@ import Cabecalho from "../../components/ui/Cabecalho";
 import Campo, { CampoSelecao, CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import { iniciaisDe } from "../../utils/formatadores";
+import Alerta from "../../components/ui/Alerta";
 
 const DIAS = ["Segunda", "Terca", "Quarta", "Quinta", "Sexta"];
 const FAIXAS = ["08:00", "10:00", "14:00", "16:00", "18:00", "20:00"];
@@ -95,10 +96,11 @@ export default function CriarOferta() {
         subtitulo="Ofereca monitoria ou tutoria para outros alunos do curso"
       />
 
+
       {erro && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
-          {erro}
-        </div>
+        <Alerta variante="erro" className="mb-4">
+           {erro}
+        </Alerta>
       )}
 
       <form onSubmit={aoEnviar} className="grid gap-4 lg:grid-cols-3">
