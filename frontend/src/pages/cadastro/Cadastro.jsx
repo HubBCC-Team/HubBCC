@@ -13,6 +13,7 @@ import { useAuth } from "../../contexts/useAuth";
 import { useFormulario } from "../../hooks/useFormulario";
 import Campo, { CampoSelecao } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
+import Alerta from "../../components/ui/Alerta";
 
 const PERIODOS = ["1o periodo", "2o periodo", "3o periodo", "4o periodo", "5o periodo", "6o periodo", "7o periodo", "8o periodo"];
 
@@ -73,11 +74,11 @@ export default function Cadastro() {
       <h1 className="text-2xl font-semibold text-slate-900">Criar conta</h1>
       <p className="mt-1 text-sm text-slate-500">Use seu e-mail institucional.</p>
 
-      {erro && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
-          {erro}
-        </div>
-      )}
+       {erro && (
+         <Alerta variante="erro" className="mt-4">
+            {erro}
+         </Alerta>
+       )}
 
       <form onSubmit={aoEnviar} className="mt-6 space-y-4">
         {/* grid-cols-2: dois campos lado a lado */}
