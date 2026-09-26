@@ -12,6 +12,7 @@ import { KeyRound, MailCheck, ArrowLeft } from "lucide-react";
 import { recuperarSenha } from "../../service/authService";
 import Campo from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
+import Alerta from "../../components/ui/Alerta";
 
 export default function RecuperarSenha() {
   const [email, setEmail] = useState("");
@@ -64,9 +65,9 @@ export default function RecuperarSenha() {
       </p>
 
       {erro && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
+        <Alerta variante="erro" className="mt-4">
           {erro}
-        </div>
+        </Alerta>
       )}
 
       <form onSubmit={aoEnviar} className="mt-6 space-y-4 text-left">
