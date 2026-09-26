@@ -19,6 +19,7 @@ import { useAuth } from "../../contexts/useAuth";
 import { useFormulario } from "../../hooks/useFormulario";
 import Campo from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
+import Alerta from "../../components/ui/Alerta";
 
 export default function Login() {
   const { entrar } = useAuth();
@@ -55,9 +56,9 @@ export default function Login() {
 
       {/* Mensagem de erro do login */}
       {erro && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
-          {erro}
-        </div>
+        <Alerta variante="erro" className="mt-4">
+         {erro}
+        </Alerta>
       )}
 
       <form onSubmit={aoEnviar} className="mt-6 space-y-4">
