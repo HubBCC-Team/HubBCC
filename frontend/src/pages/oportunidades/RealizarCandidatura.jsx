@@ -17,6 +17,7 @@ import Botao from "../../components/ui/Botao";
 import Selo from "../../components/ui/Selo";
 import { Carregando, Erro } from "../../components/ui/Estado";
 import { formatarData } from "../../utils/formatadores";
+import Alerta from "../../components/ui/Alerta";
 
 const ETAPAS = ["Dados", "Motivacao", "Confirmacao"];
 
@@ -87,9 +88,9 @@ export default function RealizarCandidatura() {
       </div>
 
       {erroEnvio && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
+        <Alerta variante="erro" className="mb-4">
           {erroEnvio}
-        </div>
+        </Alerta>
       )}
 
       <div className="grid gap-4 lg:grid-cols-3">
