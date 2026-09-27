@@ -16,6 +16,7 @@ import Cabecalho from "../../components/ui/Cabecalho";
 import Campo, { CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import { ProgressoCircular } from "../../components/ui/Progresso";
+import Alerta from "../../components/ui/Alerta";
 
 // Categorias exibidas como cartoes clicaveis.
 const CATEGORIAS = [
@@ -75,9 +76,9 @@ export default function RegistrarAtividade() {
       />
 
       {erro && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
-          {erro}
-        </div>
+        <Alerta variante="erro" className="mb-4">
+         {erro}
+       </Alerta>
       )}
 
       <form onSubmit={aoEnviar} className="grid gap-4 lg:grid-cols-3">
