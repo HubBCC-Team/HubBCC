@@ -27,6 +27,7 @@ import Estrelas from "../../components/ui/Estrelas";
 import { SeloSituacao } from "../../components/ui/Selo";
 import { Carregando, Erro, Vazio } from "../../components/ui/Estado";
 import { formatarData, hojeISO } from "../../utils/formatadores";
+import Alerta from "../../components/ui/Alerta";
 
 const ABAS = ["Confirmado", "Realizado", "Cancelado"];
 
@@ -218,7 +219,11 @@ function ModalReagendar({ agendamento, aoFechar, aoSalvar }) {
             </p>
           </div>
 
-          {erro && <p className="mb-3 text-xs text-erro">{erro}</p>}
+          {erro && (
+            <Alerta variante="erro" className="mb-3">
+              {erro}
+            </Alerta>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Campo
