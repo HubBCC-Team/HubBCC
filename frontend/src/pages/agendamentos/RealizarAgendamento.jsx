@@ -22,6 +22,7 @@ import Cabecalho from "../../components/ui/Cabecalho";
 import Botao from "../../components/ui/Botao";
 import { Carregando, Erro } from "../../components/ui/Estado";
 import { formatarData, formatarValor } from "../../utils/formatadores";
+import Alerta from "../../components/ui/Alerta";
 
 // Nomes usados na grade do calendario e na comparacao com oferta.horarios.
 const NOMES_DIA_CURTO = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
@@ -113,9 +114,9 @@ export default function RealizarAgendamento() {
       <Cabecalho titulo="Realizar agendamento" subtitulo={oferta.titulo} />
 
       {erroEnvio && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
-          {erroEnvio}
-        </div>
+        <Alerta variante="erro" className="mb-4">
+         {erroEnvio}
+        </Alerta>
       )}
 
       <div className="grid gap-4 lg:grid-cols-3">
