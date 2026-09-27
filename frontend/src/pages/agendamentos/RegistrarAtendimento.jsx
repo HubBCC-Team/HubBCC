@@ -16,6 +16,7 @@ import Campo, { CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import { Carregando, Erro } from "../../components/ui/Estado";
 import { formatarData } from "../../utils/formatadores";
+import Alerta from "../../components/ui/Alerta";
 
 export default function RegistrarAtendimento() {
   const { id } = useParams();
@@ -66,11 +67,11 @@ export default function RegistrarAtendimento() {
         subtitulo="Informe como foi a sessao para concluir o agendamento"
       />
 
-      {erroEnvio && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-erro">
-          {erroEnvio}
-        </div>
-      )}
+        {erroEnvio && (
+          <Alerta variante="erro" className="mb-4">
+           {erroEnvio}
+         </Alerta>
+        )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="cartao space-y-5 p-6 lg:col-span-2">
