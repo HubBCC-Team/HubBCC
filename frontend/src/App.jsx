@@ -37,10 +37,12 @@ import ListaOportunidades from "./pages/oportunidades/ListaOportunidades";
 import DetalheOportunidade from "./pages/oportunidades/DetalheOportunidade";
 import CadastrarOportunidade from "./pages/oportunidades/CadastrarOportunidade";
 import RealizarCandidatura from "./pages/oportunidades/RealizarCandidatura";
+import EditarOportunidade from "./pages/oportunidades/EditarOportunidade";
 import MinhasCandidaturas from "./pages/oportunidades/MinhasCandidaturas";
 import ListaApoio from "./pages/apoio/ListaApoio";
 import DetalheMonitoria from "./pages/apoio/DetalheMonitoria";
 import CriarOferta from "./pages/apoio/CriarOferta";
+import EditarOferta from "./pages/apoio/EditarOferta";
 import RealizarAgendamento from "./pages/agendamentos/RealizarAgendamento";
 import MeusAgendamentos from "./pages/agendamentos/MeusAgendamentos";
 import RegistrarAtendimento from "./pages/agendamentos/RegistrarAtendimento";
@@ -81,6 +83,7 @@ export default function App() {
               <Route path="oportunidades" element={<ListaOportunidades />} />
               <Route path="oportunidades/nova" element={<CadastrarOportunidade />} />
               <Route path="oportunidades/:id" element={<DetalheOportunidade />} />
+              <Route path="oportunidades/:id/editar" element={<EditarOportunidade />} />
               <Route path="oportunidades/:id/candidatura" element={<RealizarCandidatura />} />
               <Route path="candidaturas" element={<MinhasCandidaturas />} />
 
@@ -89,6 +92,7 @@ export default function App() {
               <Route path="apoio/nova" element={<CriarOferta />} />
               <Route path="apoio/:id" element={<DetalheMonitoria />} />
               <Route path="apoio/:id/agendar" element={<RealizarAgendamento />} />
+              <Route path="apoio/:id/editar" element={<EditarOferta />} />
 
               {/* --- Agendamentos (casos de uso 14 a 18) --- */}
               <Route path="agendamentos" element={<MeusAgendamentos />} />

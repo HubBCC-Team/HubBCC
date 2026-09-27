@@ -1,60 +1,80 @@
 /* ---------------------------------------------------------------------------
-   pages/apoio/CriarOferta.jsx
-   TELA 14 — Criar oferta de apoio ("/app/apoio/nova").
+   pages/apoio/EditarOferta.jsx
+   TELA — Editar oferta de apoio (rota "/app/apoio/:id/editar").
 
-   Caso de uso 9 (prioridade 4 do projeto — Samuel).
+   Caso de uso 12. Carrega a oferta com buscarOferta(id) e reaproveita a
+   GradeHorarios, ja vindo com os horarios salvos marcados.
 
-   A grade de horarios agora mora em components/ui/GradeHorarios.jsx
-   (reaproveitada tambem pela EditarOferta). Aqui continua so a logica de
-   marcar/desmarcar o array "horarios".
+   IMPORTANTE (regra dos hooks): so podemos usar useState/useFormulario depois
+   que os dados chegaram, entao o componente de fora (EditarOferta) so cuida
+   de buscar e mostrar Carregando/Erro; quem de fato tem o formulario e o
+   ConteudoEdicao, que so e criado quando a oferta ja existe.
 --------------------------------------------------------------------------- */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/useAuth";
+import { useParams, useNavigate } from "react-router-dom";
 import { useFormulario } from "../../hooks/useFormulario";
 import { useRequisicao } from "../../hooks/useRequisicao";
-import { listarDisciplinas, criarOferta } from "../../service/apoioService";
+import {
+  listarDisciplinas,
+  buscarOferta,
+  alterarOferta,
+  cancelarOferta,
+} from "../../service/apoioService";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Campo, { CampoSelecao, CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import GradeHorarios from "../../components/ui/GradeHorarios";
-import { iniciaisDe } from "../../utils/formatadores";
 import Alerta from "../../components/ui/Alerta";
+import { Carregando, Erro } from "../../components/ui/Estado";
 
-export default function CriarOferta() {
-  const navegar = useNavigate();
-  const { usuario } = useAuth();
-
+export default function EditarOferta() {
+  const { id } = useParams();
   const disciplinas = useRequisicao(listarDisciplinas, [], []);
 
+  const { dados: oferta, carregando, erro, recarregar } = useRequisicao(
+    () => buscarOferta(id),
+    [id],
+    null
+  );
+
+  if (carregando) return <Carregando />;
+  if (erro) return <Erro mensagem={erro} aoTentarNovamente={recarregar} />;
+  if (!oferta) return null;
+
+  return <ConteudoEdicao id={id} oferta={oferta} disciplinas={disciplinas.dados} />;
+}
+
+// Só existe depois que a oferta já chegou — por isso pode usar
+// useFormulario/useState com os valores dela sem quebrar a regra dos hooks.
+function ConteudoEdicao({ id, oferta, disciplinas }) {
+  const navegar = useNavigate();
+
   const { valores, aoMudar } = useFormulario({
-    titulo: "",
-    disciplinaId: "",
-    assunto: "",
-    tipo: "Tutoria",
-    modalidade: "Presencial",
-    local: "",
-    vagas: 4,
-    gratuita: true,
-    valor: 0,
-    descricao: "",
+    titulo: oferta.titulo,
+    disciplinaId: oferta.disciplinaId,
+    assunto: oferta.assunto,
+    tipo: oferta.tipo,
+    modalidade: oferta.modalidade,
+    local: oferta.local,
+    vagas: oferta.vagas,
+    gratuita: oferta.gratuita,
+    valor: oferta.valor,
+    descricao: oferta.descricao,
   });
 
-  // Horarios selecionados na grade.
-  const [horarios, setHorarios] = useState([]);
+  // Os horarios já vêm salvos: usamos como valor inicial da grade, para
+  // que apareçam marcados assim que a tela abre.
+  const [horarios, setHorarios] = useState(oferta.horarios);
   const [erro, setErro] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
-  // Marca/desmarca uma celula da grade.
   function alternarHorario(dia, inicio) {
-    // Chave unica para identificar a celula (ex.: "Segunda-14:00").
     const chave = `${dia}-${inicio}`;
     const jaSelecionado = horarios.some((h) => h.id === chave);
 
     if (jaSelecionado) {
       setHorarios(horarios.filter((h) => h.id !== chave));
     } else {
-      // Fim = inicio + 2h (regra simples adotada no projeto).
       const fim = `${String(Number(inicio.slice(0, 2)) + 2).padStart(2, "0")}:00`;
       setHorarios([...horarios, { id: chave, dia, inicio, fim }]);
     }
@@ -70,16 +90,13 @@ export default function CriarOferta() {
 
     setEnviando(true);
     try {
-      await criarOferta({
+      await alterarOferta(id, {
         ...valores,
         vagas: Number(valores.vagas),
         valor: valores.gratuita ? 0 : Number(valores.valor),
-        monitorId: usuario.id,
-        monitor: usuario.nome,
-        iniciais: iniciaisDe(usuario.nome),
         horarios,
       });
-      navegar("/app/apoio");
+      navegar(`/app/apoio/${id}`);
     } catch (e) {
       setErro(e.message);
     } finally {
@@ -87,11 +104,17 @@ export default function CriarOferta() {
     }
   }
 
+  async function aoCancelarOferta() {
+    if (!confirm("Deseja realmente cancelar esta oferta? Essa acao nao pode ser desfeita.")) return;
+    await cancelarOferta(id);
+    navegar("/app/apoio");
+  }
+
   return (
     <>
       <Cabecalho
-        titulo="Criar oferta de apoio"
-        subtitulo="Ofereca monitoria ou tutoria para outros alunos do curso"
+        titulo="Editar oferta de apoio"
+        subtitulo="Atualize os dados e a disponibilidade desta oferta"
       />
 
       {erro && (
@@ -102,7 +125,6 @@ export default function CriarOferta() {
 
       <form onSubmit={aoEnviar} className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          {/* ----------------------- Dados da oferta ----------------------- */}
           <div className="cartao space-y-4 p-6">
             <h2 className="titulo-secao">Dados da oferta</h2>
 
@@ -114,7 +136,7 @@ export default function CriarOferta() {
                 name="disciplinaId"
                 required
                 placeholder="Selecione"
-                opcoes={disciplinas.dados.map((d) => ({ valor: d.id, texto: `${d.codigo} - ${d.nome}` }))}
+                opcoes={disciplinas.map((d) => ({ valor: d.id, texto: `${d.codigo} - ${d.nome}` }))}
                 value={valores.disciplinaId}
                 onChange={aoMudar}
               />
@@ -144,11 +166,10 @@ export default function CriarOferta() {
             <CampoTexto rotulo="Descricao" name="descricao" linhas={4} value={valores.descricao} onChange={aoMudar} />
           </div>
 
-          {/* --------------------- Grade de horarios --------------------- */}
+          {/* Grade já vem com os horarios salvos marcados, via valor inicial do useState acima */}
           <GradeHorarios horarios={horarios} aoAlterar={alternarHorario} />
         </div>
 
-        {/* -------------------------- Coluna lateral -------------------------- */}
         <aside className="space-y-4">
           <div className="cartao space-y-4 p-5">
             <h2 className="titulo-secao">Valor do atendimento</h2>
@@ -185,10 +206,13 @@ export default function CriarOferta() {
 
           <div className="cartao space-y-2 p-5">
             <Botao type="submit" larguraTotal carregando={enviando}>
-              Publicar oferta
+              Salvar alteracoes
             </Botao>
             <Botao type="button" variante="contorno" larguraTotal onClick={() => navegar(-1)}>
-              Cancelar
+              Cancelar edicao
+            </Botao>
+            <Botao type="button" variante="perigo" larguraTotal onClick={aoCancelarOferta}>
+              Cancelar oferta
             </Botao>
           </div>
         </aside>

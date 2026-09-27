@@ -5,9 +5,19 @@
    useParams() le o ":id" da URL. Com ele buscamos a oportunidade no service.
 --------------------------------------------------------------------------- */
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, MapPin, Users, Wallet, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  MapPin,
+  Users,
+  Wallet,
+  Clock,
+} from "lucide-react";
 import { useRequisicao } from "../../hooks/useRequisicao";
-import { buscarOportunidade, encerrarOportunidade } from "../../service/oportunidadeService";
+import {
+  buscarOportunidade,
+  encerrarOportunidade,
+} from "../../service/oportunidadeService";
 import { useAuth } from "../../contexts/useAuth";
 import Botao from "../../components/ui/Botao";
 import Selo, { SeloSituacao } from "../../components/ui/Selo";
@@ -19,11 +29,12 @@ export default function DetalheOportunidade() {
   const navegar = useNavigate();
   const { usuario } = useAuth();
 
-  const { dados: item, carregando, erro, recarregar } = useRequisicao(
-    () => buscarOportunidade(id),
-    [id],
-    null
-  );
+  const {
+    dados: item,
+    carregando,
+    erro,
+    recarregar,
+  } = useRequisicao(() => buscarOportunidade(id), [id], null);
 
   if (carregando) return <Carregando />;
   if (erro) return <Erro mensagem={erro} aoTentarNovamente={recarregar} />;
@@ -58,18 +69,25 @@ export default function DetalheOportunidade() {
               <Selo>{item.modalidade}</Selo>
             </div>
 
-            <h1 className="text-xl font-semibold text-slate-900">{item.titulo}</h1>
+            <h1 className="text-xl font-semibold text-slate-900">
+              {item.titulo}
+            </h1>
             <p className="mt-1 text-xs text-slate-500">
               {item.departamento} · {item.responsavel}
             </p>
 
             <h2 className="titulo-secao mt-6">Sobre a oportunidade</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.descricao}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              {item.descricao}
+            </p>
 
             <h2 className="titulo-secao mt-6">Requisitos</h2>
             <ul className="mt-2 space-y-1.5">
               {item.requisitos.map((requisito) => (
-                <li key={requisito} className="flex gap-2 text-sm text-slate-600">
+                <li
+                  key={requisito}
+                  className="flex gap-2 text-sm text-slate-600"
+                >
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-marca-500" />
                   {requisito}
                 </li>
@@ -79,7 +97,10 @@ export default function DetalheOportunidade() {
             <h2 className="titulo-secao mt-6">Atividades previstas</h2>
             <ul className="mt-2 space-y-1.5">
               {item.atividades.map((atividade) => (
-                <li key={atividade} className="flex gap-2 text-sm text-slate-600">
+                <li
+                  key={atividade}
+                  className="flex gap-2 text-sm text-slate-600"
+                >
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
                   {atividade}
                 </li>
@@ -94,10 +115,22 @@ export default function DetalheOportunidade() {
             <h2 className="titulo-secao mb-3">Informacoes</h2>
             <dl className="space-y-3 text-xs">
               <Linha icone={Wallet} rotulo="Bolsa" valor={item.bolsa} />
-              <Linha icone={Clock} rotulo="Carga horaria" valor={item.cargaHoraria} />
-              <Linha icone={Users} rotulo="Vagas" valor={`${item.vagas} vaga(s)`} />
+              <Linha
+                icone={Clock}
+                rotulo="Carga horaria"
+                valor={item.cargaHoraria}
+              />
+              <Linha
+                icone={Users}
+                rotulo="Vagas"
+                valor={`${item.vagas} vaga(s)`}
+              />
               <Linha icone={MapPin} rotulo="Local" valor={item.local} />
-              <Linha icone={CalendarDays} rotulo="Inscricoes ate" valor={formatarData(item.prazoInscricao)} />
+              <Linha
+                icone={CalendarDays}
+                rotulo="Inscricoes ate"
+                valor={formatarData(item.prazoInscricao)}
+              />
             </dl>
 
             {/* Caso de uso 6: candidatar-se (so quando a vaga esta aberta) */}
@@ -119,8 +152,24 @@ export default function DetalheOportunidade() {
 
             {/* Acoes de gestao: so monitor e admin enxergam */}
             {["monitor", "admin"].includes(usuario.perfil) && aberta && (
-              <Botao variante="perigo" larguraTotal className="mt-2" onClick={aoEncerrar}>
+              <Botao
+                variante="perigo"
+                larguraTotal
+                className="mt-2"
+                onClick={aoEncerrar}
+              >
                 Encerrar oportunidade
+              </Botao>
+            )}
+
+            {(usuario.perfil === "admin" || usuario.perfil === "monitor") && (
+              <Botao
+                variante="contorno"
+                larguraTotal
+                className="mt-2"
+                onClick={() => navegar(`/app/oportunidades/${id}/editar`)}
+              >
+                Editar oportunidade
               </Botao>
             )}
           </div>

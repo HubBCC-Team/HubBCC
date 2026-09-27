@@ -9,6 +9,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Users, Wallet, BookOpen } from "lucide-react";
 import { useRequisicao } from "../../hooks/useRequisicao";
 import { buscarOferta } from "../../service/apoioService";
+import { useAuth } from "../../contexts/useAuth";
 import Botao from "../../components/ui/Botao";
 import Selo from "../../components/ui/Selo";
 import Avatar from "../../components/ui/Avatar";
@@ -18,19 +19,30 @@ import { formatarValor } from "../../utils/formatadores";
 
 // Avaliacoes ilustrativas. Quando houver backend, troque por uma chamada real.
 const AVALIACOES_EXEMPLO = [
-  { id: 1, autor: "Lucas F.", nota: 5, texto: "Explicou passo a passo, muito didatico." },
-  { id: 2, autor: "Paula R.", nota: 4, texto: "Otimo atendimento, so faltou tempo." },
+  {
+    id: 1,
+    autor: "Lucas F.",
+    nota: 5,
+    texto: "Explicou passo a passo, muito didatico.",
+  },
+  {
+    id: 2,
+    autor: "Paula R.",
+    nota: 4,
+    texto: "Otimo atendimento, so faltou tempo.",
+  },
 ];
 
 export default function DetalheMonitoria() {
   const { id } = useParams();
   const navegar = useNavigate();
-
-  const { dados: oferta, carregando, erro, recarregar } = useRequisicao(
-    () => buscarOferta(id),
-    [id],
-    null
-  );
+  const { usuario } = useAuth();
+  const {
+    dados: oferta,
+    carregando,
+    erro,
+    recarregar,
+  } = useRequisicao(() => buscarOferta(id), [id], null);
 
   if (carregando) return <Carregando />;
   if (erro) return <Erro mensagem={erro} aoTentarNovamente={recarregar} />;
@@ -59,7 +71,9 @@ export default function DetalheMonitoria() {
                   <Selo>{oferta.modalidade}</Selo>
                   {oferta.gratuita && <Selo tom="sucesso">Gratuita</Selo>}
                 </div>
-                <h1 className="text-lg font-semibold text-slate-900">{oferta.titulo}</h1>
+                <h1 className="text-lg font-semibold text-slate-900">
+                  {oferta.titulo}
+                </h1>
                 <p className="text-xs text-slate-500">
                   {oferta.disciplina} · com {oferta.monitor}
                 </p>
@@ -73,9 +87,12 @@ export default function DetalheMonitoria() {
             </div>
 
             <h2 className="titulo-secao mt-6">Sobre o atendimento</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{oferta.descricao}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              {oferta.descricao}
+            </p>
             <p className="mt-2 text-sm text-slate-600">
-              <strong className="text-slate-800">Assuntos:</strong> {oferta.assunto}
+              <strong className="text-slate-800">Assuntos:</strong>{" "}
+              {oferta.assunto}
             </p>
           </div>
 
@@ -88,7 +105,9 @@ export default function DetalheMonitoria() {
                   key={horario.id}
                   className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3"
                 >
-                  <span className="text-xs font-medium text-slate-800">{horario.dia}</span>
+                  <span className="text-xs font-medium text-slate-800">
+                    {horario.dia}
+                  </span>
                   <span className="text-xs text-slate-500">
                     {horario.inicio} - {horario.fim}
                   </span>
@@ -104,10 +123,14 @@ export default function DetalheMonitoria() {
               {AVALIACOES_EXEMPLO.map((avaliacao) => (
                 <li key={avaliacao.id} className="rounded-lg bg-slate-50 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-slate-800">{avaliacao.autor}</span>
+                    <span className="text-xs font-medium text-slate-800">
+                      {avaliacao.autor}
+                    </span>
                     <Estrelas nota={avaliacao.nota} />
                   </div>
-                  <p className="mt-1.5 text-xs text-slate-600">{avaliacao.texto}</p>
+                  <p className="mt-1.5 text-xs text-slate-600">
+                    {avaliacao.texto}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -118,19 +141,46 @@ export default function DetalheMonitoria() {
         <aside className="cartao h-fit p-5">
           <h2 className="titulo-secao mb-3">Resumo</h2>
           <dl className="space-y-3 text-xs">
-            <Linha icone={BookOpen} rotulo="Disciplina" valor={oferta.disciplina} />
+            <Linha
+              icone={BookOpen}
+              rotulo="Disciplina"
+              valor={oferta.disciplina}
+            />
             <Linha icone={MapPin} rotulo="Local" valor={oferta.local} />
-            <Linha icone={Users} rotulo="Vagas livres" valor={`${vagasRestantes} de ${oferta.vagas}`} />
-            <Linha icone={Wallet} rotulo="Valor" valor={formatarValor(oferta.valor)} />
+            <Linha
+              icone={Users}
+              rotulo="Vagas livres"
+              valor={`${vagasRestantes} de ${oferta.vagas}`}
+            />
+            <Linha
+              icone={Wallet}
+              rotulo="Valor"
+              valor={formatarValor(oferta.valor)}
+            />
           </dl>
 
           {vagasRestantes > 0 ? (
-            <Botao as={Link} to={`/app/apoio/${oferta.id}/agendar`} larguraTotal className="mt-5">
+            <Botao
+              as={Link}
+              to={`/app/apoio/${oferta.id}/agendar`}
+              larguraTotal
+              className="mt-5"
+            >
               Agendar horario
             </Botao>
           ) : (
             <Botao larguraTotal className="mt-5" disabled>
               Sem vagas disponiveis
+            </Botao>
+          )}
+          {oferta.monitorId === usuario.id && (
+            <Botao
+              variante="contorno"
+              larguraTotal
+              className="mt-2"
+              onClick={() => navegar(`/app/apoio/${id}/editar`)}
+            >
+              Editar oferta
             </Botao>
           )}
         </aside>
