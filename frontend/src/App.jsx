@@ -81,11 +81,14 @@ export default function App() {
 
               {/* --- Oportunidades academicas (casos de uso 1 a 8) --- */}
               <Route path="oportunidades" element={<ListaOportunidades />} />
-              <Route path="oportunidades/nova" element={<CadastrarOportunidade />} />
               <Route path="oportunidades/:id" element={<DetalheOportunidade />} />
-              <Route path="oportunidades/:id/editar" element={<EditarOportunidade />} />
               <Route path="oportunidades/:id/candidatura" element={<RealizarCandidatura />} />
               <Route path="candidaturas" element={<MinhasCandidaturas />} />
+
+               <Route element={<RotaPrivada perfis={["monitor", "admin"]} />}>
+               <Route path="oportunidades/nova" element={<CadastrarOportunidade />} />
+               <Route path="oportunidades/:id/editar" element={<EditarOportunidade />} />
+            </Route>
 
               {/* --- Apoio academico (casos de uso 9 a 13) --- */}
               <Route path="apoio" element={<ListaApoio />} />
