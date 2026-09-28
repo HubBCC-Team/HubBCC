@@ -18,16 +18,16 @@ import {
   buscarOportunidade,
   encerrarOportunidade,
 } from "../../service/oportunidadeService";
-import { useAuth } from "../../contexts/useAuth";
 import Botao from "../../components/ui/Botao";
 import Selo, { SeloSituacao } from "../../components/ui/Selo";
 import { Carregando, Erro } from "../../components/ui/Estado";
 import { formatarData } from "../../utils/formatadores";
+import { usePermissao } from "../../hooks/usePermissao";
 
 export default function DetalheOportunidade() {
   const { id } = useParams();
   const navegar = useNavigate();
-  const { usuario } = useAuth();
+  const { podeGerenciar } = usePermissao();
 
   const {
     dados: item,
@@ -151,7 +151,7 @@ export default function DetalheOportunidade() {
             )}
 
             {/* Acoes de gestao: so monitor e admin enxergam */}
-            {["monitor", "admin"].includes(usuario.perfil) && aberta && (
+            podeGerenciar && aberta && (
               <Botao
                 variante="perigo"
                 larguraTotal
@@ -162,7 +162,7 @@ export default function DetalheOportunidade() {
               </Botao>
             )}
 
-            {(usuario.perfil === "admin" || usuario.perfil === "monitor") && (
+            podeGerenciar && (
               <Botao
                 variante="contorno"
                 larguraTotal
