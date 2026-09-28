@@ -6,14 +6,21 @@
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Trash2, FileText } from "lucide-react";
+import { Plus, Trash2, FileText, Pencil } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useRequisicao } from "../../hooks/useRequisicao";
-import { listarAtividades, resumoHoras, excluirAtividade } from "../../service/atividadeService";
+import {
+  listarAtividades,
+  resumoHoras,
+  excluirAtividade,
+} from "../../service/atividadeService";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Botao from "../../components/ui/Botao";
 import { SeloSituacao } from "../../components/ui/Selo";
-import { ProgressoCircular, BarraProgresso } from "../../components/ui/Progresso";
+import {
+  ProgressoCircular,
+  BarraProgresso,
+} from "../../components/ui/Progresso";
 import { Carregando, Erro, Vazio } from "../../components/ui/Estado";
 import { formatarData } from "../../utils/formatadores";
 
@@ -24,11 +31,16 @@ export default function AtividadesHoras() {
   const [categoria, setCategoria] = useState("Todas");
 
   const atividades = useRequisicao(
-    () => listarAtividades(usuario.id, categoria === "Todas" ? {} : { categoria }),
+    () =>
+      listarAtividades(usuario.id, categoria === "Todas" ? {} : { categoria }),
     [usuario.id, categoria],
-    []
+    [],
   );
-  const resumo = useRequisicao(() => resumoHoras(usuario.id), [usuario.id], null);
+  const resumo = useRequisicao(
+    () => resumoHoras(usuario.id),
+    [usuario.id],
+    null,
+  );
 
   async function aoExcluir(id) {
     if (!confirm("Deseja excluir esta atividade?")) return;
@@ -39,7 +51,13 @@ export default function AtividadesHoras() {
   }
 
   if (atividades.carregando || resumo.carregando) return <Carregando />;
-  if (atividades.erro) return <Erro mensagem={atividades.erro} aoTentarNovamente={atividades.recarregar} />;
+  if (atividades.erro)
+    return (
+      <Erro
+        mensagem={atividades.erro}
+        aoTentarNovamente={atividades.recarregar}
+      />
+    );
 
   return (
     <>
@@ -60,9 +78,14 @@ export default function AtividadesHoras() {
             {resumo.dados.horasAprovadas}
             <span className="text-base font-normal text-slate-400">h</span>
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">Meta: {resumo.dados.meta}h</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Meta: {resumo.dados.meta}h
+          </p>
           <div className="mt-3">
-            <BarraProgresso percentual={resumo.dados.percentual} cor="bg-sucesso" />
+            <BarraProgresso
+              percentual={resumo.dados.percentual}
+              cor="bg-sucesso"
+            />
           </div>
         </div>
 
@@ -84,7 +107,9 @@ export default function AtividadesHoras() {
                   <span className="font-medium text-slate-800">{horas}h</span>
                 </div>
                 {/* Percentual em relacao a meta total */}
-                <BarraProgresso percentual={(horas / resumo.dados.meta) * 100} />
+                <BarraProgresso
+                  percentual={(horas / resumo.dados.meta) * 100}
+                />
               </li>
             ))}
           </ul>
@@ -138,18 +163,54 @@ export default function AtividadesHoras() {
               <tbody className="divide-y divide-slate-100">
                 {atividades.dados.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/60">
-                    <td className="px-5 py-3 font-medium text-slate-800">{item.titulo}</td>
-                    <td className="px-5 py-3 text-slate-500">{item.categoria}</td>
-                    <td className="px-5 py-3 text-slate-500">{formatarData(item.data)}</td>
-                    <td className="px-5 py-3 font-medium text-slate-800">{item.horas}h</td>
+                    <td className="px-5 py-3 font-medium text-slate-800">
+                      {item.titulo}
+                    </td>
+                    <td className="px-5 py-3 text-slate-500">
+                      {item.categoria}
+                    </td>
+                    <td className="px-5 py-3 text-slate-500">
+                      {formatarData(item.data)}
+                    </td>
+                    <td className="px-5 py-3 font-medium text-slate-800">
+                      {item.horas}h
+                    </td>
                     <td className="px-5 py-3">
                       <SeloSituacao situacao={item.situacao} />
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex justify-end gap-3 text-slate-400">
-                        <button type="button" title={item.comprovante} className="hover:text-marca-700">
+                        {/* Botão de Comprovante */}
+                        <button
+                          type="button"
+                          title={item.comprovante}
+                          className="hover:text-marca-700"
+                        >
                           <FileText size={15} />
                         </button>
+
+                        {/* Botão de Editar (Novo) */}
+                        {item.situacao === "Aprovada" ? (
+                          <button
+                            disabled
+                            title="Atividades aprovadas não podem ser editadas"
+                          >
+                            <Pencil
+                              size={15}
+                              className="cursor-not-allowed text-slate-300"
+                            />
+                          </button>
+                        ) : (
+                          <Link
+                            to={`/app/atividades/${item.id}/editar`}
+                            className="text-slate-500 hover:text-marca-600 transition"
+                            title="Editar atividade"
+                          >
+                            <Pencil size={15} />
+                          </Link>
+                        )}
+
+                        {/* Botão de Excluir */}
                         <button
                           type="button"
                           onClick={() => aoExcluir(item.id)}

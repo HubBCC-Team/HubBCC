@@ -52,12 +52,15 @@ export function ativarMock(instanciaAxios) {
      AUTENTICACAO
   ======================================================================= */
 
-  // POST /auth/login — valida email e senha contra a lista de usuarios.
+  // POST /auth/nova-senha - define uma nova senha
+  mock.onPost("/auth/nova-senha").reply(200, { mensagem: "Senha alterada." });
   mock.onPost("/auth/login").reply((config) => {
     const { email, senha } = corpo(config);
     const banco = lerBanco();
     const usuario = banco.usuarios.find(
-      (u) => u.email.toLowerCase() === String(email).toLowerCase() && u.senha === senha
+      (u) =>
+        u.email.toLowerCase() === String(email).toLowerCase() &&
+        u.senha === senha,
     );
 
     if (!usuario) {
@@ -66,7 +69,10 @@ export function ativarMock(instanciaAxios) {
 
     // Nunca devolvemos a senha para o front.
     const { senha: _, ...usuarioSemSenha } = usuario;
-    return [200, { token: `token-falso-${usuario.id}`, usuario: usuarioSemSenha }];
+    return [
+      200,
+      { token: `token-falso-${usuario.id}`, usuario: usuarioSemSenha },
+    ];
   });
 
   // POST /auth/cadastro — cria um novo aluno.
@@ -74,7 +80,11 @@ export function ativarMock(instanciaAxios) {
     const dados = corpo(config);
     const banco = lerBanco();
 
-    if (banco.usuarios.some((u) => u.email.toLowerCase() === String(dados.email).toLowerCase())) {
+    if (
+      banco.usuarios.some(
+        (u) => u.email.toLowerCase() === String(dados.email).toLowerCase(),
+      )
+    ) {
       return [409, { mensagem: "Ja existe uma conta com este e-mail." }];
     }
 
@@ -107,10 +117,12 @@ export function ativarMock(instanciaAxios) {
 
   // POST /auth/recuperar-senha — sempre responde sucesso (nao revela se o
   // e-mail existe, que e o comportamento recomendado em seguranca).
-  mock.onPost("/auth/recuperar-senha").reply(() => [
-    200,
-    { mensagem: "Se o e-mail estiver cadastrado, enviaremos as instrucoes." },
-  ]);
+  mock
+    .onPost("/auth/recuperar-senha")
+    .reply(() => [
+      200,
+      { mensagem: "Se o e-mail estiver cadastrado, enviaremos as instrucoes." },
+    ]);
 
   /* =======================================================================
      DISCIPLINAS
@@ -123,7 +135,12 @@ export function ativarMock(instanciaAxios) {
 
   // GET /oportunidades?busca=&tipo=&modalidade=&situacao=
   mock.onGet("/oportunidades").reply((config) => {
-    const { busca = "", tipo = "", modalidade = "", situacao = "" } = config.params || {};
+    const {
+      busca = "",
+      tipo = "",
+      modalidade = "",
+      situacao = "",
+    } = config.params || {};
     let lista = lerBanco().oportunidades;
 
     if (busca) {
@@ -132,7 +149,7 @@ export function ativarMock(instanciaAxios) {
         (o) =>
           o.titulo.toLowerCase().includes(termo) ||
           o.area.toLowerCase().includes(termo) ||
-          o.descricao.toLowerCase().includes(termo)
+          o.descricao.toLowerCase().includes(termo),
       );
     }
     if (tipo) lista = lista.filter((o) => o.tipo === tipo);
@@ -144,8 +161,12 @@ export function ativarMock(instanciaAxios) {
 
   // GET /oportunidades/:id
   mock.onGet(/\/oportunidades\/\d+$/).reply((config) => {
-    const item = lerBanco().oportunidades.find((o) => o.id === idDaUrl(config.url));
-    return item ? [200, item] : [404, { mensagem: "Oportunidade nao encontrada." }];
+    const item = lerBanco().oportunidades.find(
+      (o) => o.id === idDaUrl(config.url),
+    );
+    return item
+      ? [200, item]
+      : [404, { mensagem: "Oportunidade nao encontrada." }];
   });
 
   // POST /oportunidades — cadastro de nova oportunidade.
@@ -167,7 +188,9 @@ export function ativarMock(instanciaAxios) {
   // PUT /oportunidades/:id — alterar / encerrar.
   mock.onPut(/\/oportunidades\/\d+$/).reply((config) => {
     const banco = lerBanco();
-    const i = banco.oportunidades.findIndex((o) => o.id === idDaUrl(config.url));
+    const i = banco.oportunidades.findIndex(
+      (o) => o.id === idDaUrl(config.url),
+    );
     if (i === -1) return [404, { mensagem: "Oportunidade nao encontrada." }];
     banco.oportunidades[i] = { ...banco.oportunidades[i], ...corpo(config) };
     salvarBanco(banco);
@@ -177,7 +200,9 @@ export function ativarMock(instanciaAxios) {
   // DELETE /oportunidades/:id
   mock.onDelete(/\/oportunidades\/\d+$/).reply((config) => {
     const banco = lerBanco();
-    banco.oportunidades = banco.oportunidades.filter((o) => o.id !== idDaUrl(config.url));
+    banco.oportunidades = banco.oportunidades.filter(
+      (o) => o.id !== idDaUrl(config.url),
+    );
     salvarBanco(banco);
     return [204];
   });
@@ -190,7 +215,8 @@ export function ativarMock(instanciaAxios) {
   mock.onGet("/candidaturas").reply((config) => {
     const { usuarioId, situacao = "" } = config.params || {};
     let lista = lerBanco().candidaturas;
-    if (usuarioId) lista = lista.filter((c) => c.usuarioId === Number(usuarioId));
+    if (usuarioId)
+      lista = lista.filter((c) => c.usuarioId === Number(usuarioId));
     if (situacao) lista = lista.filter((c) => c.situacao === situacao);
     return [200, lista];
   });
@@ -205,13 +231,15 @@ export function ativarMock(instanciaAxios) {
       (c) =>
         c.usuarioId === dados.usuarioId &&
         c.oportunidadeId === dados.oportunidadeId &&
-        c.situacao !== "Cancelada"
+        c.situacao !== "Cancelada",
     );
     if (jaExiste) {
       return [409, { mensagem: "Voce ja se candidatou a esta oportunidade." }];
     }
 
-    const oportunidade = banco.oportunidades.find((o) => o.id === dados.oportunidadeId);
+    const oportunidade = banco.oportunidades.find(
+      (o) => o.id === dados.oportunidadeId,
+    );
     const nova = {
       id: proximoId(banco.candidaturas),
       dataEnvio: new Date().toISOString().slice(0, 10),
@@ -238,7 +266,9 @@ export function ativarMock(instanciaAxios) {
   // DELETE /candidaturas/:id — cancelar candidatura.
   mock.onDelete(/\/candidaturas\/\d+$/).reply((config) => {
     const banco = lerBanco();
-    banco.candidaturas = banco.candidaturas.filter((c) => c.id !== idDaUrl(config.url));
+    banco.candidaturas = banco.candidaturas.filter(
+      (c) => c.id !== idDaUrl(config.url),
+    );
     salvarBanco(banco);
     return [204];
   });
@@ -249,8 +279,13 @@ export function ativarMock(instanciaAxios) {
 
   // GET /ofertas?busca=&disciplinaId=&tipo=&modalidade=&gratuita=
   mock.onGet("/ofertas").reply((config) => {
-    const { busca = "", disciplinaId = "", tipo = "", modalidade = "", gratuita = "" } =
-      config.params || {};
+    const {
+      busca = "",
+      disciplinaId = "",
+      tipo = "",
+      modalidade = "",
+      gratuita = "",
+    } = config.params || {};
     let lista = lerBanco().ofertas;
 
     if (busca) {
@@ -259,10 +294,11 @@ export function ativarMock(instanciaAxios) {
         (o) =>
           o.titulo.toLowerCase().includes(termo) ||
           o.disciplina.toLowerCase().includes(termo) ||
-          o.monitor.toLowerCase().includes(termo)
+          o.monitor.toLowerCase().includes(termo),
       );
     }
-    if (disciplinaId) lista = lista.filter((o) => o.disciplinaId === Number(disciplinaId));
+    if (disciplinaId)
+      lista = lista.filter((o) => o.disciplinaId === Number(disciplinaId));
     if (tipo) lista = lista.filter((o) => o.tipo === tipo);
     if (modalidade) lista = lista.filter((o) => o.modalidade === modalidade);
     if (gratuita === "true") lista = lista.filter((o) => o.gratuita);
@@ -280,7 +316,9 @@ export function ativarMock(instanciaAxios) {
   mock.onPost("/ofertas").reply((config) => {
     const dados = corpo(config);
     const banco = lerBanco();
-    const disciplina = banco.disciplinas.find((d) => d.id === Number(dados.disciplinaId));
+    const disciplina = banco.disciplinas.find(
+      (d) => d.id === Number(dados.disciplinaId),
+    );
     const nova = {
       id: proximoId(banco.ofertas),
       disciplina: disciplina?.nome ?? "",
@@ -321,7 +359,8 @@ export function ativarMock(instanciaAxios) {
   mock.onGet("/agendamentos").reply((config) => {
     const { usuarioId, situacao = "" } = config.params || {};
     let lista = lerBanco().agendamentos;
-    if (usuarioId) lista = lista.filter((a) => a.usuarioId === Number(usuarioId));
+    if (usuarioId)
+      lista = lista.filter((a) => a.usuarioId === Number(usuarioId));
     if (situacao) lista = lista.filter((a) => a.situacao === situacao);
     return [200, lista];
   });
@@ -345,10 +384,13 @@ export function ativarMock(instanciaAxios) {
         a.usuarioId === dados.usuarioId &&
         a.data === dados.data &&
         a.hora === dados.hora &&
-        a.situacao === "Confirmado"
+        a.situacao === "Confirmado",
     );
     if (conflito) {
-      return [409, { mensagem: "Voce ja possui um agendamento neste dia e horario." }];
+      return [
+        409,
+        { mensagem: "Voce ja possui um agendamento neste dia e horario." },
+      ];
     }
 
     const novo = {
@@ -384,7 +426,9 @@ export function ativarMock(instanciaAxios) {
   // DELETE /agendamentos/:id — cancelar e liberar a vaga na oferta.
   mock.onDelete(/\/agendamentos\/\d+$/).reply((config) => {
     const banco = lerBanco();
-    const agendamento = banco.agendamentos.find((a) => a.id === idDaUrl(config.url));
+    const agendamento = banco.agendamentos.find(
+      (a) => a.id === idDaUrl(config.url),
+    );
     if (agendamento) {
       const oferta = banco.ofertas.find((o) => o.id === agendamento.ofertaId);
       if (oferta && oferta.vagasOcupadas > 0) oferta.vagasOcupadas -= 1;
@@ -402,7 +446,8 @@ export function ativarMock(instanciaAxios) {
   mock.onGet("/atividades").reply((config) => {
     const { usuarioId, categoria = "" } = config.params || {};
     let lista = lerBanco().atividades;
-    if (usuarioId) lista = lista.filter((a) => a.usuarioId === Number(usuarioId));
+    if (usuarioId)
+      lista = lista.filter((a) => a.usuarioId === Number(usuarioId));
     if (categoria) lista = lista.filter((a) => a.categoria === categoria);
     return [200, lista];
   });
@@ -411,7 +456,9 @@ export function ativarMock(instanciaAxios) {
   mock.onGet("/atividades/resumo").reply((config) => {
     const { usuarioId } = config.params || {};
     const banco = lerBanco();
-    const lista = banco.atividades.filter((a) => a.usuarioId === Number(usuarioId));
+    const lista = banco.atividades.filter(
+      (a) => a.usuarioId === Number(usuarioId),
+    );
 
     // Soma apenas o que ja foi aprovado (regra do curso).
     const horasAprovadas = lista
@@ -429,7 +476,9 @@ export function ativarMock(instanciaAxios) {
       {
         horasAprovadas,
         meta: banco.metaHorasComplementares,
-        percentual: Math.round((horasAprovadas / banco.metaHorasComplementares) * 100),
+        percentual: Math.round(
+          (horasAprovadas / banco.metaHorasComplementares) * 100,
+        ),
         porCategoria,
         totalAtividades: lista.length,
       },
@@ -462,7 +511,9 @@ export function ativarMock(instanciaAxios) {
   // DELETE /atividades/:id
   mock.onDelete(/\/atividades\/\d+$/).reply((config) => {
     const banco = lerBanco();
-    banco.atividades = banco.atividades.filter((a) => a.id !== idDaUrl(config.url));
+    banco.atividades = banco.atividades.filter(
+      (a) => a.id !== idDaUrl(config.url),
+    );
     salvarBanco(banco);
     return [204];
   });
@@ -479,8 +530,12 @@ export function ativarMock(instanciaAxios) {
 
   // Qualquer rota nao mapeada acima devolve 404 com mensagem clara,
   // em vez de travar silenciosamente.
-  mock.onAny().reply((config) => [
-    404,
-    { mensagem: `Endpoint mock nao implementado: ${config.method?.toUpperCase()} ${config.url}` },
-  ]);
+  mock
+    .onAny()
+    .reply((config) => [
+      404,
+      {
+        mensagem: `Endpoint mock nao implementado: ${config.method?.toUpperCase()} ${config.url}`,
+      },
+    ]);
 }

@@ -28,3 +28,7 @@ export async function resetarDadosDeTeste() {
   const { data } = await api.post("/dev/reset");
   return data;
 }
+export async function definirNovaSenha(token, senha) {
+  const { data } = await api.post("/auth/nova-senha", { token, senha });
+  return data;
+}

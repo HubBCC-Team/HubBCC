@@ -157,7 +157,11 @@ function dadosIniciais() {
         descricao:
           "Desenvolvimento de sites para instituicoes sociais parceiras da universidade.",
         requisitos: ["HTML, CSS e JavaScript", "Trabalho em equipe"],
-        atividades: ["Levantamento de requisitos", "Implementacao", "Publicacao"],
+        atividades: [
+          "Levantamento de requisitos",
+          "Implementacao",
+          "Publicacao",
+        ],
         bolsa: "Nao remunerada",
         cargaHoraria: "8h/semana",
         modalidade: "Remoto",
@@ -175,7 +179,10 @@ function dadosIniciais() {
         responsavel: "Prof. Rafael Alves",
         descricao:
           "Tutoria voltada para listas encadeadas, arvores e analise de complexidade.",
-        requisitos: ["Ter cursado Estrutura de Dados", "Disponibilidade noturna"],
+        requisitos: [
+          "Ter cursado Estrutura de Dados",
+          "Disponibilidade noturna",
+        ],
         atividades: ["Atendimentos individuais", "Resolucao de exercicios"],
         bolsa: "R$ 500,00",
         cargaHoraria: "10h/semana",
@@ -448,8 +455,16 @@ function dadosIniciais() {
         modalidade: "Hibrido",
         local: "Bloco B - Sala 105",
         situacao: "Realizado",
-        avaliacao: { nota: 5, comentario: "Otimo atendimento.", tags: ["Didatico"] },
-        registro: { compareceu: true, duracao: 120, observacoes: "Revisao completa." },
+        avaliacao: {
+          nota: 5,
+          comentario: "Otimo atendimento.",
+          tags: ["Didatico"],
+        },
+        registro: {
+          compareceu: true,
+          duracao: 120,
+          observacoes: "Revisao completa.",
+        },
       },
     ],
 

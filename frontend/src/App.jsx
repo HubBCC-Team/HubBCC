@@ -6,7 +6,7 @@
    liga um endereco (path) a uma tela (element).
 
    ESTRUTURA:
-   - Rotas publicas .................. "/", "/login", "/cadastro", "/recuperar-senha"
+   - Rotas publicas .................. "/", "/login", "/cadastro", "/recuperar-senha", "/nova-senha"
    - Rotas privadas (exigem login) ... tudo que comeca com "/app"
    - Rotas de erro ................... "/sem-acesso" e "*" (404)
 
@@ -30,6 +30,7 @@ import Landing from "./pages/landing/Landing";
 import Login from "./pages/login/Login";
 import Cadastro from "./pages/cadastro/Cadastro";
 import RecuperarSenha from "./pages/recuperarSenha/RecuperarSenha";
+import NovaSenha from "./pages/recuperarSenha/NovaSenha";
 
 // Telas internas
 import Home from "./pages/home/Home";
@@ -48,6 +49,7 @@ import MeusAgendamentos from "./pages/agendamentos/MeusAgendamentos";
 import RegistrarAtendimento from "./pages/agendamentos/RegistrarAtendimento";
 import AtividadesHoras from "./pages/atividades/AtividadesHoras";
 import RegistrarAtividade from "./pages/atividades/RegistrarAtividade";
+import EditarAtividade from "./pages/atividades/EditarAtividade";
 import Perfil from "./pages/perfil/Perfil";
 
 // Telas de erro
@@ -64,11 +66,12 @@ export default function App() {
           {/* ===================== ROTAS PUBLICAS ===================== */}
           <Route path="/" element={<Landing />} />
 
-          {/* Estas tres compartilham o painel azul do LayoutAcesso */}
+          {/* Estas compartilham o painel azul do LayoutAcesso */}
           <Route element={<LayoutAcesso />}>
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+            <Route path="/nova-senha" element={<NovaSenha />} />
           </Route>
 
           {/* ===================== ROTAS PRIVADAS ===================== */}
@@ -81,26 +84,48 @@ export default function App() {
 
               {/* --- Oportunidades academicas (casos de uso 1 a 8) --- */}
               <Route path="oportunidades" element={<ListaOportunidades />} />
-              <Route path="oportunidades/nova" element={<CadastrarOportunidade />} />
-              <Route path="oportunidades/:id" element={<DetalheOportunidade />} />
-              <Route path="oportunidades/:id/editar" element={<EditarOportunidade />} />
-              <Route path="oportunidades/:id/candidatura" element={<RealizarCandidatura />} />
+              <Route
+                path="oportunidades/nova"
+                element={<CadastrarOportunidade />}
+              />
+              <Route
+                path="oportunidades/:id"
+                element={<DetalheOportunidade />}
+              />
+              <Route
+                path="oportunidades/:id/editar"
+                element={<EditarOportunidade />}
+              />
+              <Route
+                path="oportunidades/:id/candidatura"
+                element={<RealizarCandidatura />}
+              />
               <Route path="candidaturas" element={<MinhasCandidaturas />} />
 
               {/* --- Apoio academico (casos de uso 9 a 13) --- */}
               <Route path="apoio" element={<ListaApoio />} />
               <Route path="apoio/nova" element={<CriarOferta />} />
               <Route path="apoio/:id" element={<DetalheMonitoria />} />
-              <Route path="apoio/:id/agendar" element={<RealizarAgendamento />} />
+              <Route
+                path="apoio/:id/agendar"
+                element={<RealizarAgendamento />}
+              />
               <Route path="apoio/:id/editar" element={<EditarOferta />} />
 
               {/* --- Agendamentos (casos de uso 14 a 18) --- */}
               <Route path="agendamentos" element={<MeusAgendamentos />} />
-              <Route path="agendamentos/:id/registrar" element={<RegistrarAtendimento />} />
+              <Route
+                path="agendamentos/:id/registrar"
+                element={<RegistrarAtendimento />}
+              />
 
               {/* --- Atividades complementares (casos de uso 19 e 20) --- */}
               <Route path="atividades" element={<AtividadesHoras />} />
               <Route path="atividades/nova" element={<RegistrarAtividade />} />
+              <Route
+                path="atividades/:id/editar"
+                element={<EditarAtividade />}
+              />
 
               <Route path="perfil" element={<Perfil />} />
             </Route>

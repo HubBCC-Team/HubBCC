@@ -1,12 +1,12 @@
 /* ---------------------------------------------------------------------------
-   pages/atividades/RegistrarAtividade.jsx
-   TELA 20 — Registrar atividade complementar ("/app/atividades/nova").
+   pages/atividades/EditarAtividade.jsx
+   TELA 20 — Editar atividade complementar ("/app/atividades/:id/editar").
 
    Caso de uso 19. O upload do comprovante e apenas simulado: guardamos o
    NOME do arquivo. Com backend real, use FormData para enviar o arquivo.
 --------------------------------------------------------------------------- */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Upload,
   BookOpen,
@@ -17,10 +17,7 @@ import {
 import { useAuth } from "../../contexts/useAuth";
 import { useRequisicao } from "../../hooks/useRequisicao";
 import { useFormulario } from "../../hooks/useFormulario";
-import {
-  registrarAtividade,
-  resumoHoras,
-} from "../../service/atividadeService";
+import { alterarAtividade, resumoHoras } from "../../service/atividadeService";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Campo, { CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
@@ -35,9 +32,10 @@ const CATEGORIAS = [
   { nome: "Evento", icone: CalendarDays },
 ];
 
-export default function RegistrarAtividade() {
+export default function EditarAtividade() {
   const navegar = useNavigate();
   const { usuario } = useAuth();
+  const { id } = useParams();
 
   const resumo = useRequisicao(
     () => resumoHoras(usuario.id),
@@ -67,8 +65,7 @@ export default function RegistrarAtividade() {
 
     setEnviando(true);
     try {
-      await registrarAtividade({
-        usuarioId: usuario.id,
+      await alterarAtividade(id, {
         ...valores,
         horas: Number(valores.horas),
         comprovante: comprovante.name,
@@ -84,7 +81,7 @@ export default function RegistrarAtividade() {
   return (
     <>
       <Cabecalho
-        titulo="Registrar atividade complementar"
+        titulo="Editar atividade complementar"
         subtitulo="Informe os dados e anexe o certificado para validacao"
       />
 
@@ -187,7 +184,7 @@ export default function RegistrarAtividade() {
               Cancelar
             </Botao>
             <Botao type="submit" carregando={enviando}>
-              Registrar atividade
+              Editar atividade
             </Botao>
           </div>
         </div>

@@ -37,16 +37,24 @@ export default function RecuperarSenha() {
   // ----------------------- Estado 2: e-mail enviado -----------------------
   if (enviado) {
     return (
-      <div className="text-center">
-        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-sucesso">
+      <div className="mx-auto flex w-full max-w-sm flex-col items-center justify-center text-center">
+        <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-sucesso">
           <MailCheck size={20} />
         </span>
-        <h1 className="text-xl font-semibold text-slate-900">Verifique seu e-mail</h1>
+        <h1 className="text-xl font-semibold text-slate-900">
+          Verifique seu e-mail
+        </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Se o endereco <strong className="text-slate-700">{email}</strong> estiver cadastrado,
-          enviaremos as instrucoes para redefinir sua senha.
+          Se o endereco <strong className="text-slate-700">{email}</strong>{" "}
+          estiver cadastrado, enviaremos as instrucoes para redefinir sua senha.
         </p>
-        <Botao as={Link} to="/login" variante="contorno" larguraTotal className="mt-6">
+        <Botao
+          as={Link}
+          to="/login"
+          variante="contorno"
+          larguraTotal
+          className="mt-6"
+        >
           Voltar ao login
         </Botao>
       </div>
@@ -55,7 +63,7 @@ export default function RecuperarSenha() {
 
   // ------------------------ Estado 1: formulario ------------------------
   return (
-    <div className="text-center">
+    <div className="mx-auto flex w-full max-w-sm flex-col justify-center text-center">
       <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-marca-50 text-marca-700">
         <KeyRound size={20} />
       </span>
@@ -65,7 +73,7 @@ export default function RecuperarSenha() {
       </p>
 
       {erro && (
-        <Alerta variante="erro" className="mt-4">
+        <Alerta variante="erro" className="mt-4 text-left">
           {erro}
         </Alerta>
       )}
@@ -79,14 +87,19 @@ export default function RecuperarSenha() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <Botao type="submit" larguraTotal tamanho="grande" carregando={enviando}>
+        <Botao
+          type="submit"
+          larguraTotal
+          tamanho="grande"
+          carregando={enviando}
+        >
           Enviar link de recuperacao
         </Botao>
       </form>
 
       <Link
         to="/login"
-        className="mt-5 inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-marca-700"
+        className="mx-auto mt-5 inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-marca-700"
       >
         <ArrowLeft size={13} /> Voltar ao login
       </Link>
