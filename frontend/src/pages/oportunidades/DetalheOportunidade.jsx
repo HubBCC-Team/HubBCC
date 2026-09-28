@@ -72,16 +72,19 @@ export default function DetalheOportunidade() {
             <h1 className="text-xl font-semibold text-slate-900">
               {item.titulo}
             </h1>
+
             <p className="mt-1 text-xs text-slate-500">
               {item.departamento} · {item.responsavel}
             </p>
 
             <h2 className="titulo-secao mt-6">Sobre a oportunidade</h2>
+
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
               {item.descricao}
             </p>
 
             <h2 className="titulo-secao mt-6">Requisitos</h2>
+
             <ul className="mt-2 space-y-1.5">
               {item.requisitos.map((requisito) => (
                 <li
@@ -95,6 +98,7 @@ export default function DetalheOportunidade() {
             </ul>
 
             <h2 className="titulo-secao mt-6">Atividades previstas</h2>
+
             <ul className="mt-2 space-y-1.5">
               {item.atividades.map((atividade) => (
                 <li
@@ -113,19 +117,24 @@ export default function DetalheOportunidade() {
         <aside className="space-y-4">
           <div className="cartao p-5">
             <h2 className="titulo-secao mb-3">Informacoes</h2>
+
             <dl className="space-y-3 text-xs">
               <Linha icone={Wallet} rotulo="Bolsa" valor={item.bolsa} />
+
               <Linha
                 icone={Clock}
                 rotulo="Carga horaria"
                 valor={item.cargaHoraria}
               />
+
               <Linha
                 icone={Users}
                 rotulo="Vagas"
                 valor={`${item.vagas} vaga(s)`}
               />
+
               <Linha icone={MapPin} rotulo="Local" valor={item.local} />
+
               <Linha
                 icone={CalendarDays}
                 rotulo="Inscricoes ate"
@@ -144,14 +153,13 @@ export default function DetalheOportunidade() {
                 Candidatar-se
               </Botao>
             ) : (
-              // Quando encerrada, mostramos um botao desabilitado no lugar do link.
               <Botao larguraTotal className="mt-5" disabled>
                 Inscricoes encerradas
               </Botao>
             )}
 
             {/* Acoes de gestao: so monitor e admin enxergam */}
-            podeGerenciar && aberta && (
+            {podeGerenciar && aberta && (
               <Botao
                 variante="perigo"
                 larguraTotal
@@ -162,7 +170,7 @@ export default function DetalheOportunidade() {
               </Botao>
             )}
 
-            podeGerenciar && (
+            {podeGerenciar && (
               <Botao
                 variante="contorno"
                 larguraTotal
