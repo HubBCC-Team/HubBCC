@@ -21,6 +21,7 @@ import Modal from "../../components/ui/Modal";
 import { CampoSelecao } from "../../components/ui/Campo";
 import { Carregando, Erro, Vazio } from "../../components/ui/Estado";
 import { formatarData } from "../../utils/formatadores";
+import { usePermissao } from "../../hooks/usePermissao";
 
 // Opcoes dos filtros. Para incluir um novo tipo, adicione aqui e no db.js.
 const TIPOS = ["Iniciacao Cientifica", "Extensao", "Evento", "Estagio", "Monitoria"];
@@ -33,6 +34,7 @@ const ABAS = ["Todas", "Monitoria", "Iniciacao Cientifica", "Extensao", "Evento"
 export default function ListaOportunidades() {
   // Le "?busca=" da URL — e assim que a busca da barra superior chega aqui.
   const [parametrosUrl] = useSearchParams();
+  const { podeGerenciar } = usePermissao();
 
   const [filtros, setFiltros] = useState({
     busca: parametrosUrl.get("busca") ?? "",
@@ -67,9 +69,11 @@ export default function ListaOportunidades() {
         titulo="Oportunidades Academicas"
         subtitulo="Monitorias, iniciacao cientifica, extensao e eventos do curso"
       >
-        <Botao as={Link} to="/app/oportunidades/nova">
-          <Plus size={14} /> Cadastrar
-        </Botao>
+        {podeGerenciar && (
+          <Botao as={Link} to="/app/oportunidades/nova">
+            <Plus size={14} /> Cadastrar
+          </Botao>
+        )}
       </Cabecalho>
 
       {/* ------------------------- Barra de busca ------------------------- */}
