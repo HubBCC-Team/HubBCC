@@ -311,7 +311,7 @@ Os 20 casos de uso do levantamento de requisitos, e onde cada um está implement
 | 1 | Cadastrar oportunidade | ✅ | `CadastrarOportunidade.jsx` |
 | 2 | Consultar oportunidades | ✅ | `ListaOportunidades.jsx` |
 | 3 | Filtrar oportunidades | ✅ | modal de filtros na lista |
-| 4 | Alterar oportunidade | ⚠️ service pronto, falta tela | `alterarOportunidade()` |
+| 4 | Alterar oportunidade | ✅ | `alterarOportunidade()` |
 | 5 | Encerrar oportunidade | ✅ | `DetalheOportunidade.jsx` |
 | 6 | Realizar candidatura | ✅ | `RealizarCandidatura.jsx` |
 | 7 | Consultar candidaturas | ✅ | `MinhasCandidaturas.jsx` |
@@ -324,8 +324,8 @@ Os 20 casos de uso do levantamento de requisitos, e onde cada um está implement
 | 9 | Criar oferta de apoio | ✅ | `CriarOferta.jsx` |
 | 10 | Consultar ofertas | ✅ | `ListaApoio.jsx` |
 | 11 | Filtrar ofertas | ✅ | filtros da lista de apoio |
-| 12 | Alterar oferta | ⚠️ service pronto, falta tela | `alterarOferta()` |
-| 13 | Cancelar oferta | ⚠️ service pronto, falta tela | `cancelarOferta()` |
+| 12 | Alterar oferta | ✅ | `alterarOferta()` |
+| 13 | Cancelar oferta | ✅| `cancelarOferta()` |
 
 ### Agendamentos
 
