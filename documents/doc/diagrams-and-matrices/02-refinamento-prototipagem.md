@@ -8,7 +8,7 @@
 
 - [1. Matriz CRUD](#1-matriz-crud)
 - [2. Matriz Perfil x Funcionalidade](#2-matriz-perfil-x-funcionalidade)
-- [3. Priorização dos Requisitos e definição de responsáveis por entidade/funcionalidade](#3-priorização-dos-requisitos-e-definição-de-responsáveis-por-entidadefuncionalidade)
+- [3. Priorização dos Requisitos de Apoio Acadêmico e Disciplinas e definição de responsáveis](#3-priorização-dos-requisitos-de-apoio-acadêmico-e-disciplinas-e-definição-de-responsáveis)
 
 ---
 
@@ -79,7 +79,8 @@ A matriz relaciona os perfis de usuário às funcionalidades previstas para cada
 
 A separação por perfil permite controlar quais ações cada usuário pode executar e também orienta a implementação das permissões e rotas protegidas do sistema.
 
-## 3. Priorização dos Requisitos e definição de responsáveis por entidade/funcionalidade
+## 3. Priorização dos Requisitos de Apoio Acadêmico e Disciplinas e definição de responsáveis
+A priorização apresentada nesta seção corresponde às funcionalidades relacionadas ao módulo de Apoio Acadêmico, seus agendamentos e ao gerenciamento de disciplinas. Os demais módulos do HubBCC, como Oportunidades Acadêmicas, Candidaturas e Atividades Complementares, permanecem definidos no documento de prototipagem inicial e na Matriz CRUD apresentada anteriormente.
 
 | Prioridade | Caso de Uso | Ator | Responsável | O que o responsável deve fazer |
 |---|---|---|---|---|
