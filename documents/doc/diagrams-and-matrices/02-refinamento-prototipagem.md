@@ -111,17 +111,17 @@ A priorização apresentada nesta seção corresponde às funcionalidades relaci
 
 ### Como interpretar a prioridade
 
-A ordem foi definida pensando no fluxo principal do sistema Monitoria:
+A ordem foi definida pensando no fluxo principal do módulo de Apoio Acadêmico:
 
-**Criar sessão → Consultar monitoria → Filtrar disciplina → Escolher sessão → Realizar agendamento → Consultar/gerenciar agendamento → Realizar monitoria**
+**Criar sessão de apoio → Consultar ofertas de apoio → Filtrar por disciplina → Escolher uma oferta → Realizar agendamento → Consultar/gerenciar agendamento → Realizar atendimento**
 
 Por isso:
 
-- **Prioridade 1 – Realizar agendamento:** é o ponto principal em que o aluno efetivamente utiliza o sistema para obter o serviço de monitoria.
-- **Prioridades 2 e 3 – Consultar monitoria e Filtrar disciplina:** são necessárias para o aluno encontrar a monitoria que deseja.
-- **Prioridade 4 – Criar sessão:** é necessária para que existam monitorias disponíveis no sistema.
-- **Prioridades 5 a 11:** dão suporte ao funcionamento e ao acompanhamento das sessões e agendamentos.
-- **Prioridades 12 a 15:** correspondem ao gerenciamento das disciplinas pelo administrador e ficam por último porque são funcionalidades de suporte ao funcionamento do sistema.
+- **Prioridade 1 – Realizar agendamento:** representa o momento em que o aluno efetivamente solicita uma vaga em uma oferta de apoio.
+- **Prioridades 2 e 3 – Consultar monitoria e Filtrar disciplina:** permitem ao aluno localizar o apoio acadêmico adequado à sua necessidade.
+- **Prioridade 4 – Criar sessão:** é necessária para que existam ofertas disponíveis para agendamento.
+- **Prioridades 5 a 11:** dão suporte ao funcionamento e ao acompanhamento das sessões e dos agendamentos.
+- **Prioridades 12 a 15:** correspondem ao gerenciamento das disciplinas pelo administrador e possuem prioridade posterior por serem funcionalidades de suporte ao restante do módulo.
 
 Assim, a coluna "Responsável" significa que aquela pessoa fica encarregada de acompanhar e desenvolver aquele caso de uso no trabalho, incluindo sua especificação, implementação/prototipação e verificação de que a funcionalidade está de acordo com os requisitos definidos.
 
