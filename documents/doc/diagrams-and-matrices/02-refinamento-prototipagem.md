@@ -16,35 +16,39 @@
 
 C = criadas, R = lidas, U = atualizadas, D = excluídas.
 
-| Funcionalidade | Oportunidade Acadêmica | Candidatura | Oferta de Apoio | Agendamento | Atividade Complementar |
-|---|---|---|---|---|---|
-| Cadastrar oportunidade acadêmica | C |  |  |  |  |
-| Consultar oportunidades acadêmicas | R |  |  |  |  |
-| Filtrar oportunidades | R |  |  |  |  |
-| Alterar oportunidade acadêmica | U |  |  |  |  |
-| Encerrar oportunidade acadêmica | U |  |  |  |  |
-| Excluir oportunidade acadêmica | D |  |  |  |  |
-| Realizar candidatura | R | C |  |  |  |
-| Consultar candidaturas | R | R |  |  |  |
-| Avaliar candidatura |  | U |  |  |  |
-| Cancelar candidatura |  | D |  |  |  |
-| Criar oferta de apoio acadêmico |  |  | C |  |  |
-| Consultar ofertas de apoio |  |  | R |  |  |
-| Filtrar ofertas de apoio |  |  | R |  |  |
-| Alterar oferta de apoio |  |  | U |  |  |
-| Cancelar oferta de apoio |  |  | D |  |  |
-| Realizar agendamento |  |  | R | C |  |
-| Consultar agendamentos |  |  | R | R |  |
-| Reagendar atendimento |  |  | R | U |  |
-| Registrar realização do atendimento |  |  |  | U |  |
-| Avaliar atendimento |  |  |  | U |  |
-| Cancelar agendamento |  |  |  | D |  |
-| Registrar atividade complementar |  |  |  |  | C |
-| Consultar atividades e horas complementares |  |  |  |  | R |
-| Alterar atividade complementar |  |  |  |  | U |
-| Excluir atividade complementar |  |  |  |  | D |
+| Funcionalidade | Oportunidade Acadêmica | Candidatura | Oferta de Apoio | Agendamento | Atividade Complementar | Disciplina |
+|---|---|---|---|---|---|---|
+| Cadastrar oportunidade acadêmica | C |  |  |  |  |  |
+| Consultar oportunidades acadêmicas | R |  |  |  |  |  |
+| Filtrar oportunidades | R |  |  |  |  |  |
+| Alterar oportunidade acadêmica | U |  |  |  |  |  |
+| Encerrar oportunidade acadêmica | U |  |  |  |  |  |
+| Excluir oportunidade acadêmica | D |  |  |  |  |  |
+| Realizar candidatura | R | C |  |  |  |  |
+| Consultar candidaturas | R | R |  |  |  |  |
+| Avaliar candidatura |  | U |  |  |  |  |
+| Cancelar candidatura |  | D |  |  |  |  |
+| Criar oferta de apoio acadêmico |  |  | C |  |  |  |
+| Consultar ofertas de apoio |  |  | R |  |  |  |
+| Filtrar ofertas de apoio |  |  | R |  |  |  |
+| Alterar oferta de apoio |  |  | U |  |  |  |
+| Cancelar oferta de apoio |  |  | D |  |  |  |
+| Realizar agendamento |  |  | R | C |  |  |
+| Consultar agendamentos |  |  | R | R |  |  |
+| Reagendar atendimento |  |  | R | U |  |  |
+| Registrar realização do atendimento |  |  |  | U |  |  |
+| Avaliar atendimento |  |  |  | U |  |  |
+| Cancelar agendamento |  |  |  | D |  |  |
+| Registrar atividade complementar |  |  |  |  | C |  |
+| Consultar atividades e horas complementares |  |  |  |  | R |  |
+| Alterar atividade complementar |  |  |  |  | U |  |
+| Excluir atividade complementar |  |  |  |  | D |  |
+| Cadastrar disciplina |  |  |  |  |  | C |
+| Consultar disciplina |  |  |  |  |  | R |
+| Alterar disciplina |  |  |  |  |  | U |
+| Excluir disciplina |  |  |  |  |  | D |
 
-Casos de usos adicionados a partir da análise da Matriz CRUD: excluir oportunidade acadêmica, cancelar candidatura, cancelar agendamento, alterar atividade complementar, excluir atividade complementar.
+Casos de uso adicionados a partir da análise da Matriz CRUD: excluir oportunidade acadêmica, cancelar candidatura, cancelar agendamento, alterar atividade complementar, excluir atividade complementar, cadastrar disciplina, consultar disciplina, alterar disciplina e excluir disciplina.
 
 ## 2. Matriz Perfil x Funcionalidade
 
