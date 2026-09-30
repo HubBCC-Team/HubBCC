@@ -1,6 +1,6 @@
 # HubBCC
 
-**Plataforma de apoio e desenvolvimento acadêmico**
+**Plataforma de apoio e desenvolvimento acadêmico** para o curso de
 Bacharelado em Ciência da Computação
 
 Sistema web que reúne, em um único ambiente, as oportunidades acadêmicas do curso, o apoio entre alunos (monitorias e tutorias) e o controle de horas complementares.
