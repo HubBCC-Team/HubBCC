@@ -48,30 +48,32 @@ Casos de usos adicionados a partir da análise da Matriz CRUD: excluir oportunid
 
 ## 2. Matriz Perfil x Funcionalidade
 
-- **Linhas:** perfis de usuário
-- **Colunas:** funcionalidades/casos de uso
-- **X:** possui acesso
+A matriz relaciona os perfis de usuário às funcionalidades previstas para cada um no sistema.
 
-| Perfil | Cadastrar Produto | Consultar Produto | Realizar Venda | Gerenciar Usuários |
-|---|---|---|---|---|
-| Administrador | X | X | X | X |
-| Gerente | X | X | X |  |
-| Funcionário |  | X | X |  |
-| Cliente |  | X |  |  |
+- **X:** possui acesso à funcionalidade
+- **Aluno:** utiliza os recursos de consulta, agendamento e acompanhamento
+- **Monitor:** gerencia as ofertas/sessões de apoio e registra os atendimentos
+- **Administrador:** gerencia dados de suporte do sistema, como as disciplinas
 
-1. **Administrador** pode fazer tudo.
-2. **Gerente** pode cadastrar/consultar produtos e realizar vendas.
-3. **Funcionário** pode consultar produtos e realizar vendas.
-4. **Cliente** pode apenas consultar produtos.
+| Funcionalidade | Aluno | Monitor | Administrador |
+|---|---|---|---|
+| Consultar monitoria | X |  |  |
+| Filtrar disciplina | X |  |  |
+| Realizar agendamento | X |  |  |
+| Consultar agendamento | X |  |  |
+| Reagendar agendamento | X |  |  |
+| Cancelar agendamento | X |  |  |
+| Criar sessão de apoio |  | X |  |
+| Consultar sessão |  | X |  |
+| Registrar realização do atendimento |  | X |  |
+| Alterar sessão |  | X |  |
+| Cancelar sessão |  | X |  |
+| Cadastrar disciplina |  |  | X |
+| Consultar disciplina |  |  | X |
+| Alterar disciplina |  |  | X |
+| Excluir disciplina |  |  | X |
 
-### Consultar produto
-
-- Cliente → vê preço e disponibilidade.
-- Funcionário → talvez veja estoque.
-- Gerente → pode ver informações adicionais.
-- Administrador → pode ter ainda mais informações.
-
-Portanto, a matriz ajuda a validar os requisitos e identificar onde o desenvolvimento pode ficar mais complexo.
+A separação por perfil permite controlar quais ações cada usuário pode executar e também orienta a implementação das permissões e rotas protegidas do sistema.
 
 ## 3. Priorização dos Requisitos e definição de responsáveis por entidade/funcionalidade
 
