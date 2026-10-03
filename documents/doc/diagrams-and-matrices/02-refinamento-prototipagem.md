@@ -8,7 +8,7 @@
 
 - [1. Matriz CRUD](#1-matriz-crud)
 - [2. Matriz Perfil x Funcionalidade](#2-matriz-perfil-x-funcionalidade)
-- [3. Priorização dos Requisitos e definição de responsáveis por entidade/funcionalidade](#3-priorização-dos-requisitos-e-definição-de-responsáveis-por-entidadefuncionalidade)
+- [3. Priorização dos Requisitos de Apoio Acadêmico e Disciplinas e definição de responsáveis](#3-priorização-dos-requisitos-de-apoio-acadêmico-e-disciplinas-e-definição-de-responsáveis)
 
 ---
 
@@ -16,64 +16,71 @@
 
 C = criadas, R = lidas, U = atualizadas, D = excluídas.
 
-| Funcionalidade | Oportunidade Acadêmica | Candidatura | Oferta de Apoio | Agendamento | Atividade Complementar |
-|---|---|---|---|---|---|
-| Cadastrar oportunidade acadêmica | C |  |  |  |  |
-| Consultar oportunidades acadêmicas | R |  |  |  |  |
-| Filtrar oportunidades | R |  |  |  |  |
-| Alterar oportunidade acadêmica | U |  |  |  |  |
-| Encerrar oportunidade acadêmica | U |  |  |  |  |
-| Excluir oportunidade acadêmica | D |  |  |  |  |
-| Realizar candidatura | R | C |  |  |  |
-| Consultar candidaturas | R | R |  |  |  |
-| Avaliar candidatura |  | U |  |  |  |
-| Cancelar candidatura |  | D |  |  |  |
-| Criar oferta de apoio acadêmico |  |  | C |  |  |
-| Consultar ofertas de apoio |  |  | R |  |  |
-| Filtrar ofertas de apoio |  |  | R |  |  |
-| Alterar oferta de apoio |  |  | U |  |  |
-| Cancelar oferta de apoio |  |  | D |  |  |
-| Realizar agendamento |  |  | R | C |  |
-| Consultar agendamentos |  |  | R | R |  |
-| Reagendar atendimento |  |  | R | U |  |
-| Registrar realização do atendimento |  |  |  | U |  |
-| Avaliar atendimento |  |  |  | U |  |
-| Cancelar agendamento |  |  |  | D |  |
-| Registrar atividade complementar |  |  |  |  | C |
-| Consultar atividades e horas complementares |  |  |  |  | R |
-| Alterar atividade complementar |  |  |  |  | U |
-| Excluir atividade complementar |  |  |  |  | D |
+| Funcionalidade | Oportunidade Acadêmica | Candidatura | Oferta de Apoio | Agendamento | Atividade Complementar | Disciplina |
+|---|---|---|---|---|---|---|
+| Cadastrar oportunidade acadêmica | C |  |  |  |  |  |
+| Consultar oportunidades acadêmicas | R |  |  |  |  |  |
+| Filtrar oportunidades | R |  |  |  |  |  |
+| Alterar oportunidade acadêmica | U |  |  |  |  |  |
+| Encerrar oportunidade acadêmica | U |  |  |  |  |  |
+| Excluir oportunidade acadêmica | D |  |  |  |  |  |
+| Realizar candidatura | R | C |  |  |  |  |
+| Consultar candidaturas | R | R |  |  |  |  |
+| Avaliar candidatura |  | U |  |  |  |  |
+| Cancelar candidatura |  | D |  |  |  |  |
+| Criar oferta de apoio acadêmico |  |  | C |  |  |  |
+| Consultar ofertas de apoio |  |  | R |  |  |  |
+| Filtrar ofertas de apoio |  |  | R |  |  |  |
+| Alterar oferta de apoio |  |  | U |  |  |  |
+| Cancelar oferta de apoio |  |  | D |  |  |  |
+| Realizar agendamento |  |  | R | C |  |  |
+| Consultar agendamentos |  |  | R | R |  |  |
+| Reagendar atendimento |  |  | R | U |  |  |
+| Registrar realização do atendimento |  |  |  | U |  |  |
+| Avaliar atendimento |  |  |  | U |  |  |
+| Cancelar agendamento |  |  |  | D |  |  |
+| Registrar atividade complementar |  |  |  |  | C |  |
+| Consultar atividades e horas complementares |  |  |  |  | R |  |
+| Alterar atividade complementar |  |  |  |  | U |  |
+| Excluir atividade complementar |  |  |  |  | D |  |
+| Cadastrar disciplina |  |  |  |  |  | C |
+| Consultar disciplina |  |  |  |  |  | R |
+| Alterar disciplina |  |  |  |  |  | U |
+| Excluir disciplina |  |  |  |  |  | D |
 
-Casos de usos adicionados a partir da análise da Matriz CRUD: excluir oportunidade acadêmica, cancelar candidatura, cancelar agendamento, alterar atividade complementar, excluir atividade complementar.
+Casos de uso adicionados a partir da análise da Matriz CRUD: excluir oportunidade acadêmica, cancelar candidatura, cancelar agendamento, alterar atividade complementar, excluir atividade complementar, cadastrar disciplina, consultar disciplina, alterar disciplina e excluir disciplina.
 
 ## 2. Matriz Perfil x Funcionalidade
 
-- **Linhas:** perfis de usuário
-- **Colunas:** funcionalidades/casos de uso
-- **X:** possui acesso
+A matriz relaciona os perfis de usuário às funcionalidades previstas para cada um no sistema.
 
-| Perfil | Cadastrar Produto | Consultar Produto | Realizar Venda | Gerenciar Usuários |
-|---|---|---|---|---|
-| Administrador | X | X | X | X |
-| Gerente | X | X | X |  |
-| Funcionário |  | X | X |  |
-| Cliente |  | X |  |  |
+- **X:** possui acesso à funcionalidade
+- **Aluno:** utiliza os recursos de consulta, agendamento e acompanhamento
+- **Monitor:** gerencia as ofertas/sessões de apoio e registra os atendimentos
+- **Administrador:** gerencia dados de suporte do sistema, como as disciplinas
 
-1. **Administrador** pode fazer tudo.
-2. **Gerente** pode cadastrar/consultar produtos e realizar vendas.
-3. **Funcionário** pode consultar produtos e realizar vendas.
-4. **Cliente** pode apenas consultar produtos.
+| Funcionalidade | Aluno | Monitor | Administrador |
+|---|---|---|---|
+| Consultar monitoria | X |  |  |
+| Filtrar disciplina | X |  |  |
+| Realizar agendamento | X |  |  |
+| Consultar agendamento | X |  |  |
+| Reagendar agendamento | X |  |  |
+| Cancelar agendamento | X |  |  |
+| Criar sessão de apoio |  | X |  |
+| Consultar sessão |  | X |  |
+| Registrar realização do atendimento |  | X |  |
+| Alterar sessão |  | X |  |
+| Cancelar sessão |  | X |  |
+| Cadastrar disciplina |  |  | X |
+| Consultar disciplina |  |  | X |
+| Alterar disciplina |  |  | X |
+| Excluir disciplina |  |  | X |
 
-### Consultar produto
+A separação por perfil permite controlar quais ações cada usuário pode executar e também orienta a implementação das permissões e rotas protegidas do sistema.
 
-- Cliente → vê preço e disponibilidade.
-- Funcionário → talvez veja estoque.
-- Gerente → pode ver informações adicionais.
-- Administrador → pode ter ainda mais informações.
-
-Portanto, a matriz ajuda a validar os requisitos e identificar onde o desenvolvimento pode ficar mais complexo.
-
-## 3. Priorização dos Requisitos e definição de responsáveis por entidade/funcionalidade
+## 3. Priorização dos Requisitos de Apoio Acadêmico e Disciplinas e definição de responsáveis
+A priorização apresentada nesta seção corresponde às funcionalidades relacionadas ao módulo de Apoio Acadêmico, seus agendamentos e ao gerenciamento de disciplinas. Os demais módulos do HubBCC, como Oportunidades Acadêmicas, Candidaturas e Atividades Complementares, permanecem definidos no documento de prototipagem inicial e na Matriz CRUD apresentada anteriormente.
 
 | Prioridade | Caso de Uso | Ator | Responsável | O que o responsável deve fazer |
 |---|---|---|---|---|
@@ -104,17 +111,17 @@ Portanto, a matriz ajuda a validar os requisitos e identificar onde o desenvolvi
 
 ### Como interpretar a prioridade
 
-A ordem foi definida pensando no fluxo principal do sistema Monitoria:
+A ordem foi definida pensando no fluxo principal do módulo de Apoio Acadêmico:
 
-**Criar sessão → Consultar monitoria → Filtrar disciplina → Escolher sessão → Realizar agendamento → Consultar/gerenciar agendamento → Realizar monitoria**
+**Criar sessão de apoio → Consultar ofertas de apoio → Filtrar por disciplina → Escolher uma oferta → Realizar agendamento → Consultar/gerenciar agendamento → Realizar atendimento**
 
 Por isso:
 
-- **Prioridade 1 – Realizar agendamento:** é o ponto principal em que o aluno efetivamente utiliza o sistema para obter o serviço de monitoria.
-- **Prioridades 2 e 3 – Consultar monitoria e Filtrar disciplina:** são necessárias para o aluno encontrar a monitoria que deseja.
-- **Prioridade 4 – Criar sessão:** é necessária para que existam monitorias disponíveis no sistema.
-- **Prioridades 5 a 11:** dão suporte ao funcionamento e ao acompanhamento das sessões e agendamentos.
-- **Prioridades 12 a 15:** correspondem ao gerenciamento das disciplinas pelo administrador e ficam por último porque são funcionalidades de suporte ao funcionamento do sistema.
+- **Prioridade 1 – Realizar agendamento:** representa o momento em que o aluno efetivamente solicita uma vaga em uma oferta de apoio.
+- **Prioridades 2 e 3 – Consultar monitoria e Filtrar disciplina:** permitem ao aluno localizar o apoio acadêmico adequado à sua necessidade.
+- **Prioridade 4 – Criar sessão:** é necessária para que existam ofertas disponíveis para agendamento.
+- **Prioridades 5 a 11:** dão suporte ao funcionamento e ao acompanhamento das sessões e dos agendamentos.
+- **Prioridades 12 a 15:** correspondem ao gerenciamento das disciplinas pelo administrador e possuem prioridade posterior por serem funcionalidades de suporte ao restante do módulo.
 
 Assim, a coluna "Responsável" significa que aquela pessoa fica encarregada de acompanhar e desenvolver aquele caso de uso no trabalho, incluindo sua especificação, implementação/prototipação e verificação de que a funcionalidade está de acordo com os requisitos definidos.
 
