@@ -6,13 +6,14 @@
    - variante : "primario" | "secundario" | "contorno" | "perigo" | "texto"
    - tamanho  : "pequeno" | "medio" | "grande"
    - larguraTotal : ocupa 100% da largura disponivel
-   - carregando   : mostra "Aguarde..." e desabilita o botao
+   - carregando   : mostra um spinner girando e desabilita o botao
    - as       : muda a tag renderizada (ex.: as={Link} para virar link)
 
    EXEMPLO:
      <Botao variante="primario" onClick={salvar}>Salvar</Botao>
      <Botao as={Link} to="/login" variante="contorno">Entrar</Botao>
 --------------------------------------------------------------------------- */
+import { Loader2 } from "lucide-react";
 
 // Estilos de cada variante. Para criar uma nova, basta adicionar uma linha.
 const VARIANTES = {
@@ -51,7 +52,7 @@ export default function Botao({
 
   return (
     <Tag className={classes} disabled={carregando || resto.disabled} {...resto}>
-      {carregando ? "Aguarde..." : children}
+      {carregando ? <Loader2 size={16} className="animate-spin" /> : children}
     </Tag>
   );
 }

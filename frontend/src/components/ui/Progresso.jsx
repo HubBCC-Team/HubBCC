@@ -5,10 +5,33 @@
    - <ProgressoCircular percentual={74} />  -> o anel verde do dashboard
    - <BarraProgresso percentual={74} />     -> barra horizontal simples
 --------------------------------------------------------------------------- */
+import { useEffect, useState } from "react";
 
 export function ProgressoCircular({ percentual = 0, tamanho = 110, legenda }) {
   // Garante que o valor fique entre 0 e 100 (evita anel quebrado).
   const valor = Math.min(100, Math.max(0, percentual));
+
+  // Numero mostrado no centro, que sobe de 0 ate "valor" em vez de aparecer pronto.
+  const [valorExibido, setValorExibido] = useState(0);
+
+  useEffect(() => {
+    setValorExibido(0);
+
+    // A cada 15ms soma 1, ate alcancar o valor real. Para numeros grandes isso
+    // ainda fica rapido (ex.: 74% leva pouco mais de 1s pra contar).
+    const intervalo = setInterval(() => {
+      setValorExibido((atual) => {
+        if (atual >= valor) {
+          clearInterval(intervalo);
+          return valor;
+        }
+        return atual + 1;
+      });
+    }, 15);
+
+    // Limpeza: se o componente sumir ou o valor mudar de novo, para o intervalo antigo.
+    return () => clearInterval(intervalo);
+  }, [valor]);
 
   const raio = (tamanho - 12) / 2;
   const circunferencia = 2 * Math.PI * raio;
@@ -48,7 +71,7 @@ export function ProgressoCircular({ percentual = 0, tamanho = 110, legenda }) {
           textAnchor="middle"
           className="rotate-90 origin-center fill-slate-900 text-lg font-semibold"
         >
-          {valor}%
+          {valorExibido}%
         </text>
       </svg>
       {legenda && <p className="text-[11px] text-slate-500">{legenda}</p>}
@@ -60,7 +83,10 @@ export function BarraProgresso({ percentual = 0, cor = "bg-marca-600" }) {
   const valor = Math.min(100, Math.max(0, percentual));
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-      <div className={`h-full rounded-full ${cor} transition-all duration-700`} style={{ width: `${valor}%` }} />
+      <div
+        className={`h-full rounded-full ${cor} transition-all duration-700`}
+        style={{ width: `${valor}%` }}
+      />
     </div>
   );
 }

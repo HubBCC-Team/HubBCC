@@ -24,12 +24,24 @@ import { formatarData } from "../../utils/formatadores";
 import { usePermissao } from "../../hooks/usePermissao";
 
 // Opcoes dos filtros. Para incluir um novo tipo, adicione aqui e no db.js.
-const TIPOS = ["Iniciacao Cientifica", "Extensao", "Evento", "Estagio", "Monitoria"];
+const TIPOS = [
+  "Iniciacao Cientifica",
+  "Extensao",
+  "Evento",
+  "Estagio",
+  "Monitoria",
+];
 const MODALIDADES = ["Presencial", "Remoto", "Hibrido"];
 const SITUACOES = ["Aberta", "Encerrada"];
 
 // Atalhos de tipo exibidos como "abas" acima da lista.
-const ABAS = ["Todas", "Monitoria", "Iniciacao Cientifica", "Extensao", "Evento"];
+const ABAS = [
+  "Todas",
+  "Monitoria",
+  "Iniciacao Cientifica",
+  "Extensao",
+  "Evento",
+];
 
 export default function ListaOportunidades() {
   // Le "?busca=" da URL — e assim que a busca da barra superior chega aqui.
@@ -48,10 +60,15 @@ export default function ListaOportunidades() {
 
   // JSON.stringify: transforma o objeto em texto para o React comparar
   // corretamente a dependencia e nao entrar em loop de busca.
-  const { dados: lista, carregando, erro, recarregar } = useRequisicao(
+  const {
+    dados: lista,
+    carregando,
+    erro,
+    recarregar,
+  } = useRequisicao(
     () => listarOportunidades(filtros),
     [JSON.stringify(filtros)],
-    []
+    [],
   );
 
   // Altera um filtro especifico sem perder os demais.
@@ -64,7 +81,8 @@ export default function ListaOportunidades() {
   }
 
   return (
-    <>
+    // anim-surgir aqui: a pagina inteira entra com o fade-in padrao ao abrir.
+    <div className="anim-surgir">
       <Cabecalho
         titulo="Oportunidades Academicas"
         subtitulo="Monitorias, iniciacao cientifica, extensao e eventos do curso"
@@ -79,7 +97,10 @@ export default function ListaOportunidades() {
       {/* ------------------------- Barra de busca ------------------------- */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={15}
+          />
           <input
             type="search"
             value={filtros.busca}
@@ -126,7 +147,11 @@ export default function ListaOportunidades() {
           titulo="Nenhuma oportunidade encontrada"
           descricao="Tente remover alguns filtros ou usar outro termo de busca."
           acao={
-            <Botao variante="contorno" tamanho="pequeno" onClick={limparFiltros}>
+            <Botao
+              variante="contorno"
+              tamanho="pequeno"
+              onClick={limparFiltros}
+            >
               Limpar filtros
             </Botao>
           }
@@ -138,15 +163,20 @@ export default function ListaOportunidades() {
           </p>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {lista.map((item) => (
-              <CartaoOportunidade key={item.id} item={item} />
+            {/* indice usado so para a cascata (animationDelay) de cada card */}
+            {lista.map((item, indice) => (
+              <CartaoOportunidade key={item.id} item={item} indice={indice} />
             ))}
           </div>
         </>
       )}
 
       {/* ----------------- TELA 7: painel lateral de filtros ----------------- */}
-      <Modal aberto={painelAberto} aoFechar={() => setPainelAberto(false)} titulo="Filtros">
+      <Modal
+        aberto={painelAberto}
+        aoFechar={() => setPainelAberto(false)}
+        titulo="Filtros"
+      >
         <div className="space-y-4">
           <CampoSelecao
             rotulo="Tipo de oportunidade"
@@ -180,7 +210,7 @@ export default function ListaOportunidades() {
           </div>
         </div>
       </Modal>
-    </>
+    </div>
   );
 }
 
@@ -188,11 +218,14 @@ export default function ListaOportunidades() {
    Cartao de uma oportunidade na listagem.
    Componente pequeno e local — so esta tela usa, entao nao precisa de arquivo.
 --------------------------------------------------------------------------- */
-function CartaoOportunidade({ item }) {
+function CartaoOportunidade({ item, indice = 0 }) {
   return (
     <Link
       to={`/app/oportunidades/${item.id}`}
-      className="cartao flex flex-col p-5 transition hover:border-marca-300 hover:shadow-md"
+      // anim-surgir + animationDelay: cada card entra um pouco depois do anterior (cascata).
+      // hover:-translate-y-1: o card "levanta" ao passar o mouse.
+      className="cartao anim-surgir flex flex-col p-5 transition hover:-translate-y-1 hover:border-marca-300 hover:shadow-md"
+      style={{ animationDelay: `${indice * 50}ms` }}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <Selo tom="marca">{item.tipo}</Selo>

@@ -30,10 +30,15 @@ export default function ListaApoio() {
   // Lista de disciplinas para montar os botoes de filtro.
   const disciplinas = useRequisicao(listarDisciplinas, [], []);
 
-  const { dados: ofertas, carregando, erro, recarregar } = useRequisicao(
+  const {
+    dados: ofertas,
+    carregando,
+    erro,
+    recarregar,
+  } = useRequisicao(
     () => listarOfertas(filtros),
     [JSON.stringify(filtros)],
-    []
+    [],
   );
 
   function mudarFiltro(campo, valor) {
@@ -41,7 +46,8 @@ export default function ListaApoio() {
   }
 
   return (
-    <>
+    // anim-surgir aqui: a pagina inteira entra com o fade-in padrao ao abrir.
+    <div className="anim-surgir">
       <Cabecalho
         titulo="Apoio Academico"
         subtitulo="Monitorias oficiais e tutorias oferecidas por outros alunos"
@@ -54,7 +60,10 @@ export default function ListaApoio() {
       {/* Busca + filtros rapidos */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={15}
+          />
           <input
             type="search"
             value={filtros.busca}
@@ -88,7 +97,9 @@ export default function ListaApoio() {
         {/* Botao que alterna entre "so gratuitas" e "todas" */}
         <button
           type="button"
-          onClick={() => mudarFiltro("gratuita", filtros.gratuita === "true" ? "" : "true")}
+          onClick={() =>
+            mudarFiltro("gratuita", filtros.gratuita === "true" ? "" : "true")
+          }
           className={[
             "rounded-lg px-3 py-2 text-xs font-medium transition",
             filtros.gratuita === "true"
@@ -136,12 +147,13 @@ export default function ListaApoio() {
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {ofertas.map((oferta) => (
-            <CartaoOferta key={oferta.id} oferta={oferta} />
+          {/* indice usado so para a cascata (animationDelay) de cada card */}
+          {ofertas.map((oferta, indice) => (
+            <CartaoOferta key={oferta.id} oferta={oferta} indice={indice} />
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -152,7 +164,9 @@ function BotaoDisciplina({ ativo, onClick, children }) {
       onClick={onClick}
       className={[
         "rounded-full px-3 py-1.5 text-[11px] font-medium transition",
-        ativo ? "bg-noite-900 text-white" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
+        ativo
+          ? "bg-noite-900 text-white"
+          : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
       ].join(" ")}
     >
       {children}
@@ -160,27 +174,40 @@ function BotaoDisciplina({ ativo, onClick, children }) {
   );
 }
 
-function CartaoOferta({ oferta }) {
+function CartaoOferta({ oferta, indice = 0 }) {
   // Calcula as vagas restantes para avisar quando estiver lotada.
   const vagasRestantes = oferta.vagas - oferta.vagasOcupadas;
   const lotada = vagasRestantes <= 0;
 
   return (
-    <div className="cartao flex flex-col p-5">
+    // anim-surgir + animationDelay: cada card entra um pouco depois do anterior (cascata).
+    // hover:-translate-y-1: o card "levanta" ao passar o mouse.
+    <div
+      className="cartao anim-surgir flex flex-col p-5 transition hover:-translate-y-1 hover:shadow-md"
+      style={{ animationDelay: `${indice * 50}ms` }}
+    >
       <div className="flex items-start gap-3">
         <Avatar iniciais={oferta.iniciais} />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-semibold text-slate-900">{oferta.titulo}</h3>
+          <h3 className="truncate text-sm font-semibold text-slate-900">
+            {oferta.titulo}
+          </h3>
           <p className="text-[11px] text-slate-500">{oferta.monitor}</p>
         </div>
-        <Selo tom={oferta.tipo === "Monitoria" ? "marca" : "neutro"}>{oferta.tipo}</Selo>
+        <Selo tom={oferta.tipo === "Monitoria" ? "marca" : "neutro"}>
+          {oferta.tipo}
+        </Selo>
       </div>
 
-      <p className="mt-3 line-clamp-2 text-xs text-slate-600">{oferta.assunto}</p>
+      <p className="mt-3 line-clamp-2 text-xs text-slate-600">
+        {oferta.assunto}
+      </p>
 
       <div className="mt-3 flex items-center gap-2">
         <Estrelas nota={oferta.nota} mostrarNumero />
-        <span className="text-[11px] text-slate-400">({oferta.totalAvaliacoes})</span>
+        <span className="text-[11px] text-slate-400">
+          ({oferta.totalAvaliacoes})
+        </span>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-slate-500">
@@ -193,7 +220,9 @@ function CartaoOferta({ oferta }) {
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-        <span className={`text-xs font-medium ${oferta.gratuita ? "text-sucesso" : "text-slate-700"}`}>
+        <span
+          className={`text-xs font-medium ${oferta.gratuita ? "text-sucesso" : "text-slate-700"}`}
+        >
           {formatarValor(oferta.valor)}
         </span>
         <Botao

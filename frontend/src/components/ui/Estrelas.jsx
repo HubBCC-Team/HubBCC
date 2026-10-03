@@ -8,7 +8,12 @@
 --------------------------------------------------------------------------- */
 import { Star } from "lucide-react";
 
-export default function Estrelas({ nota = 0, aoSelecionar, tamanho = 14, mostrarNumero = false }) {
+export default function Estrelas({
+  nota = 0,
+  aoSelecionar,
+  tamanho = 14,
+  mostrarNumero = false,
+}) {
   const interativo = typeof aoSelecionar === "function";
 
   return (
@@ -18,16 +23,22 @@ export default function Estrelas({ nota = 0, aoSelecionar, tamanho = 14, mostrar
           key={posicao}
           size={tamanho}
           // Preenche a estrela se a nota for maior ou igual a posicao dela.
-          className={
+          // hover:scale-125 + transition-transform: a estrela cresce ao passar o mouse.
+          className={[
+            "transition-transform duration-150 hover:scale-125",
             posicao <= Math.round(nota)
               ? "fill-amber-400 text-amber-400"
-              : "fill-slate-200 text-slate-200"
-          }
+              : "fill-slate-200 text-slate-200",
+          ].join(" ")}
           onClick={interativo ? () => aoSelecionar(posicao) : undefined}
           style={interativo ? { cursor: "pointer" } : undefined}
         />
       ))}
-      {mostrarNumero && <span className="ml-1 text-xs text-slate-500">{Number(nota).toFixed(1)}</span>}
+      {mostrarNumero && (
+        <span className="ml-1 text-xs text-slate-500">
+          {Number(nota).toFixed(1)}
+        </span>
+      )}
     </div>
   );
 }

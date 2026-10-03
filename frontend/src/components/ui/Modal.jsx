@@ -17,7 +17,13 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function Modal({ aberto, aoFechar, titulo, largura = "max-w-md", children }) {
+export default function Modal({
+  aberto,
+  aoFechar,
+  titulo,
+  largura = "max-w-md",
+  children,
+}) {
   // Fecha o modal quando o usuario aperta a tecla ESC.
   useEffect(() => {
     if (!aberto) return;
@@ -33,10 +39,15 @@ export default function Modal({ aberto, aoFechar, titulo, largura = "max-w-md", 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Fundo escurecido: clicar nele fecha o modal */}
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onClick={aoFechar} />
+      <div
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] anim-fundo-modal"
+        onClick={aoFechar}
+      />
 
       {/* Caixa branca do modal */}
-      <div className={`relative w-full ${largura} cartao p-6`}>
+      <div
+        className={`relative w-full ${largura} cartao p-6 anim-conteudo-modal`}
+      >
         <button
           type="button"
           onClick={aoFechar}
@@ -45,7 +56,11 @@ export default function Modal({ aberto, aoFechar, titulo, largura = "max-w-md", 
         >
           <X size={18} />
         </button>
-        {titulo && <h2 className="mb-4 text-base font-semibold text-slate-900">{titulo}</h2>}
+        {titulo && (
+          <h2 className="mb-4 text-base font-semibold text-slate-900">
+            {titulo}
+          </h2>
+        )}
         {children}
       </div>
     </div>
