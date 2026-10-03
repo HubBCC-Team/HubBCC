@@ -115,7 +115,7 @@ export default function DetalheOportunidade() {
 
         {/* -------------------------- Coluna lateral -------------------------- */}
         <aside className="space-y-4">
-          <div className="cartao p-5">
+          <div className="cartao p-6 anim-surgir">
             <h2 className="titulo-secao mb-3">Informacoes</h2>
 
             <dl className="space-y-3 text-xs">

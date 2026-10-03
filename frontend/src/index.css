@@ -36,7 +36,8 @@
   --color-alerta: #d97706;
   --color-erro: #dc2626;
 
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* Ajustes globais minimos */
@@ -48,6 +49,44 @@ body,
 
 body {
   @apply bg-slate-100 text-slate-800 font-sans antialiased;
+}
+
+/* -----------------------------------------------------------------------
+   Keyframes de animacao.
+   Ficam fora de @layer porque sao definicoes puras (nao geram classe
+   sozinhas); quem usa sao as classes .anim-* logo abaixo, em @layer
+   components.
+----------------------------------------------------------------------- */
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes deslizar {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulsar {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
 }
 
 @layer components {
@@ -72,5 +111,18 @@ body {
            placeholder:text-slate-400 outline-none transition
            focus:border-marca-500 focus:ring-2 focus:ring-marca-100
            disabled:bg-slate-100 disabled:text-slate-400;
+  }
+
+  /* --- Classes de animacao: ver README para quando usar cada uma --- */
+  .anim-surgir {
+    animation: surgir 0.3s ease-out both;
+  }
+
+  .anim-deslizar {
+    animation: deslizar 0.4s ease-out both;
+  }
+
+  .anim-pulsar {
+    animation: pulsar 1.6s ease-in-out infinite;
   }
 }
