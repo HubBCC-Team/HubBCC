@@ -3,15 +3,12 @@
    TELAS 16, 17 e 19 — Meus agendamentos + modal de reagendar + modal de avaliar.
 
    Casos de uso 15 (consultar), 16 (reagendar/cancelar) e 18 (avaliar).
-
-   Por que os dois modais estao aqui e nao em telas separadas?
-   Porque eles abrem por cima desta lista, exatamente como no prototipo. Cada
-   modal e um componente separado no final do arquivo, para facilitar a leitura.
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays, Clock, MapPin, Plus } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
+import { useToast } from "../../contexts/useToast";
 import { useRequisicao } from "../../hooks/useRequisicao";
 import {
   listarAgendamentos,
@@ -25,30 +22,41 @@ import Modal from "../../components/ui/Modal";
 import Campo, { CampoTexto } from "../../components/ui/Campo";
 import Estrelas from "../../components/ui/Estrelas";
 import { SeloSituacao } from "../../components/ui/Selo";
-import { Carregando, Erro, Vazio } from "../../components/ui/Estado";
+import { Erro, Vazio } from "../../components/ui/Estado";
 import { formatarData, hojeISO } from "../../utils/formatadores";
-import Alerta from "../../components/ui/Alerta";
+import Skeleton from "../../components/ui/Skeleton";
 
 const ABAS = ["Confirmado", "Realizado", "Cancelado"];
 
 export default function MeusAgendamentos() {
   const { usuario } = useAuth();
+  const toast = useToast();
   const [aba, setAba] = useState("Confirmado");
-
-  // Guardam qual agendamento esta sendo reagendado/avaliado (null = fechado).
   const [paraReagendar, setParaReagendar] = useState(null);
   const [paraAvaliar, setParaAvaliar] = useState(null);
 
-  const { dados: lista, carregando, erro, recarregar } = useRequisicao(
+  const {
+    dados: lista,
+    carregando,
+    erro,
+    recarregar,
+  } = useRequisicao(
     () => listarAgendamentos(usuario.id, { situacao: aba }),
     [usuario.id, aba],
-    []
+    [],
   );
 
   async function aoCancelar(id) {
-    if (!confirm("Deseja cancelar este agendamento? A vaga sera liberada.")) return;
-    await cancelarAgendamento(id);
-    recarregar();
+    if (!confirm("Deseja cancelar este agendamento? A vaga sera liberada."))
+      return;
+
+    try {
+      await cancelarAgendamento(id);
+      toast.sucesso("Agendamento cancelado com sucesso!");
+      recarregar();
+    } catch (e) {
+      toast.erro("Erro ao cancelar o agendamento.");
+    }
   }
 
   return (
@@ -62,7 +70,6 @@ export default function MeusAgendamentos() {
         </Botao>
       </Cabecalho>
 
-      {/* Abas por situacao */}
       <div className="mb-5 flex flex-wrap gap-2">
         {ABAS.map((nome) => (
           <button
@@ -82,7 +89,11 @@ export default function MeusAgendamentos() {
       </div>
 
       {carregando ? (
-        <Carregando />
+        <div className="space-y-3">
+          <Skeleton variante="cartao" className="h-28" />
+          <Skeleton variante="cartao" className="h-28" />
+          <Skeleton variante="cartao" className="h-28" />
+        </div>
       ) : erro ? (
         <Erro mensagem={erro} aoTentarNovamente={recarregar} />
       ) : lista.length === 0 ? (
@@ -102,15 +113,20 @@ export default function MeusAgendamentos() {
               key={item.id}
               className="cartao flex flex-wrap items-center justify-between gap-4 border-l-4 border-l-marca-600 p-5"
             >
-              {/* Bloco da data, a esquerda */}
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-marca-50 text-marca-700">
-                  <span className="text-base font-semibold">{item.data.slice(8, 10)}</span>
-                  <span className="text-[10px] uppercase">{mesCurto(item.data)}</span>
+                  <span className="text-base font-semibold">
+                    {item.data.slice(8, 10)}
+                  </span>
+                  <span className="text-[10px] uppercase">
+                    {mesCurto(item.data)}
+                  </span>
                 </div>
 
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900">{item.titulo}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {item.titulo}
+                  </p>
                   <p className="text-[11px] text-slate-500">
                     {item.disciplina} · com {item.monitor}
                   </p>
@@ -128,7 +144,6 @@ export default function MeusAgendamentos() {
                 </div>
               </div>
 
-              {/* Acoes, a direita — variam conforme a situacao */}
               <div className="flex flex-wrap items-center gap-2">
                 <SeloSituacao situacao={item.situacao} />
 
@@ -141,7 +156,11 @@ export default function MeusAgendamentos() {
                     >
                       Reagendar
                     </Botao>
-                    <Botao variante="perigo" tamanho="pequeno" onClick={() => aoCancelar(item.id)}>
+                    <Botao
+                      variante="perigo"
+                      tamanho="pequeno"
+                      onClick={() => aoCancelar(item.id)}
+                    >
                       Cancelar
                     </Botao>
                     <Botao
@@ -154,7 +173,6 @@ export default function MeusAgendamentos() {
                   </>
                 )}
 
-                {/* Avaliar so aparece para atendimento ja realizado e sem nota */}
                 {item.situacao === "Realizado" && !item.avaliacao && (
                   <Botao tamanho="pequeno" onClick={() => setParaAvaliar(item)}>
                     Avaliar
@@ -170,7 +188,6 @@ export default function MeusAgendamentos() {
         </div>
       )}
 
-      {/* ------------------------ Modais ------------------------ */}
       <ModalReagendar
         agendamento={paraReagendar}
         aoFechar={() => setParaReagendar(null)}
@@ -185,31 +202,32 @@ export default function MeusAgendamentos() {
   );
 }
 
-/* ---------------------------------------------------------------------------
-   TELA 16 — Modal de reagendamento
---------------------------------------------------------------------------- */
 function ModalReagendar({ agendamento, aoFechar, aoSalvar }) {
+  const toast = useToast();
   const [data, setData] = useState("");
   const [hora, setHora] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const [erro, setErro] = useState(null);
 
   async function confirmar() {
-    setErro(null);
     setEnviando(true);
     try {
       await reagendar(agendamento.id, data, hora);
-      aoSalvar();   // recarrega a lista
-      aoFechar();   // fecha o modal
+      toast.sucesso("Atendimento reagendado com sucesso!");
+      aoSalvar();
+      aoFechar();
     } catch (e) {
-      setErro(e.message);
+      toast.erro(e.message);
     } finally {
       setEnviando(false);
     }
   }
 
   return (
-    <Modal aberto={Boolean(agendamento)} aoFechar={aoFechar} titulo="Reagendar atendimento">
+    <Modal
+      aberto={Boolean(agendamento)}
+      aoFechar={aoFechar}
+      titulo="Reagendar atendimento"
+    >
       {agendamento && (
         <>
           <div className="mb-4 rounded-lg bg-slate-50 p-3 text-xs">
@@ -219,17 +237,11 @@ function ModalReagendar({ agendamento, aoFechar, aoSalvar }) {
             </p>
           </div>
 
-          {erro && (
-            <Alerta variante="erro" className="mb-3">
-              {erro}
-            </Alerta>
-          )}
-
           <div className="grid gap-3 sm:grid-cols-2">
             <Campo
               rotulo="Nova data"
               type="date"
-              min={hojeISO()} /* impede escolher data passada */
+              min={hojeISO()}
               value={data}
               onChange={(e) => setData(e.target.value)}
             />
@@ -245,7 +257,12 @@ function ModalReagendar({ agendamento, aoFechar, aoSalvar }) {
             <Botao variante="contorno" larguraTotal onClick={aoFechar}>
               Voltar
             </Botao>
-            <Botao larguraTotal disabled={!data || !hora} carregando={enviando} onClick={confirmar}>
+            <Botao
+              larguraTotal
+              disabled={!data || !hora}
+              carregando={enviando}
+              onClick={confirmar}
+            >
               Confirmar
             </Botao>
           </div>
@@ -255,21 +272,18 @@ function ModalReagendar({ agendamento, aoFechar, aoSalvar }) {
   );
 }
 
-/* ---------------------------------------------------------------------------
-   TELA 19 — Modal de avaliacao do atendimento
---------------------------------------------------------------------------- */
 const TAGS = ["Didatico", "Pontual", "Paciente", "Claro", "Atencioso"];
 
 function ModalAvaliar({ agendamento, aoFechar, aoSalvar }) {
+  const toast = useToast();
   const [nota, setNota] = useState(0);
   const [tags, setTags] = useState([]);
   const [comentario, setComentario] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  // Adiciona ou remove uma tag da lista de selecionadas.
   function alternarTag(tag) {
     setTags((atuais) =>
-      atuais.includes(tag) ? atuais.filter((t) => t !== tag) : [...atuais, tag]
+      atuais.includes(tag) ? atuais.filter((t) => t !== tag) : [...atuais, tag],
     );
   }
 
@@ -277,19 +291,25 @@ function ModalAvaliar({ agendamento, aoFechar, aoSalvar }) {
     setEnviando(true);
     try {
       await avaliarAtendimento(agendamento.id, { nota, comentario, tags });
+      toast.sucesso("Avaliacao enviada com sucesso!");
       aoSalvar();
       aoFechar();
-      // Limpa o formulario para a proxima avaliacao.
       setNota(0);
       setTags([]);
       setComentario("");
+    } catch (e) {
+      toast.erro(e.message);
     } finally {
       setEnviando(false);
     }
   }
 
   return (
-    <Modal aberto={Boolean(agendamento)} aoFechar={aoFechar} titulo="Avaliar atendimento">
+    <Modal
+      aberto={Boolean(agendamento)}
+      aoFechar={aoFechar}
+      titulo="Avaliar atendimento"
+    >
       {agendamento && (
         <div className="text-center">
           <p className="text-sm text-slate-600">Como foi a monitoria?</p>
@@ -329,7 +349,7 @@ function ModalAvaliar({ agendamento, aoFechar, aoSalvar }) {
           <Botao
             larguraTotal
             className="mt-4"
-            disabled={nota === 0} /* obriga escolher ao menos 1 estrela */
+            disabled={nota === 0}
             carregando={enviando}
             onClick={confirmar}
           >
@@ -341,8 +361,20 @@ function ModalAvaliar({ agendamento, aoFechar, aoSalvar }) {
   );
 }
 
-// "2026-09-22" -> "SET"
 function mesCurto(iso) {
-  const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+  const meses = [
+    "JAN",
+    "FEV",
+    "MAR",
+    "ABR",
+    "MAI",
+    "JUN",
+    "JUL",
+    "AGO",
+    "SET",
+    "OUT",
+    "NOV",
+    "DEZ",
+  ];
   return meses[Number(iso.slice(5, 7)) - 1];
 }

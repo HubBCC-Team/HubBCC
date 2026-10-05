@@ -11,6 +11,7 @@ export const usuariosSeed = [
     matricula: "2023.1.08.045",
     profileType: PERFIS.ALUNO,
     senha: "123456",
+    banner: null,
   },
   {
     id: 2,
@@ -20,6 +21,7 @@ export const usuariosSeed = [
     matricula: "2021.1.02.010",
     profileType: PERFIS.MONITOR,
     senha: "123456",
+    banner: null,
   },
   {
     id: 3,
@@ -29,6 +31,7 @@ export const usuariosSeed = [
     matricula: "-",
     profileType: PERFIS.ADMINISTRADOR,
     senha: "123456",
+    banner: null,
   },
 ];
 

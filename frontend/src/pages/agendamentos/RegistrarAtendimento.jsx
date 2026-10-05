@@ -9,33 +9,34 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Check, X, CalendarDays, Clock, MapPin } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
+import { useToast } from "../../contexts/useToast";
 import { useRequisicao } from "../../hooks/useRequisicao";
-import { listarAgendamentos, registrarAtendimento } from "../../service/agendamentoService";
+import {
+  listarAgendamentos,
+  registrarAtendimento,
+} from "../../service/agendamentoService";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Campo, { CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import { Carregando, Erro } from "../../components/ui/Estado";
 import { formatarData } from "../../utils/formatadores";
-import Alerta from "../../components/ui/Alerta";
 
 export default function RegistrarAtendimento() {
   const { id } = useParams();
   const navegar = useNavigate();
   const { usuario } = useAuth();
+  const toast = useToast();
 
-  // Nao existe endpoint "buscar agendamento por id" no mock, entao trazemos
-  // a lista do usuario e filtramos aqui mesmo.
-  const { dados: lista, carregando, erro } = useRequisicao(
-    () => listarAgendamentos(usuario.id),
-    [usuario.id],
-    []
-  );
+  const {
+    dados: lista,
+    carregando,
+    erro,
+  } = useRequisicao(() => listarAgendamentos(usuario.id), [usuario.id], []);
 
   const [compareceu, setCompareceu] = useState(true);
   const [duracao, setDuracao] = useState(60);
   const [observacoes, setObservacoes] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const [erroEnvio, setErroEnvio] = useState(null);
 
   if (carregando) return <Carregando />;
   if (erro) return <Erro mensagem={erro} />;
@@ -44,7 +45,6 @@ export default function RegistrarAtendimento() {
   if (!agendamento) return <Erro mensagem="Agendamento nao encontrado." />;
 
   async function aoSalvar() {
-    setErroEnvio(null);
     setEnviando(true);
     try {
       await registrarAtendimento(agendamento.id, {
@@ -52,9 +52,10 @@ export default function RegistrarAtendimento() {
         duracao: Number(duracao),
         observacoes,
       });
+      toast.sucesso("Atendimento registrado com sucesso!");
       navegar("/app/agendamentos");
     } catch (e) {
-      setErroEnvio(e.message);
+      toast.erro(e.message);
     } finally {
       setEnviando(false);
     }
@@ -67,17 +68,10 @@ export default function RegistrarAtendimento() {
         subtitulo="Informe como foi a sessao para concluir o agendamento"
       />
 
-        {erroEnvio && (
-          <Alerta variante="erro" className="mb-4">
-           {erroEnvio}
-         </Alerta>
-        )}
-
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="cartao space-y-5 p-6 lg:col-span-2">
           <h2 className="titulo-secao">Registro da sessao</h2>
 
-          {/* Botoes sim/nao para presenca */}
           <div>
             <p className="rotulo">O aluno compareceu?</p>
             <div className="flex gap-2">
@@ -135,14 +129,19 @@ export default function RegistrarAtendimento() {
           </div>
         </div>
 
-        {/* Resumo do agendamento */}
         <aside className="cartao h-fit p-5">
           <h2 className="titulo-secao mb-3">Agendamento</h2>
-          <p className="text-sm font-semibold text-slate-900">{agendamento.titulo}</p>
+          <p className="text-sm font-semibold text-slate-900">
+            {agendamento.titulo}
+          </p>
           <p className="text-[11px] text-slate-500">{agendamento.disciplina}</p>
 
           <dl className="mt-4 space-y-2.5 text-xs">
-            <Linha icone={CalendarDays} rotulo="Data" valor={formatarData(agendamento.data)} />
+            <Linha
+              icone={CalendarDays}
+              rotulo="Data"
+              valor={formatarData(agendamento.data)}
+            />
             <Linha icone={Clock} rotulo="Horario" valor={agendamento.hora} />
             <Linha icone={MapPin} rotulo="Local" valor={agendamento.local} />
           </dl>

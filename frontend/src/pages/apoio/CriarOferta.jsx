@@ -1,16 +1,12 @@
 /* ---------------------------------------------------------------------------
    pages/apoio/CriarOferta.jsx
    TELA 14 — Criar oferta de apoio ("/app/apoio/nova").
-
-   Caso de uso 9 (prioridade 4 do projeto — Samuel).
-
-   A grade de horarios agora mora em components/ui/GradeHorarios.jsx
-   (reaproveitada tambem pela EditarOferta). Aqui continua so a logica de
-   marcar/desmarcar o array "horarios".
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftRight } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
+import { useToast } from "../../contexts/useToast";
 import { useFormulario } from "../../hooks/useFormulario";
 import { useRequisicao } from "../../hooks/useRequisicao";
 import { listarDisciplinas, criarOferta } from "../../service/apoioService";
@@ -19,11 +15,11 @@ import Campo, { CampoSelecao, CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import GradeHorarios from "../../components/ui/GradeHorarios";
 import { iniciaisDe } from "../../utils/formatadores";
-import Alerta from "../../components/ui/Alerta";
 
 export default function CriarOferta() {
   const navegar = useNavigate();
   const { usuario } = useAuth();
+  const toast = useToast();
 
   const disciplinas = useRequisicao(listarDisciplinas, [], []);
 
@@ -40,21 +36,16 @@ export default function CriarOferta() {
     descricao: "",
   });
 
-  // Horarios selecionados na grade.
   const [horarios, setHorarios] = useState([]);
-  const [erro, setErro] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
-  // Marca/desmarca uma celula da grade.
   function alternarHorario(dia, inicio) {
-    // Chave unica para identificar a celula (ex.: "Segunda-14:00").
     const chave = `${dia}-${inicio}`;
     const jaSelecionado = horarios.some((h) => h.id === chave);
 
     if (jaSelecionado) {
       setHorarios(horarios.filter((h) => h.id !== chave));
     } else {
-      // Fim = inicio + 2h (regra simples adotada no projeto).
       const fim = `${String(Number(inicio.slice(0, 2)) + 2).padStart(2, "0")}:00`;
       setHorarios([...horarios, { id: chave, dia, inicio, fim }]);
     }
@@ -62,10 +53,9 @@ export default function CriarOferta() {
 
   async function aoEnviar(evento) {
     evento.preventDefault();
-    setErro(null);
 
     if (horarios.length === 0) {
-      return setErro("Selecione ao menos um horario de atendimento.");
+      return toast.erro("Selecione ao menos um horario de atendimento.");
     }
 
     setEnviando(true);
@@ -79,9 +69,10 @@ export default function CriarOferta() {
         iniciais: iniciaisDe(usuario.nome),
         horarios,
       });
+      toast.sucesso("Oferta criada com sucesso!");
       navegar("/app/apoio");
     } catch (e) {
-      setErro(e.message);
+      toast.erro(e.message);
     } finally {
       setEnviando(false);
     }
@@ -94,19 +85,20 @@ export default function CriarOferta() {
         subtitulo="Ofereca monitoria ou tutoria para outros alunos do curso"
       />
 
-      {erro && (
-        <Alerta variante="erro" className="mb-4">
-          {erro}
-        </Alerta>
-      )}
-
       <form onSubmit={aoEnviar} className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           {/* ----------------------- Dados da oferta ----------------------- */}
           <div className="cartao space-y-4 p-6">
             <h2 className="titulo-secao">Dados da oferta</h2>
 
-            <Campo rotulo="Titulo" name="titulo" required placeholder="Ex.: Tutoria de Calculo I" value={valores.titulo} onChange={aoMudar} />
+            <Campo
+              rotulo="Titulo"
+              name="titulo"
+              required
+              placeholder="Ex.: Tutoria de Calculo I"
+              value={valores.titulo}
+              onChange={aoMudar}
+            />
 
             <div className="grid gap-3 sm:grid-cols-2">
               <CampoSelecao
@@ -114,7 +106,10 @@ export default function CriarOferta() {
                 name="disciplinaId"
                 required
                 placeholder="Selecione"
-                opcoes={disciplinas.dados.map((d) => ({ valor: d.id, texto: `${d.codigo} - ${d.nome}` }))}
+                opcoes={disciplinas.dados.map((d) => ({
+                  valor: d.id,
+                  texto: `${d.codigo} - ${d.nome}`,
+                }))}
                 value={valores.disciplinaId}
                 onChange={aoMudar}
               />
@@ -127,7 +122,14 @@ export default function CriarOferta() {
               />
             </div>
 
-            <Campo rotulo="Assuntos abordados" name="assunto" required placeholder="Ex.: Limites, derivadas e integrais" value={valores.assunto} onChange={aoMudar} />
+            <Campo
+              rotulo="Assuntos abordados"
+              name="assunto"
+              required
+              placeholder="Ex.: Limites, derivadas e integrais"
+              value={valores.assunto}
+              onChange={aoMudar}
+            />
 
             <div className="grid gap-3 sm:grid-cols-3">
               <CampoSelecao
@@ -137,14 +139,38 @@ export default function CriarOferta() {
                 value={valores.modalidade}
                 onChange={aoMudar}
               />
-              <Campo rotulo="Local / link" name="local" required value={valores.local} onChange={aoMudar} />
-              <Campo rotulo="Vagas" name="vagas" type="number" min="1" value={valores.vagas} onChange={aoMudar} />
+              <Campo
+                rotulo="Local / link"
+                name="local"
+                required
+                value={valores.local}
+                onChange={aoMudar}
+              />
+              <Campo
+                rotulo="Vagas"
+                name="vagas"
+                type="number"
+                min="1"
+                value={valores.vagas}
+                onChange={aoMudar}
+              />
             </div>
 
-            <CampoTexto rotulo="Descricao" name="descricao" linhas={4} value={valores.descricao} onChange={aoMudar} />
+            <CampoTexto
+              rotulo="Descricao"
+              name="descricao"
+              linhas={4}
+              value={valores.descricao}
+              onChange={aoMudar}
+            />
           </div>
 
           {/* --------------------- Grade de horarios --------------------- */}
+          {/* Aviso apenas visível em telemóveis (md:hidden) para alertar sobre o scroll */}
+          <div className="flex items-center gap-2 px-2 text-[11px] text-slate-500 md:hidden">
+            <ArrowLeftRight size={12} className="shrink-0" />
+            <p>Arraste a tabela para o lado para ver mais horários</p>
+          </div>
           <GradeHorarios horarios={horarios} aoAlterar={alternarHorario} />
         </div>
 
@@ -178,7 +204,9 @@ export default function CriarOferta() {
 
             <div className="rounded-lg bg-slate-50 p-3 text-[11px] text-slate-600">
               <p className="font-medium text-slate-800">Resumo</p>
-              <p className="mt-1">{horarios.length} horario(s) selecionado(s)</p>
+              <p className="mt-1">
+                {horarios.length} horario(s) selecionado(s)
+              </p>
               <p>{valores.vagas} vaga(s) por horario</p>
             </div>
           </div>
@@ -187,7 +215,12 @@ export default function CriarOferta() {
             <Botao type="submit" larguraTotal carregando={enviando}>
               Publicar oferta
             </Botao>
-            <Botao type="button" variante="contorno" larguraTotal onClick={() => navegar(-1)}>
+            <Botao
+              type="button"
+              variante="contorno"
+              larguraTotal
+              onClick={() => navegar(-1)}
+            >
               Cancelar
             </Botao>
           </div>

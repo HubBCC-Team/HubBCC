@@ -18,6 +18,7 @@
 --------------------------------------------------------------------------- */
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ToastProvider } from "./contexts/ToastContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import RotaPrivada from "./components/rotas/RotaPrivada";
 
@@ -60,90 +61,96 @@ export default function App() {
   return (
     // BrowserRouter = habilita a navegacao por URL
     <BrowserRouter>
-      {/* AuthProvider = deixa o usuario logado disponivel em todas as telas */}
-      <AuthProvider>
-        <Routes>
-          {/* ===================== ROTAS PUBLICAS ===================== */}
-          <Route path="/" element={<Landing />} />
+      {/* ToastProvider = gerencia as notificacoes flutuantes em toda a aplicacao */}
+      <ToastProvider>
+        {/* AuthProvider = deixa o usuario logado disponivel em todas as telas */}
+        <AuthProvider>
+          <Routes>
+            {/* ===================== ROTAS PUBLICAS ===================== */}
+            <Route path="/" element={<Landing />} />
 
-          {/* Estas compartilham o painel azul do LayoutAcesso */}
-          <Route element={<LayoutAcesso />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Cadastro />} />
-            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
-            <Route path="/nova-senha" element={<NovaSenha />} />
-          </Route>
-
-          {/* ===================== ROTAS PRIVADAS ===================== */}
-          {/* RotaPrivada barra quem nao esta logado.                     */}
-          {/* LayoutApp desenha menu lateral + barra superior.            */}
-          <Route element={<RotaPrivada />}>
-            <Route path="/app" element={<LayoutApp />}>
-              {/* index = a tela mostrada em "/app" */}
-              <Route index element={<Home />} />
-
-              {/* --- Oportunidades academicas (casos de uso 1 a 8) --- */}
-              <Route path="oportunidades" element={<ListaOportunidades />} />
-              <Route
-                path="oportunidades/:id"
-                element={<DetalheOportunidade />}
-              />
-              <Route
-                path="oportunidades/:id/candidatura"
-                element={<RealizarCandidatura />}
-              />
-              <Route path="candidaturas" element={<MinhasCandidaturas />} />
-
-              <Route element={<RotaPrivada perfis={["monitor", "admin"]} />}>
-                <Route
-                  path="oportunidades/nova"
-                  element={<CadastrarOportunidade />}
-                />
-                <Route
-                  path="oportunidades/:id/editar"
-                  element={<EditarOportunidade />}
-                />
-              </Route>
-
-              {/* --- Apoio academico (casos de uso 9 a 13) --- */}
-              <Route path="apoio" element={<ListaApoio />} />
-              <Route path="apoio/nova" element={<CriarOferta />} />
-              <Route path="apoio/:id" element={<DetalheMonitoria />} />
-              <Route
-                path="apoio/:id/agendar"
-                element={<RealizarAgendamento />}
-              />
-              <Route path="apoio/:id/editar" element={<EditarOferta />} />
-
-              {/* --- Agendamentos (casos de uso 14 a 18) --- */}
-              <Route path="agendamentos" element={<MeusAgendamentos />} />
-              <Route
-                path="agendamentos/:id/registrar"
-                element={<RegistrarAtendimento />}
-              />
-
-              {/* --- Atividades complementares (casos de uso 19 e 20) --- */}
-              <Route path="atividades" element={<AtividadesHoras />} />
-              <Route path="atividades/nova" element={<RegistrarAtividade />} />
-              <Route
-                path="atividades/:id/editar"
-                element={<EditarAtividade />}
-              />
-
-              <Route path="perfil" element={<Perfil />} />
+            {/* Estas compartilham o painel azul do LayoutAcesso */}
+            <Route element={<LayoutAcesso />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/cadastro" element={<Cadastro />} />
+              <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+              <Route path="/nova-senha" element={<NovaSenha />} />
             </Route>
-          </Route>
 
-          {/* ====================== ROTAS DE ERRO ====================== */}
-          <Route path="/sem-acesso" element={<Unauthorized />} />
+            {/* ===================== ROTAS PRIVADAS ===================== */}
+            {/* RotaPrivada barra quem nao esta logado.                     */}
+            {/* LayoutApp desenha menu lateral + barra superior.            */}
+            <Route element={<RotaPrivada />}>
+              <Route path="/app" element={<LayoutApp />}>
+                {/* index = a tela mostrada em "/app" */}
+                <Route index element={<Home />} />
 
-          {/* Atalhos antigos continuam funcionando */}
-          <Route path="/home" element={<Navigate to="/app" replace />} />
+                {/* --- Oportunidades academicas (casos de uso 1 a 8) --- */}
+                <Route path="oportunidades" element={<ListaOportunidades />} />
+                <Route
+                  path="oportunidades/:id"
+                  element={<DetalheOportunidade />}
+                />
+                <Route
+                  path="oportunidades/:id/candidatura"
+                  element={<RealizarCandidatura />}
+                />
+                <Route path="candidaturas" element={<MinhasCandidaturas />} />
 
-          {/* "*" pega qualquer coisa que nao casou acima */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AuthProvider>
+                <Route element={<RotaPrivada perfis={["monitor", "admin"]} />}>
+                  <Route
+                    path="oportunidades/nova"
+                    element={<CadastrarOportunidade />}
+                  />
+                  <Route
+                    path="oportunidades/:id/editar"
+                    element={<EditarOportunidade />}
+                  />
+                </Route>
+
+                {/* --- Apoio academico (casos de uso 9 a 13) --- */}
+                <Route path="apoio" element={<ListaApoio />} />
+                <Route path="apoio/nova" element={<CriarOferta />} />
+                <Route path="apoio/:id" element={<DetalheMonitoria />} />
+                <Route
+                  path="apoio/:id/agendar"
+                  element={<RealizarAgendamento />}
+                />
+                <Route path="apoio/:id/editar" element={<EditarOferta />} />
+
+                {/* --- Agendamentos (casos de uso 14 a 18) --- */}
+                <Route path="agendamentos" element={<MeusAgendamentos />} />
+                <Route
+                  path="agendamentos/:id/registrar"
+                  element={<RegistrarAtendimento />}
+                />
+
+                {/* --- Atividades complementares (casos de uso 19 e 20) --- */}
+                <Route path="atividades" element={<AtividadesHoras />} />
+                <Route
+                  path="atividades/nova"
+                  element={<RegistrarAtividade />}
+                />
+                <Route
+                  path="atividades/:id/editar"
+                  element={<EditarAtividade />}
+                />
+
+                <Route path="perfil" element={<Perfil />} />
+              </Route>
+            </Route>
+
+            {/* ====================== ROTAS DE ERRO ====================== */}
+            <Route path="/sem-acesso" element={<Unauthorized />} />
+
+            {/* Atalhos antigos continuam funcionando */}
+            <Route path="/home" element={<Navigate to="/app" replace />} />
+
+            {/* "*" pega qualquer coisa que nao casou acima */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

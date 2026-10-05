@@ -19,9 +19,10 @@ import Botao from "../../components/ui/Botao";
 import Selo, { SeloSituacao } from "../../components/ui/Selo";
 import Modal from "../../components/ui/Modal";
 import { CampoSelecao } from "../../components/ui/Campo";
-import { Carregando, Erro, Vazio } from "../../components/ui/Estado";
+import { Erro, Vazio } from "../../components/ui/Estado";
 import { formatarData } from "../../utils/formatadores";
 import { usePermissao } from "../../hooks/usePermissao";
+import Skeleton from "../../components/ui/Skeleton";
 
 // Opcoes dos filtros. Para incluir um novo tipo, adicione aqui e no db.js.
 const TIPOS = [
@@ -44,7 +45,6 @@ const ABAS = [
 ];
 
 export default function ListaOportunidades() {
-  // Le "?busca=" da URL — e assim que a busca da barra superior chega aqui.
   const [parametrosUrl] = useSearchParams();
   const { podeGerenciar } = usePermissao();
 
@@ -55,11 +55,8 @@ export default function ListaOportunidades() {
     situacao: "",
   });
 
-  // Controla a abertura do painel lateral de filtros (TELA 7).
   const [painelAberto, setPainelAberto] = useState(false);
 
-  // JSON.stringify: transforma o objeto em texto para o React comparar
-  // corretamente a dependencia e nao entrar em loop de busca.
   const {
     dados: lista,
     carregando,
@@ -71,7 +68,6 @@ export default function ListaOportunidades() {
     [],
   );
 
-  // Altera um filtro especifico sem perder os demais.
   function mudarFiltro(campo, valor) {
     setFiltros((anteriores) => ({ ...anteriores, [campo]: valor }));
   }
@@ -81,7 +77,6 @@ export default function ListaOportunidades() {
   }
 
   return (
-    // anim-surgir aqui: a pagina inteira entra com o fade-in padrao ao abrir.
     <div className="anim-surgir">
       <Cabecalho
         titulo="Oportunidades Academicas"
@@ -139,7 +134,14 @@ export default function ListaOportunidades() {
 
       {/* ---------------------------- Resultados ---------------------------- */}
       {carregando ? (
-        <Carregando />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <Skeleton variante="cartao" className="h-44" />
+          <Skeleton variante="cartao" className="h-44" />
+          <Skeleton variante="cartao" className="h-44" />
+          <Skeleton variante="cartao" className="h-44 hidden md:block" />
+          <Skeleton variante="cartao" className="h-44 hidden md:block" />
+          <Skeleton variante="cartao" className="h-44 hidden xl:block" />
+        </div>
       ) : erro ? (
         <Erro mensagem={erro} aoTentarNovamente={recarregar} />
       ) : lista.length === 0 ? (
@@ -163,7 +165,6 @@ export default function ListaOportunidades() {
           </p>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {/* indice usado so para a cascata (animationDelay) de cada card */}
             {lista.map((item, indice) => (
               <CartaoOportunidade key={item.id} item={item} indice={indice} />
             ))}
@@ -214,16 +215,10 @@ export default function ListaOportunidades() {
   );
 }
 
-/* ---------------------------------------------------------------------------
-   Cartao de uma oportunidade na listagem.
-   Componente pequeno e local — so esta tela usa, entao nao precisa de arquivo.
---------------------------------------------------------------------------- */
 function CartaoOportunidade({ item, indice = 0 }) {
   return (
     <Link
       to={`/app/oportunidades/${item.id}`}
-      // anim-surgir + animationDelay: cada card entra um pouco depois do anterior (cascata).
-      // hover:-translate-y-1: o card "levanta" ao passar o mouse.
       className="cartao anim-surgir flex flex-col p-5 transition hover:-translate-y-1 hover:border-marca-300 hover:shadow-md"
       style={{ animationDelay: `${indice * 50}ms` }}
     >
@@ -235,7 +230,6 @@ function CartaoOportunidade({ item, indice = 0 }) {
       <h3 className="text-sm font-semibold text-slate-900">{item.titulo}</h3>
       <p className="mt-1 text-[11px] text-slate-500">{item.departamento}</p>
 
-      {/* line-clamp-2: corta o texto em 2 linhas com "..." */}
       <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">
         {item.descricao}
       </p>
