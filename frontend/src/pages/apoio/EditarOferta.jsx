@@ -7,28 +7,74 @@
                          esta em cache e a tela abre na hora.
    - useAlterarOferta()  (useMutation) salva.
    - useCancelarOferta() (useMutation) exclui a oferta.
-   O formulario so e montado depois que a oferta chega, entao o useForm ja
-   nasce com os valores salvos (inclusive os horarios marcados na grade).
+
+   Apenas o monitor responsavel pela oferta pode editar ou cancelar.
 --------------------------------------------------------------------------- */
-import { useParams, useNavigate } from "react-router-dom";
-import { useOferta, useAlterarOferta, useCancelarOferta } from "../../queries";
+
+import {
+  useParams,
+  useNavigate,
+  Navigate,
+} from "react-router-dom";
+import {
+  useOferta,
+  useAlterarOferta,
+  useCancelarOferta,
+} from "../../queries";
+import { useAuth } from "../../contexts/useAuth";
 import { useToast } from "../../contexts/useToast";
 import Botao from "../../components/ui/Botao";
-import { Carregando, Erro } from "../../components/ui/Estado";
+import {
+  Carregando,
+  Erro,
+} from "../../components/ui/Estado";
 import FormularioOferta from "./FormularioOferta";
 
 export default function EditarOferta() {
   const { id } = useParams();
   const navegar = useNavigate();
+  const { usuario } = useAuth();
   const toast = useToast();
 
-  const { data: oferta, isLoading, isError, error, refetch } = useOferta(id);
+  const {
+    data: oferta,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useOferta(id);
+
   const alterar = useAlterarOferta();
   const cancelar = useCancelarOferta();
 
-  if (isLoading) return <Carregando />;
-  if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;
-  if (!oferta) return null;
+  if (isLoading) {
+    return <Carregando />;
+  }
+
+  if (isError) {
+    return (
+      <Erro
+        mensagem={error.message}
+        aoTentarNovamente={refetch}
+      />
+    );
+  }
+
+  if (!oferta) {
+    return null;
+  }
+
+  const ehDono =
+    String(oferta.monitorId) === String(usuario?.id);
+
+  if (!ehDono) {
+    return (
+      <Navigate
+        to="/sem-acesso"
+        replace
+      />
+    );
+  }
 
   const valoresIniciais = {
     titulo: oferta.titulo ?? "",
@@ -45,19 +91,32 @@ export default function EditarOferta() {
   };
 
   async function aoSalvar(dados) {
-    await alterar.mutateAsync({ id, dados });
+    await alterar.mutateAsync({
+      id,
+      dados,
+    });
+
     toast.sucesso("Oferta atualizada!");
     navegar(`/app/apoio/${id}`);
   }
 
   function aoCancelarOferta() {
-    if (!confirm("Deseja realmente cancelar esta oferta? Essa acao nao pode ser desfeita.")) return;
+    if (
+      !confirm(
+        "Deseja realmente cancelar esta oferta? Essa acao nao pode ser desfeita.",
+      )
+    ) {
+      return;
+    }
+
     cancelar.mutate(id, {
       onSuccess: () => {
         toast.sucesso("Oferta cancelada.");
         navegar("/app/apoio");
       },
-      onError: (e) => toast.erro(e.message),
+      onError: (e) => {
+        toast.erro(e.message);
+      },
     });
   }
 
