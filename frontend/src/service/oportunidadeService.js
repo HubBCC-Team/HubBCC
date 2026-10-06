@@ -9,7 +9,10 @@ import api from "../api/axios";
 // Lista oportunidades. "filtros" e um objeto simples, ex.:
 // { busca: "calculo", tipo: "Monitoria", modalidade: "Remoto", situacao: "Aberta" }
 export async function listarOportunidades(filtros = {}) {
-  const { data } = await api.get("/oportunidades", { params: filtros });
+  const { data } = await api.get("/oportunidades", {
+    params: filtros,
+  });
+
   return data;
 }
 
@@ -27,44 +30,88 @@ export async function cadastrarOportunidade(dados) {
 
 // Altera uma oportunidade existente (caso de uso 4).
 export async function alterarOportunidade(id, dados) {
-  const { data } = await api.put(`/oportunidades/${id}`, dados);
+  const { data } = await api.put(
+    `/oportunidades/${id}`,
+    dados,
+  );
+
   return data;
 }
 
-// Encerra a oportunidade (caso de uso 5) — apenas muda a situacao.
+// Encerra a oportunidade (caso de uso 5).
 export async function encerrarOportunidade(id) {
-  const { data } = await api.put(`/oportunidades/${id}`, { situacao: "Encerrada" });
+  const { data } = await api.put(
+    `/oportunidades/${id}`,
+    {
+      situacao: "Encerrada",
+    },
+  );
+
   return data;
 }
 
-// Exclui a oportunidade definitivamente.
+// Exclui definitivamente a oportunidade e suas candidaturas vinculadas.
 export async function excluirOportunidade(id) {
+  const { data: candidaturas } = await api.get(
+    "/candidaturas",
+    {
+      params: {
+        oportunidadeId: Number(id),
+      },
+    },
+  );
+
+  await Promise.all(
+    candidaturas.map((candidatura) =>
+      api.delete(`/candidaturas/${candidatura.id}`),
+    ),
+  );
+
   await api.delete(`/oportunidades/${id}`);
 }
 
 /* ----------------------------- CANDIDATURAS ---------------------------- */
 
 // Lista as candidaturas de um usuario (caso de uso 7).
-export async function listarCandidaturas(usuarioId, filtros = {}) {
+export async function listarCandidaturas(
+  usuarioId,
+  filtros = {},
+) {
   const params = { ...filtros };
 
   if (usuarioId) {
     params.usuarioId = usuarioId;
   }
 
-  const { data } = await api.get("/candidaturas", { params });
+  const { data } = await api.get("/candidaturas", {
+    params,
+  });
+
   return data;
 }
 
 // Realiza uma candidatura (caso de uso 6).
 export async function realizarCandidatura(dados) {
-  const { data } = await api.post("/candidaturas", dados);
+  const { data } = await api.post(
+    "/candidaturas",
+    dados,
+  );
+
   return data;
 }
 
 // Avalia a candidatura: situacao = "Aprovada" ou "Reprovada" (caso de uso 8).
-export async function avaliarCandidatura(id, situacao) {
-  const { data } = await api.put(`/candidaturas/${id}`, { situacao });
+export async function avaliarCandidatura(
+  id,
+  situacao,
+) {
+  const { data } = await api.put(
+    `/candidaturas/${id}`,
+    {
+      situacao,
+    },
+  );
+
   return data;
 }
 
