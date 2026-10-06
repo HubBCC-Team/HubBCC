@@ -1,14 +1,36 @@
 /* ---------------------------------------------------------------------------
    service/apoioService.js
    Casos de uso 9 a 13: ofertas de apoio academico (monitorias e tutorias).
+   Tambem contem o CRUD de disciplinas utilizado pelo administrador.
 --------------------------------------------------------------------------- */
 import api from "../api/axios";
 
-// Lista de disciplinas — usada nos filtros e nos selects dos formularios.
+/* ----------------------------- DISCIPLINAS ----------------------------- */
+
+// Lista todas as disciplinas.
 export async function listarDisciplinas() {
   const { data } = await api.get("/disciplinas");
   return data;
 }
+
+// Cadastra uma nova disciplina.
+export async function cadastrarDisciplina(dados) {
+  const { data } = await api.post("/disciplinas", dados);
+  return data;
+}
+
+// Altera uma disciplina existente.
+export async function alterarDisciplina(id, dados) {
+  const { data } = await api.put(`/disciplinas/${id}`, dados);
+  return data;
+}
+
+// Exclui uma disciplina.
+export async function excluirDisciplina(id) {
+  await api.delete(`/disciplinas/${id}`);
+}
+
+/* -------------------------- OFERTAS DE APOIO --------------------------- */
 
 // Lista ofertas de apoio. Filtros possiveis:
 // { busca, disciplinaId, tipo, modalidade, gratuita }
