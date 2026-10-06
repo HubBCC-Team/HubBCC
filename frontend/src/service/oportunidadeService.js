@@ -46,7 +46,13 @@ export async function excluirOportunidade(id) {
 
 // Lista as candidaturas de um usuario (caso de uso 7).
 export async function listarCandidaturas(usuarioId, filtros = {}) {
-  const { data } = await api.get("/candidaturas", { params: { usuarioId, ...filtros } });
+  const params = { ...filtros };
+
+  if (usuarioId) {
+    params.usuarioId = usuarioId;
+  }
+
+  const { data } = await api.get("/candidaturas", { params });
   return data;
 }
 
