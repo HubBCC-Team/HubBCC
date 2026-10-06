@@ -41,6 +41,7 @@ import CadastrarOportunidade from "./pages/oportunidades/CadastrarOportunidade";
 import RealizarCandidatura from "./pages/oportunidades/RealizarCandidatura";
 import EditarOportunidade from "./pages/oportunidades/EditarOportunidade";
 import MinhasCandidaturas from "./pages/oportunidades/MinhasCandidaturas";
+import AvaliarCandidaturas from "./pages/oportunidades/AvaliarCandidaturas";
 import ListaApoio from "./pages/apoio/ListaApoio";
 import DetalheMonitoria from "./pages/apoio/DetalheMonitoria";
 import CriarOferta from "./pages/apoio/CriarOferta";
@@ -86,51 +87,87 @@ export default function App() {
                 <Route index element={<Home />} />
 
                 {/* --- Oportunidades academicas (casos de uso 1 a 8) --- */}
-                <Route path="oportunidades" element={<ListaOportunidades />} />
+                <Route
+                  path="oportunidades"
+                  element={<ListaOportunidades />}
+                />
+
                 <Route
                   path="oportunidades/:id"
                   element={<DetalheOportunidade />}
                 />
+
                 <Route
                   path="oportunidades/:id/candidatura"
                   element={<RealizarCandidatura />}
                 />
-                <Route path="candidaturas" element={<MinhasCandidaturas />} />
 
-                <Route element={<RotaPrivada perfis={["monitor", "admin"]} />}>
+                <Route
+                  path="candidaturas"
+                  element={<MinhasCandidaturas />}
+                />
+
+                <Route
+                  element={<RotaPrivada perfis={["monitor", "admin"]} />}
+                >
                   <Route
                     path="oportunidades/nova"
                     element={<CadastrarOportunidade />}
                   />
+
                   <Route
                     path="oportunidades/:id/editar"
                     element={<EditarOportunidade />}
+                  />
+
+                  <Route
+                    path="oportunidades/:id/candidaturas"
+                    element={<AvaliarCandidaturas />}
                   />
                 </Route>
 
                 {/* --- Apoio academico (casos de uso 9 a 13) --- */}
                 <Route path="apoio" element={<ListaApoio />} />
+
                 <Route path="apoio/nova" element={<CriarOferta />} />
-                <Route path="apoio/:id" element={<DetalheMonitoria />} />
+
+                <Route
+                  path="apoio/:id"
+                  element={<DetalheMonitoria />}
+                />
+
                 <Route
                   path="apoio/:id/agendar"
                   element={<RealizarAgendamento />}
                 />
-                <Route path="apoio/:id/editar" element={<EditarOferta />} />
+
+                <Route
+                  path="apoio/:id/editar"
+                  element={<EditarOferta />}
+                />
 
                 {/* --- Agendamentos (casos de uso 14 a 18) --- */}
-                <Route path="agendamentos" element={<MeusAgendamentos />} />
+                <Route
+                  path="agendamentos"
+                  element={<MeusAgendamentos />}
+                />
+
                 <Route
                   path="agendamentos/:id/registrar"
                   element={<RegistrarAtendimento />}
                 />
 
                 {/* --- Atividades complementares (casos de uso 19 e 20) --- */}
-                <Route path="atividades" element={<AtividadesHoras />} />
+                <Route
+                  path="atividades"
+                  element={<AtividadesHoras />}
+                />
+
                 <Route
                   path="atividades/nova"
                   element={<RegistrarAtividade />}
                 />
+
                 <Route
                   path="atividades/:id/editar"
                   element={<EditarAtividade />}
