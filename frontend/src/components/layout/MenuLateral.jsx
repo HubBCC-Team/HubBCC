@@ -14,6 +14,7 @@ import {
   Users,
   CalendarDays,
   Award,
+  BookOpen,
   User,
   LogOut,
   X,
@@ -23,12 +24,43 @@ import Avatar from "../ui/Avatar";
 import { useAuth } from "../../contexts/useAuth";
 
 const ITENS_MENU = [
-  { rotulo: "Inicio", caminho: "/app", icone: House, fim: true },
-  { rotulo: "Oportunidades", caminho: "/app/oportunidades", icone: Briefcase },
-  { rotulo: "Apoio Academico", caminho: "/app/apoio", icone: Users },
-  { rotulo: "Agendamentos", caminho: "/app/agendamentos", icone: CalendarDays },
-  { rotulo: "Atividades", caminho: "/app/atividades", icone: Award },
-  { rotulo: "Perfil", caminho: "/app/perfil", icone: User },
+  {
+    rotulo: "Inicio",
+    caminho: "/app",
+    icone: House,
+    fim: true,
+  },
+  {
+    rotulo: "Oportunidades",
+    caminho: "/app/oportunidades",
+    icone: Briefcase,
+  },
+  {
+    rotulo: "Apoio Academico",
+    caminho: "/app/apoio",
+    icone: Users,
+  },
+  {
+    rotulo: "Agendamentos",
+    caminho: "/app/agendamentos",
+    icone: CalendarDays,
+  },
+  {
+    rotulo: "Atividades",
+    caminho: "/app/atividades",
+    icone: Award,
+  },
+  {
+    rotulo: "Disciplinas",
+    caminho: "/app/disciplinas",
+    icone: BookOpen,
+    perfis: ["admin"],
+  },
+  {
+    rotulo: "Perfil",
+    caminho: "/app/perfil",
+    icone: User,
+  },
 ];
 
 export default function MenuLateral({ aberto, aoFechar }) {
@@ -76,7 +108,9 @@ export default function MenuLateral({ aberto, aoFechar }) {
 
         <nav className="flex-1 space-y-1">
           {ITENS_MENU.filter(
-            (item) => !item.perfis || item.perfis.includes(usuario?.perfil)
+            (item) =>
+              !item.perfis ||
+              item.perfis.includes(usuario?.perfil),
           ).map(({ rotulo, caminho, icone: Icone, fim }) => (
             <NavLink
               key={caminho}
@@ -100,7 +134,10 @@ export default function MenuLateral({ aberto, aoFechar }) {
 
         <div className="mt-4 rounded-xl bg-white/5 p-3">
           <div className="flex items-center gap-2.5">
-            <Avatar iniciais={usuario?.iniciais} tamanho="pequeno" />
+            <Avatar
+              iniciais={usuario?.iniciais}
+              tamanho="pequeno"
+            />
 
             <div className="min-w-0 leading-tight">
               <p className="truncate text-xs font-medium text-white">
