@@ -17,7 +17,12 @@
    4) se ela deve aparecer no menu, inclua tambem em components/layout/MenuLateral.jsx
 --------------------------------------------------------------------------- */
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { ToastProvider } from "./contexts/ToastContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import RotaPrivada from "./components/rotas/RotaPrivada";
@@ -73,23 +78,44 @@ export default function App() {
           <Routes>
             {/* ===================== ROTAS PUBLICAS ===================== */}
 
-            <Route path="/" element={<Landing />} />
+            <Route
+              path="/"
+              element={<Landing />}
+            />
 
             <Route element={<LayoutAcesso />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/cadastro" element={<Cadastro />} />
+              <Route
+                path="/login"
+                element={<Login />}
+              />
+
+              <Route
+                path="/cadastro"
+                element={<Cadastro />}
+              />
+
               <Route
                 path="/recuperar-senha"
                 element={<RecuperarSenha />}
               />
-              <Route path="/nova-senha" element={<NovaSenha />} />
+
+              <Route
+                path="/nova-senha"
+                element={<NovaSenha />}
+              />
             </Route>
 
             {/* ===================== ROTAS PRIVADAS ===================== */}
 
             <Route element={<RotaPrivada />}>
-              <Route path="/app" element={<LayoutApp />}>
-                <Route index element={<Home />} />
+              <Route
+                path="/app"
+                element={<LayoutApp />}
+              >
+                <Route
+                  index
+                  element={<Home />}
+                />
 
                 {/* ---------------- OPORTUNIDADES ---------------- */}
 
@@ -116,7 +142,9 @@ export default function App() {
                 {/* Monitor e administrador */}
                 <Route
                   element={
-                    <RotaPrivada perfis={["monitor", "admin"]} />
+                    <RotaPrivada
+                      perfis={["monitor", "admin"]}
+                    />
                   }
                 >
                   <Route
@@ -139,7 +167,9 @@ export default function App() {
 
                 {/* Apenas administrador */}
                 <Route
-                  element={<RotaPrivada perfis={["admin"]} />}
+                  element={
+                    <RotaPrivada perfis={["admin"]} />
+                  }
                 >
                   <Route
                     path="disciplinas"
@@ -155,11 +185,6 @@ export default function App() {
                 />
 
                 <Route
-                  path="apoio/nova"
-                  element={<CriarOferta />}
-                />
-
-                <Route
                   path="apoio/:id"
                   element={<DetalheMonitoria />}
                 />
@@ -169,21 +194,33 @@ export default function App() {
                   element={<RealizarAgendamento />}
                 />
 
+                {/* Apenas monitor */}
                 <Route
-                  path="apoio/:id/editar"
-                  element={<EditarOferta />}
-                />
+                  element={
+                    <RotaPrivada perfis={["monitor"]} />
+                  }
+                >
+                  <Route
+                    path="apoio/nova"
+                    element={<CriarOferta />}
+                  />
+
+                  <Route
+                    path="apoio/:id/editar"
+                    element={<EditarOferta />}
+                  />
+
+                  <Route
+                    path="agendamentos/:id/registrar"
+                    element={<RegistrarAtendimento />}
+                  />
+                </Route>
 
                 {/* ---------------- AGENDAMENTOS ---------------- */}
 
                 <Route
                   path="agendamentos"
                   element={<MeusAgendamentos />}
-                />
-
-                <Route
-                  path="agendamentos/:id/registrar"
-                  element={<RegistrarAtendimento />}
                 />
 
                 {/* ----------- ATIVIDADES COMPLEMENTARES ----------- */}
@@ -221,10 +258,18 @@ export default function App() {
 
             <Route
               path="/home"
-              element={<Navigate to="/app" replace />}
+              element={
+                <Navigate
+                  to="/app"
+                  replace
+                />
+              }
             />
 
-            <Route path="*" element={<NotFound />} />
+            <Route
+              path="*"
+              element={<NotFound />}
+            />
           </Routes>
         </AuthProvider>
       </ToastProvider>
