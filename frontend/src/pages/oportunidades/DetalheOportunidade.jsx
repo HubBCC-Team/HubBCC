@@ -8,8 +8,18 @@
      cache do detalhe e da lista e atualizado sozinho; nao ha "recarregar".
 --------------------------------------------------------------------------- */
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, MapPin, Users, Wallet, Clock } from "lucide-react";
-import { useOportunidade, useEncerrarOportunidade } from "../../queries";
+import {
+  ArrowLeft,
+  CalendarDays,
+  MapPin,
+  Users,
+  Wallet,
+  Clock,
+} from "lucide-react";
+import {
+  useOportunidade,
+  useEncerrarOportunidade,
+} from "../../queries";
 import { useToast } from "../../contexts/useToast";
 import Botao from "../../components/ui/Botao";
 import Selo, { SeloSituacao } from "../../components/ui/Selo";
@@ -23,18 +33,34 @@ export default function DetalheOportunidade() {
   const toast = useToast();
   const { podeGerenciar } = usePermissao();
 
-  const { data: item, isLoading, isError, error, refetch } = useOportunidade(id);
+  const {
+    data: item,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useOportunidade(id);
+
   const encerrar = useEncerrarOportunidade();
 
   if (isLoading) return <Carregando />;
-  if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;
+
+  if (isError) {
+    return (
+      <Erro
+        mensagem={error.message}
+        aoTentarNovamente={refetch}
+      />
+    );
+  }
+
   if (!item) return null;
 
   const aberta = item.situacao === "Aberta";
 
-  // Encerrar e uma acao de quem publicou (aqui: monitor/admin) - caso de uso 5.
   function aoEncerrar() {
     if (!confirm("Deseja realmente encerrar esta oportunidade?")) return;
+
     encerrar.mutate(item.id, {
       onSuccess: () => toast.sucesso("Oportunidade encerrada."),
       onError: (e) => toast.erro(e.message),
@@ -43,7 +69,6 @@ export default function DetalheOportunidade() {
 
   return (
     <>
-      {/* Voltar: navegar(-1) volta uma pagina no historico do navegador */}
       <button
         onClick={() => navegar(-1)}
         className="mb-4 inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-marca-700"
@@ -52,7 +77,6 @@ export default function DetalheOportunidade() {
       </button>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* ----------------------- Coluna principal ----------------------- */}
         <div className="space-y-4 lg:col-span-2">
           <div className="cartao p-6">
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -61,28 +85,46 @@ export default function DetalheOportunidade() {
               <Selo>{item.modalidade}</Selo>
             </div>
 
-            <h1 className="text-xl font-semibold text-slate-900">{item.titulo}</h1>
+            <h1 className="text-xl font-semibold text-slate-900">
+              {item.titulo}
+            </h1>
+
             <p className="mt-1 text-xs text-slate-500">
               {item.departamento} · {item.responsavel}
             </p>
 
-            <h2 className="titulo-secao mt-6">Sobre a oportunidade</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.descricao}</p>
+            <h2 className="titulo-secao mt-6">
+              Sobre a oportunidade
+            </h2>
+
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              {item.descricao}
+            </p>
 
             <h2 className="titulo-secao mt-6">Requisitos</h2>
+
             <ul className="mt-2 space-y-1.5">
               {(item.requisitos ?? []).map((requisito) => (
-                <li key={requisito} className="flex gap-2 text-sm text-slate-600">
+                <li
+                  key={requisito}
+                  className="flex gap-2 text-sm text-slate-600"
+                >
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-marca-500" />
                   {requisito}
                 </li>
               ))}
             </ul>
 
-            <h2 className="titulo-secao mt-6">Atividades previstas</h2>
+            <h2 className="titulo-secao mt-6">
+              Atividades previstas
+            </h2>
+
             <ul className="mt-2 space-y-1.5">
               {(item.atividades ?? []).map((atividade) => (
-                <li key={atividade} className="flex gap-2 text-sm text-slate-600">
+                <li
+                  key={atividade}
+                  className="flex gap-2 text-sm text-slate-600"
+                >
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
                   {atividade}
                 </li>
@@ -91,30 +133,74 @@ export default function DetalheOportunidade() {
           </div>
         </div>
 
-        {/* -------------------------- Coluna lateral -------------------------- */}
         <aside className="space-y-4">
           <div className="cartao p-6 anim-surgir">
             <h2 className="titulo-secao mb-3">Informacoes</h2>
+
             <dl className="space-y-3 text-xs">
-              <Linha icone={Wallet} rotulo="Bolsa" valor={item.bolsa} />
-              <Linha icone={Clock} rotulo="Carga horaria" valor={item.cargaHoraria} />
-              <Linha icone={Users} rotulo="Vagas" valor={`${item.vagas} vaga(s)`} />
-              <Linha icone={MapPin} rotulo="Local" valor={item.local} />
-              <Linha icone={CalendarDays} rotulo="Inscricoes ate" valor={formatarData(item.prazoInscricao)} />
+              <Linha
+                icone={Wallet}
+                rotulo="Bolsa"
+                valor={item.bolsa}
+              />
+
+              <Linha
+                icone={Clock}
+                rotulo="Carga horaria"
+                valor={item.cargaHoraria}
+              />
+
+              <Linha
+                icone={Users}
+                rotulo="Vagas"
+                valor={`${item.vagas} vaga(s)`}
+              />
+
+              <Linha
+                icone={MapPin}
+                rotulo="Local"
+                valor={item.local}
+              />
+
+              <Linha
+                icone={CalendarDays}
+                rotulo="Inscricoes ate"
+                valor={formatarData(item.prazoInscricao)}
+              />
             </dl>
 
-            {/* Caso de uso 6: candidatar-se (so quando a vaga esta aberta) */}
             {aberta ? (
-              <Botao as={Link} to={`/app/oportunidades/${item.id}/candidatura`} larguraTotal className="mt-5">
+              <Botao
+                as={Link}
+                to={`/app/oportunidades/${item.id}/candidatura`}
+                larguraTotal
+                className="mt-5"
+              >
                 Candidatar-se
               </Botao>
             ) : (
-              <Botao larguraTotal className="mt-5" disabled>
+              <Botao
+                larguraTotal
+                className="mt-5"
+                disabled
+              >
                 Inscricoes encerradas
               </Botao>
             )}
 
-            {/* Acoes de gestao: so monitor e admin enxergam */}
+            {podeGerenciar && (
+              <Botao
+                variante="contorno"
+                larguraTotal
+                className="mt-2"
+                onClick={() =>
+                  navegar(`/app/oportunidades/${id}/candidaturas`)
+                }
+              >
+                Ver candidaturas
+              </Botao>
+            )}
+
             {podeGerenciar && aberta && (
               <Botao
                 variante="perigo"
@@ -132,7 +218,9 @@ export default function DetalheOportunidade() {
                 variante="contorno"
                 larguraTotal
                 className="mt-2"
-                onClick={() => navegar(`/app/oportunidades/${id}/editar`)}
+                onClick={() =>
+                  navegar(`/app/oportunidades/${id}/editar`)
+                }
               >
                 Editar oportunidade
               </Botao>
@@ -144,14 +232,22 @@ export default function DetalheOportunidade() {
   );
 }
 
-// Linha de "icone + rotulo + valor" da coluna lateral.
 function Linha({ icone: Icone, rotulo, valor }) {
   return (
     <div className="flex items-start gap-2.5">
-      <Icone size={14} className="mt-0.5 shrink-0 text-slate-400" />
+      <Icone
+        size={14}
+        className="mt-0.5 shrink-0 text-slate-400"
+      />
+
       <div>
-        <dt className="text-[11px] text-slate-500">{rotulo}</dt>
-        <dd className="font-medium text-slate-800">{valor || "-"}</dd>
+        <dt className="text-[11px] text-slate-500">
+          {rotulo}
+        </dt>
+
+        <dd className="font-medium text-slate-800">
+          {valor || "-"}
+        </dd>
       </div>
     </div>
   );
