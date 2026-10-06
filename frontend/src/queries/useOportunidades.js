@@ -45,7 +45,7 @@ export function useCandidaturas(usuarioId, filtros = {}) {
   return useQuery({
     queryKey: chaves.candidaturas.lista(usuarioId, filtros),
     queryFn: () => servico.listarCandidaturas(usuarioId, filtros),
-    enabled: Boolean(usuarioId),
+    enabled: Boolean(usuarioId || filtros.oportunidadeId),
     placeholderData: keepPreviousData,
   });
 }
