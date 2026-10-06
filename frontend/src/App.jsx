@@ -22,7 +22,7 @@ import { ToastProvider } from "./contexts/ToastContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import RotaPrivada from "./components/rotas/RotaPrivada";
 
-// Layouts (o "esqueleto" que envolve varias telas)
+// Layouts
 import LayoutAcesso from "./components/layout/LayoutAcesso";
 import LayoutApp from "./components/layout/LayoutApp";
 
@@ -35,6 +35,7 @@ import NovaSenha from "./pages/recuperarSenha/NovaSenha";
 
 // Telas internas
 import Home from "./pages/home/Home";
+
 import ListaOportunidades from "./pages/oportunidades/ListaOportunidades";
 import DetalheOportunidade from "./pages/oportunidades/DetalheOportunidade";
 import CadastrarOportunidade from "./pages/oportunidades/CadastrarOportunidade";
@@ -42,16 +43,22 @@ import RealizarCandidatura from "./pages/oportunidades/RealizarCandidatura";
 import EditarOportunidade from "./pages/oportunidades/EditarOportunidade";
 import MinhasCandidaturas from "./pages/oportunidades/MinhasCandidaturas";
 import AvaliarCandidaturas from "./pages/oportunidades/AvaliarCandidaturas";
+
 import ListaApoio from "./pages/apoio/ListaApoio";
 import DetalheMonitoria from "./pages/apoio/DetalheMonitoria";
 import CriarOferta from "./pages/apoio/CriarOferta";
 import EditarOferta from "./pages/apoio/EditarOferta";
+
 import RealizarAgendamento from "./pages/agendamentos/RealizarAgendamento";
 import MeusAgendamentos from "./pages/agendamentos/MeusAgendamentos";
 import RegistrarAtendimento from "./pages/agendamentos/RegistrarAtendimento";
+
 import AtividadesHoras from "./pages/atividades/AtividadesHoras";
 import RegistrarAtividade from "./pages/atividades/RegistrarAtividade";
 import EditarAtividade from "./pages/atividades/EditarAtividade";
+
+import Disciplinas from "./pages/disciplinas/Disciplinas";
+
 import Perfil from "./pages/perfil/Perfil";
 
 // Telas de erro
@@ -60,33 +67,32 @@ import Unauthorized from "./pages/Unauthorized";
 
 export default function App() {
   return (
-    // BrowserRouter = habilita a navegacao por URL
     <BrowserRouter>
-      {/* ToastProvider = gerencia as notificacoes flutuantes em toda a aplicacao */}
       <ToastProvider>
-        {/* AuthProvider = deixa o usuario logado disponivel em todas as telas */}
         <AuthProvider>
           <Routes>
             {/* ===================== ROTAS PUBLICAS ===================== */}
+
             <Route path="/" element={<Landing />} />
 
-            {/* Estas compartilham o painel azul do LayoutAcesso */}
             <Route element={<LayoutAcesso />}>
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Cadastro />} />
-              <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+              <Route
+                path="/recuperar-senha"
+                element={<RecuperarSenha />}
+              />
               <Route path="/nova-senha" element={<NovaSenha />} />
             </Route>
 
             {/* ===================== ROTAS PRIVADAS ===================== */}
-            {/* RotaPrivada barra quem nao esta logado.                     */}
-            {/* LayoutApp desenha menu lateral + barra superior.            */}
+
             <Route element={<RotaPrivada />}>
               <Route path="/app" element={<LayoutApp />}>
-                {/* index = a tela mostrada em "/app" */}
                 <Route index element={<Home />} />
 
-                {/* --- Oportunidades academicas (casos de uso 1 a 8) --- */}
+                {/* ---------------- OPORTUNIDADES ---------------- */}
+
                 <Route
                   path="oportunidades"
                   element={<ListaOportunidades />}
@@ -107,8 +113,11 @@ export default function App() {
                   element={<MinhasCandidaturas />}
                 />
 
+                {/* Monitor e administrador */}
                 <Route
-                  element={<RotaPrivada perfis={["monitor", "admin"]} />}
+                  element={
+                    <RotaPrivada perfis={["monitor", "admin"]} />
+                  }
                 >
                   <Route
                     path="oportunidades/nova"
@@ -126,10 +135,29 @@ export default function App() {
                   />
                 </Route>
 
-                {/* --- Apoio academico (casos de uso 9 a 13) --- */}
-                <Route path="apoio" element={<ListaApoio />} />
+                {/* ---------------- DISCIPLINAS ---------------- */}
 
-                <Route path="apoio/nova" element={<CriarOferta />} />
+                {/* Apenas administrador */}
+                <Route
+                  element={<RotaPrivada perfis={["admin"]} />}
+                >
+                  <Route
+                    path="disciplinas"
+                    element={<Disciplinas />}
+                  />
+                </Route>
+
+                {/* ---------------- APOIO ACADEMICO ---------------- */}
+
+                <Route
+                  path="apoio"
+                  element={<ListaApoio />}
+                />
+
+                <Route
+                  path="apoio/nova"
+                  element={<CriarOferta />}
+                />
 
                 <Route
                   path="apoio/:id"
@@ -146,7 +174,8 @@ export default function App() {
                   element={<EditarOferta />}
                 />
 
-                {/* --- Agendamentos (casos de uso 14 a 18) --- */}
+                {/* ---------------- AGENDAMENTOS ---------------- */}
+
                 <Route
                   path="agendamentos"
                   element={<MeusAgendamentos />}
@@ -157,7 +186,8 @@ export default function App() {
                   element={<RegistrarAtendimento />}
                 />
 
-                {/* --- Atividades complementares (casos de uso 19 e 20) --- */}
+                {/* ----------- ATIVIDADES COMPLEMENTARES ----------- */}
+
                 <Route
                   path="atividades"
                   element={<AtividadesHoras />}
@@ -173,17 +203,27 @@ export default function App() {
                   element={<EditarAtividade />}
                 />
 
-                <Route path="perfil" element={<Perfil />} />
+                {/* ---------------- PERFIL ---------------- */}
+
+                <Route
+                  path="perfil"
+                  element={<Perfil />}
+                />
               </Route>
             </Route>
 
             {/* ====================== ROTAS DE ERRO ====================== */}
-            <Route path="/sem-acesso" element={<Unauthorized />} />
 
-            {/* Atalhos antigos continuam funcionando */}
-            <Route path="/home" element={<Navigate to="/app" replace />} />
+            <Route
+              path="/sem-acesso"
+              element={<Unauthorized />}
+            />
 
-            {/* "*" pega qualquer coisa que nao casou acima */}
+            <Route
+              path="/home"
+              element={<Navigate to="/app" replace />}
+            />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
