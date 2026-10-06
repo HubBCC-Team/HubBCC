@@ -3,9 +3,9 @@
    TELA 8 - Detalhe da oportunidade (rota "/app/oportunidades/:id").
 
    TANSTACK QUERY:
-   - useOportunidade(id)       -> busca a oportunidade (useQuery)
-   - useEncerrarOportunidade() -> encerra (useMutation). Ao concluir, o
-     cache do detalhe e da lista e atualizado sozinho; nao ha "recarregar".
+   - useOportunidade(id)       -> busca a oportunidade
+   - useEncerrarOportunidade() -> encerra a oportunidade
+   - useExcluirOportunidade()  -> exclui definitivamente a oportunidade
 --------------------------------------------------------------------------- */
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
@@ -19,6 +19,7 @@ import {
 import {
   useOportunidade,
   useEncerrarOportunidade,
+  useExcluirOportunidade,
 } from "../../queries";
 import { useToast } from "../../contexts/useToast";
 import Botao from "../../components/ui/Botao";
@@ -42,8 +43,11 @@ export default function DetalheOportunidade() {
   } = useOportunidade(id);
 
   const encerrar = useEncerrarOportunidade();
+  const excluir = useExcluirOportunidade();
 
-  if (isLoading) return <Carregando />;
+  if (isLoading) {
+    return <Carregando />;
+  }
 
   if (isError) {
     return (
@@ -54,35 +58,78 @@ export default function DetalheOportunidade() {
     );
   }
 
-  if (!item) return null;
+  if (!item) {
+    return null;
+  }
 
   const aberta = item.situacao === "Aberta";
 
   function aoEncerrar() {
-    if (!confirm("Deseja realmente encerrar esta oportunidade?")) return;
+    if (
+      !confirm(
+        "Deseja realmente encerrar esta oportunidade?",
+      )
+    ) {
+      return;
+    }
 
     encerrar.mutate(item.id, {
-      onSuccess: () => toast.sucesso("Oportunidade encerrada."),
-      onError: (e) => toast.erro(e.message),
+      onSuccess: () =>
+        toast.sucesso("Oportunidade encerrada."),
+      onError: (e) =>
+        toast.erro(
+          e.message || "Erro ao encerrar oportunidade.",
+        ),
+    });
+  }
+
+  function aoExcluir() {
+    if (
+      !confirm(
+        `Deseja realmente excluir a oportunidade "${item.titulo}"? Esta acao e permanente.`,
+      )
+    ) {
+      return;
+    }
+
+    excluir.mutate(item.id, {
+      onSuccess: () => {
+        toast.sucesso("Oportunidade excluida com sucesso.");
+        navegar("/app/oportunidades");
+      },
+      onError: (e) =>
+        toast.erro(
+          e.message || "Erro ao excluir oportunidade.",
+        ),
     });
   }
 
   return (
     <>
       <button
+        type="button"
         onClick={() => navegar(-1)}
         className="mb-4 inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-marca-700"
       >
-        <ArrowLeft size={14} /> Voltar
+        <ArrowLeft size={14} />
+        Voltar
       </button>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <div className="cartao p-6">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Selo tom="marca">{item.tipo}</Selo>
-              <SeloSituacao situacao={item.situacao} />
-              <Selo>{item.modalidade}</Selo>
+              <Selo tom="marca">
+                {item.tipo}
+              </Selo>
+
+              <SeloSituacao
+                situacao={item.situacao}
+              />
+
+              <Selo>
+                {item.modalidade}
+              </Selo>
             </div>
 
             <h1 className="text-xl font-semibold text-slate-900">
@@ -101,18 +148,23 @@ export default function DetalheOportunidade() {
               {item.descricao}
             </p>
 
-            <h2 className="titulo-secao mt-6">Requisitos</h2>
+            <h2 className="titulo-secao mt-6">
+              Requisitos
+            </h2>
 
             <ul className="mt-2 space-y-1.5">
-              {(item.requisitos ?? []).map((requisito) => (
-                <li
-                  key={requisito}
-                  className="flex gap-2 text-sm text-slate-600"
-                >
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-marca-500" />
-                  {requisito}
-                </li>
-              ))}
+              {(item.requisitos ?? []).map(
+                (requisito) => (
+                  <li
+                    key={requisito}
+                    className="flex gap-2 text-sm text-slate-600"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-marca-500" />
+
+                    {requisito}
+                  </li>
+                ),
+              )}
             </ul>
 
             <h2 className="titulo-secao mt-6">
@@ -120,22 +172,27 @@ export default function DetalheOportunidade() {
             </h2>
 
             <ul className="mt-2 space-y-1.5">
-              {(item.atividades ?? []).map((atividade) => (
-                <li
-                  key={atividade}
-                  className="flex gap-2 text-sm text-slate-600"
-                >
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
-                  {atividade}
-                </li>
-              ))}
+              {(item.atividades ?? []).map(
+                (atividade) => (
+                  <li
+                    key={atividade}
+                    className="flex gap-2 text-sm text-slate-600"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
+
+                    {atividade}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
         </div>
 
         <aside className="space-y-4">
           <div className="cartao p-6 anim-surgir">
-            <h2 className="titulo-secao mb-3">Informacoes</h2>
+            <h2 className="titulo-secao mb-3">
+              Informacoes
+            </h2>
 
             <dl className="space-y-3 text-xs">
               <Linha
@@ -165,7 +222,9 @@ export default function DetalheOportunidade() {
               <Linha
                 icone={CalendarDays}
                 rotulo="Inscricoes ate"
-                valor={formatarData(item.prazoInscricao)}
+                valor={formatarData(
+                  item.prazoInscricao,
+                )}
               />
             </dl>
 
@@ -194,7 +253,9 @@ export default function DetalheOportunidade() {
                 larguraTotal
                 className="mt-2"
                 onClick={() =>
-                  navegar(`/app/oportunidades/${id}/candidaturas`)
+                  navegar(
+                    `/app/oportunidades/${id}/candidaturas`,
+                  )
                 }
               >
                 Ver candidaturas
@@ -219,10 +280,24 @@ export default function DetalheOportunidade() {
                 larguraTotal
                 className="mt-2"
                 onClick={() =>
-                  navegar(`/app/oportunidades/${id}/editar`)
+                  navegar(
+                    `/app/oportunidades/${id}/editar`,
+                  )
                 }
               >
                 Editar oportunidade
+              </Botao>
+            )}
+
+            {podeGerenciar && (
+              <Botao
+                variante="perigo"
+                larguraTotal
+                className="mt-2"
+                onClick={aoExcluir}
+                carregando={excluir.isPending}
+              >
+                Excluir oportunidade
               </Botao>
             )}
           </div>
@@ -232,7 +307,11 @@ export default function DetalheOportunidade() {
   );
 }
 
-function Linha({ icone: Icone, rotulo, valor }) {
+function Linha({
+  icone: Icone,
+  rotulo,
+  valor,
+}) {
   return (
     <div className="flex items-start gap-2.5">
       <Icone
