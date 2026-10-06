@@ -1,71 +1,59 @@
 /* ---------------------------------------------------------------------------
    pages/cadastro/Cadastro.jsx
-   TELA 3 — Criar conta (rota "/cadastro").
+   TELA 3 - Criar conta (rota "/cadastro").
 
-   Faz validacao simples no proprio front antes de enviar:
-   - senha com no minimo 6 caracteres;
-   - confirmacao igual a senha;
-   - aceite dos termos.
+   - React Hook Form + Zod (cadastroSchema): nome, sobrenome, e-mail,
+     matricula numerica, periodo, telefone opcional, senha >= 6,
+     confirmacao igual e aceite dos termos. Cada erro aparece no seu campo.
+   - TanStack Query (useCadastrar -> useMutation). E-mail duplicado (erro
+     do servidor) aparece no <Alerta>.
 --------------------------------------------------------------------------- */
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/useAuth";
-import { useFormulario } from "../../hooks/useFormulario";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCadastrar } from "../../queries";
+import { cadastroSchema, PERIODOS } from "../../schemas/authSchemas";
 import Campo, { CampoSelecao } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import Alerta from "../../components/ui/Alerta";
 
-const PERIODOS = ["1o periodo", "2o periodo", "3o periodo", "4o periodo", "5o periodo", "6o periodo", "7o periodo", "8o periodo"];
-
 export default function Cadastro() {
-  const { cadastrar } = useAuth();
   const navegar = useNavigate();
+  const cadastrar = useCadastrar();
 
-  const { valores, aoMudar } = useFormulario({
-    nome: "",
-    sobrenome: "",
-    email: "",
-    matricula: "",
-    periodo: "",
-    telefone: "",
-    senha: "",
-    confirmacao: "",
-    aceite: false,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(cadastroSchema),
+    defaultValues: {
+      nome: "",
+      sobrenome: "",
+      email: "",
+      matricula: "",
+      periodo: "",
+      telefone: "",
+      senha: "",
+      confirmacao: "",
+      aceite: false,
+    },
+    mode: "onTouched",
   });
 
-  const [erro, setErro] = useState(null);
-  const [enviando, setEnviando] = useState(false);
-
-  async function aoEnviar(evento) {
-    evento.preventDefault();
-    setErro(null);
-
-    // ------------------------ Validacoes locais ------------------------
-    if (valores.senha.length < 6) {
-      return setErro("A senha precisa ter ao menos 6 caracteres.");
-    }
-    if (valores.senha !== valores.confirmacao) {
-      return setErro("As senhas nao conferem.");
-    }
-    if (!valores.aceite) {
-      return setErro("E preciso aceitar os termos de uso.");
-    }
-
-    setEnviando(true);
+  async function aoEnviar(v) {
     try {
-      await cadastrar({
-        nome: `${valores.nome} ${valores.sobrenome}`.trim(),
-        email: valores.email,
-        senha: valores.senha,
-        matricula: valores.matricula,
-        periodo: valores.periodo,
-        telefone: valores.telefone,
+      await cadastrar.mutateAsync({
+        nome: `${v.nome} ${v.sobrenome}`.trim(),
+        email: v.email,
+        senha: v.senha,
+        matricula: v.matricula,
+        periodo: v.periodo,
+        telefone: v.telefone,
       });
       navegar("/app", { replace: true });
-    } catch (e) {
-      setErro(e.message);
-    } finally {
-      setEnviando(false);
+    } catch {
+      // Mensagem exibida no <Alerta> (cadastrar.error).
     }
   }
 
@@ -74,61 +62,77 @@ export default function Cadastro() {
       <h1 className="text-2xl font-semibold text-slate-900">Criar conta</h1>
       <p className="mt-1 text-sm text-slate-500">Use seu e-mail institucional.</p>
 
-       {erro && (
-         <Alerta variante="erro" className="mt-4">
-            {erro}
-         </Alerta>
-       )}
+      {cadastrar.isError && (
+        <Alerta variante="erro" className="mt-4">
+          {cadastrar.error.message}
+        </Alerta>
+      )}
 
-      <form onSubmit={aoEnviar} className="mt-6 space-y-4">
-        {/* grid-cols-2: dois campos lado a lado */}
+      <form onSubmit={handleSubmit(aoEnviar)} noValidate className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <Campo rotulo="Nome" name="nome" required value={valores.nome} onChange={aoMudar} />
-          <Campo rotulo="Sobrenome" name="sobrenome" required value={valores.sobrenome} onChange={aoMudar} />
+          <Campo rotulo="Nome" autoComplete="given-name" erro={errors.nome?.message} {...register("nome")} />
+          <Campo
+            rotulo="Sobrenome"
+            autoComplete="family-name"
+            erro={errors.sobrenome?.message}
+            {...register("sobrenome")}
+          />
         </div>
 
         <Campo
           rotulo="E-mail institucional"
-          name="email"
           type="email"
-          required
+          autoComplete="email"
           placeholder="seu.nome@aluno.edu.br"
-          value={valores.email}
-          onChange={aoMudar}
+          erro={errors.email?.message}
+          {...register("email")}
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <Campo rotulo="Matricula" name="matricula" required value={valores.matricula} onChange={aoMudar} />
+          <Campo rotulo="Matricula" inputMode="numeric" erro={errors.matricula?.message} {...register("matricula")} />
           <CampoSelecao
             rotulo="Periodo"
-            name="periodo"
-            required
             placeholder="Selecione"
             opcoes={PERIODOS}
-            value={valores.periodo}
-            onChange={aoMudar}
+            erro={errors.periodo?.message}
+            {...register("periodo")}
           />
         </div>
 
-        <Campo rotulo="Telefone" name="telefone" placeholder="(21) 90000-0000" value={valores.telefone} onChange={aoMudar} />
+        <Campo
+          rotulo="Telefone (opcional)"
+          type="tel"
+          placeholder="(21) 90000-0000"
+          erro={errors.telefone?.message}
+          {...register("telefone")}
+        />
 
         <div className="grid grid-cols-2 gap-3">
-          <Campo rotulo="Senha" name="senha" type="password" required value={valores.senha} onChange={aoMudar} />
-          <Campo rotulo="Confirmar senha" name="confirmacao" type="password" required value={valores.confirmacao} onChange={aoMudar} />
+          <Campo
+            rotulo="Senha"
+            type="password"
+            autoComplete="new-password"
+            erro={errors.senha?.message}
+            {...register("senha")}
+          />
+          <Campo
+            rotulo="Confirmar senha"
+            type="password"
+            autoComplete="new-password"
+            erro={errors.confirmacao?.message}
+            {...register("confirmacao")}
+          />
         </div>
 
-        <label className="flex items-start gap-2 text-xs text-slate-600">
-          <input
-            type="checkbox"
-            name="aceite"
-            checked={valores.aceite}
-            onChange={aoMudar}
-            className="mt-0.5 rounded border-slate-300"
-          />
-          Li e aceito os termos de uso e a politica de privacidade.
-        </label>
+        <div>
+          <label className="flex items-start gap-2 text-xs text-slate-600">
+            <input type="checkbox" className="mt-0.5 rounded border-slate-300" {...register("aceite")} />
+            Li e aceito os termos de uso e a politica de privacidade.
+          </label>
+          {errors.aceite && <p className="mt-1 text-[11px] text-erro">{errors.aceite.message}</p>}
+        </div>
 
-        <Botao type="submit" larguraTotal tamanho="grande" carregando={enviando}>
+        <Botao type="submit" larguraTotal tamanho="grande" carregando={isSubmitting}>
           Criar minha conta
         </Botao>
       </form>

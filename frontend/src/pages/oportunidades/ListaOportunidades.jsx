@@ -1,19 +1,20 @@
 /* ---------------------------------------------------------------------------
    pages/oportunidades/ListaOportunidades.jsx
-   TELAS 6 e 7 — Lista de oportunidades + painel de filtros.
-
+   TELAS 6 e 7 - Lista de oportunidades + painel de filtros.
    Casos de uso atendidos: 2 (consultar) e 3 (filtrar).
 
-   COMO OS FILTROS FUNCIONAM:
-   Guardamos os filtros no estado "filtros". Como ele esta na lista de
-   dependencias do useRequisicao, qualquer mudanca dispara uma nova busca
-   automaticamente — nao precisa de botao "aplicar" para funcionar.
+   COMO OS FILTROS FUNCIONAM (TANSTACK QUERY):
+   O objeto "filtros" faz parte da CHAVE da consulta. Quando ele muda, o
+   TanStack Query busca de novo sozinho - e se aquela combinacao de filtros
+   ja foi buscada antes, mostra o resultado do cache na hora.
+   Enquanto a nova busca acontece, a lista anterior continua na tela
+   (placeholderData), evitando o "pisca" a cada letra digitada na busca.
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal, MapPin, Users, Plus } from "lucide-react";
-import { useRequisicao } from "../../hooks/useRequisicao";
-import { listarOportunidades } from "../../service/oportunidadeService";
+import { Search, SlidersHorizontal, MapPin, Users, Plus, Loader2 } from "lucide-react";
+import { useOportunidades } from "../../queries";
+import { TIPOS_OPORTUNIDADE, MODALIDADES } from "../../schemas/oportunidadeSchemas";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Botao from "../../components/ui/Botao";
 import Selo, { SeloSituacao } from "../../components/ui/Selo";
@@ -24,56 +25,38 @@ import { formatarData } from "../../utils/formatadores";
 import { usePermissao } from "../../hooks/usePermissao";
 import Skeleton from "../../components/ui/Skeleton";
 
-// Opcoes dos filtros. Para incluir um novo tipo, adicione aqui e no db.js.
-const TIPOS = [
-  "Iniciacao Cientifica",
-  "Extensao",
-  "Evento",
-  "Estagio",
-  "Monitoria",
-];
-const MODALIDADES = ["Presencial", "Remoto", "Hibrido"];
 const SITUACOES = ["Aberta", "Encerrada"];
 
 // Atalhos de tipo exibidos como "abas" acima da lista.
-const ABAS = [
-  "Todas",
-  "Monitoria",
-  "Iniciacao Cientifica",
-  "Extensao",
-  "Evento",
-];
+const ABAS = ["Todas", "Monitoria", "Iniciacao Cientifica", "Extensao", "Evento"];
+
+const FILTROS_VAZIOS = { busca: "", tipo: "", modalidade: "", situacao: "" };
 
 export default function ListaOportunidades() {
   const [parametrosUrl] = useSearchParams();
   const { podeGerenciar } = usePermissao();
 
   const [filtros, setFiltros] = useState({
+    ...FILTROS_VAZIOS,
     busca: parametrosUrl.get("busca") ?? "",
-    tipo: "",
-    modalidade: "",
-    situacao: "",
   });
-
   const [painelAberto, setPainelAberto] = useState(false);
 
   const {
-    dados: lista,
-    carregando,
-    erro,
-    recarregar,
-  } = useRequisicao(
-    () => listarOportunidades(filtros),
-    [JSON.stringify(filtros)],
-    [],
-  );
+    data: lista = [],
+    isLoading, // true so na PRIMEIRA carga (sem nada em cache)
+    isFetching, // true em qualquer busca, inclusive ao trocar filtros
+    isError,
+    error,
+    refetch,
+  } = useOportunidades(filtros);
 
   function mudarFiltro(campo, valor) {
     setFiltros((anteriores) => ({ ...anteriores, [campo]: valor }));
   }
 
   function limparFiltros() {
-    setFiltros({ busca: "", tipo: "", modalidade: "", situacao: "" });
+    setFiltros(FILTROS_VAZIOS);
   }
 
   return (
@@ -92,10 +75,7 @@ export default function ListaOportunidades() {
       {/* ------------------------- Barra de busca ------------------------- */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            size={15}
-          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
           <input
             type="search"
             value={filtros.busca}
@@ -103,6 +83,10 @@ export default function ListaOportunidades() {
             placeholder="Buscar por titulo, area ou descricao..."
             className="campo pl-9"
           />
+          {/* Indicador discreto de "buscando" ao trocar filtros */}
+          {isFetching && !isLoading && (
+            <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400" />
+          )}
         </div>
         <Botao variante="contorno" onClick={() => setPainelAberto(true)}>
           <SlidersHorizontal size={14} /> Filtros
@@ -133,7 +117,7 @@ export default function ListaOportunidades() {
       </div>
 
       {/* ---------------------------- Resultados ---------------------------- */}
-      {carregando ? (
+      {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Skeleton variante="cartao" className="h-44" />
           <Skeleton variante="cartao" className="h-44" />
@@ -142,29 +126,22 @@ export default function ListaOportunidades() {
           <Skeleton variante="cartao" className="h-44 hidden md:block" />
           <Skeleton variante="cartao" className="h-44 hidden xl:block" />
         </div>
-      ) : erro ? (
-        <Erro mensagem={erro} aoTentarNovamente={recarregar} />
+      ) : isError ? (
+        <Erro mensagem={error.message} aoTentarNovamente={refetch} />
       ) : lista.length === 0 ? (
         <Vazio
           titulo="Nenhuma oportunidade encontrada"
           descricao="Tente remover alguns filtros ou usar outro termo de busca."
           acao={
-            <Botao
-              variante="contorno"
-              tamanho="pequeno"
-              onClick={limparFiltros}
-            >
+            <Botao variante="contorno" tamanho="pequeno" onClick={limparFiltros}>
               Limpar filtros
             </Botao>
           }
         />
       ) : (
         <>
-          <p className="mb-3 text-xs text-slate-500">
-            {lista.length} oportunidade(s) encontrada(s)
-          </p>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <p className="mb-3 text-xs text-slate-500">{lista.length} oportunidade(s) encontrada(s)</p>
+          <div className={`grid gap-4 md:grid-cols-2 xl:grid-cols-3 transition-opacity ${isFetching ? "opacity-60" : ""}`}>
             {lista.map((item, indice) => (
               <CartaoOportunidade key={item.id} item={item} indice={indice} />
             ))}
@@ -173,16 +150,12 @@ export default function ListaOportunidades() {
       )}
 
       {/* ----------------- TELA 7: painel lateral de filtros ----------------- */}
-      <Modal
-        aberto={painelAberto}
-        aoFechar={() => setPainelAberto(false)}
-        titulo="Filtros"
-      >
+      <Modal aberto={painelAberto} aoFechar={() => setPainelAberto(false)} titulo="Filtros">
         <div className="space-y-4">
           <CampoSelecao
             rotulo="Tipo de oportunidade"
             placeholder="Todos"
-            opcoes={TIPOS}
+            opcoes={TIPOS_OPORTUNIDADE}
             value={filtros.tipo}
             onChange={(e) => mudarFiltro("tipo", e.target.value)}
           />
@@ -226,14 +199,9 @@ function CartaoOportunidade({ item, indice = 0 }) {
         <Selo tom="marca">{item.tipo}</Selo>
         <SeloSituacao situacao={item.situacao} />
       </div>
-
       <h3 className="text-sm font-semibold text-slate-900">{item.titulo}</h3>
       <p className="mt-1 text-[11px] text-slate-500">{item.departamento}</p>
-
-      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">
-        {item.descricao}
-      </p>
-
+      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">{item.descricao}</p>
       <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-slate-500">
         <span className="flex items-center gap-1">
           <MapPin size={12} /> {item.modalidade}
@@ -242,12 +210,9 @@ function CartaoOportunidade({ item, indice = 0 }) {
           <Users size={12} /> {item.vagas} vaga(s)
         </span>
       </div>
-
       <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
         <span className="text-xs font-medium text-slate-700">{item.bolsa}</span>
-        <span className="text-[11px] text-slate-400">
-          Ate {formatarData(item.prazoInscricao)}
-        </span>
+        <span className="text-[11px] text-slate-400">Ate {formatarData(item.prazoInscricao)}</span>
       </div>
     </Link>
   );

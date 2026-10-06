@@ -1,14 +1,16 @@
 /* ---------------------------------------------------------------------------
    pages/apoio/DetalheMonitoria.jsx
-   TELA 13 — Detalhe da monitoria/tutoria ("/app/apoio/:id").
-
+   TELA 13 - Detalhe da monitoria/tutoria ("/app/apoio/:id").
    Mostra a descricao, os horarios da semana, as avaliacoes recebidas e o
    botao que leva para a tela de agendamento.
+
+   TANSTACK QUERY: useOferta(id). Quando alguem agenda ou cancela um
+   horario, o cache de ofertas e invalidado e as "vagas livres" daqui
+   atualizam sozinhas.
 --------------------------------------------------------------------------- */
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Users, Wallet, BookOpen } from "lucide-react";
-import { useRequisicao } from "../../hooks/useRequisicao";
-import { buscarOferta } from "../../service/apoioService";
+import { useOferta } from "../../queries";
 import { useAuth } from "../../contexts/useAuth";
 import Botao from "../../components/ui/Botao";
 import Selo from "../../components/ui/Selo";
@@ -17,38 +19,25 @@ import Estrelas from "../../components/ui/Estrelas";
 import { Carregando, Erro } from "../../components/ui/Estado";
 import { formatarValor } from "../../utils/formatadores";
 
-// Avaliacoes ilustrativas. Quando houver backend, troque por uma chamada real.
+// Avaliacoes ilustrativas (item em aberto no README: avaliacoes dinamicas).
 const AVALIACOES_EXEMPLO = [
-  {
-    id: 1,
-    autor: "Lucas F.",
-    nota: 5,
-    texto: "Explicou passo a passo, muito didatico.",
-  },
-  {
-    id: 2,
-    autor: "Paula R.",
-    nota: 4,
-    texto: "Otimo atendimento, so faltou tempo.",
-  },
+  { id: 1, autor: "Lucas F.", nota: 5, texto: "Explicou passo a passo, muito didatico." },
+  { id: 2, autor: "Paula R.", nota: 4, texto: "Otimo atendimento, so faltou tempo." },
 ];
 
 export default function DetalheMonitoria() {
   const { id } = useParams();
   const navegar = useNavigate();
   const { usuario } = useAuth();
-  const {
-    dados: oferta,
-    carregando,
-    erro,
-    recarregar,
-  } = useRequisicao(() => buscarOferta(id), [id], null);
 
-  if (carregando) return <Carregando />;
-  if (erro) return <Erro mensagem={erro} aoTentarNovamente={recarregar} />;
+  const { data: oferta, isLoading, isError, error, refetch } = useOferta(id);
+
+  if (isLoading) return <Carregando />;
+  if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;
   if (!oferta) return null;
 
-  const vagasRestantes = oferta.vagas - oferta.vagasOcupadas;
+  const vagasRestantes = Math.max(oferta.vagas - (oferta.vagasOcupadas ?? 0), 0);
+  const ehDono = String(oferta.monitorId) === String(usuario?.id);
 
   return (
     <>
@@ -71,28 +60,21 @@ export default function DetalheMonitoria() {
                   <Selo>{oferta.modalidade}</Selo>
                   {oferta.gratuita && <Selo tom="sucesso">Gratuita</Selo>}
                 </div>
-                <h1 className="text-lg font-semibold text-slate-900">
-                  {oferta.titulo}
-                </h1>
+                <h1 className="text-lg font-semibold text-slate-900">{oferta.titulo}</h1>
                 <p className="text-xs text-slate-500">
                   {oferta.disciplina} · com {oferta.monitor}
                 </p>
                 <div className="mt-2 flex items-center gap-2">
                   <Estrelas nota={oferta.nota} mostrarNumero />
-                  <span className="text-[11px] text-slate-400">
-                    {oferta.totalAvaliacoes} avaliacoes
-                  </span>
+                  <span className="text-[11px] text-slate-400">{oferta.totalAvaliacoes} avaliacoes</span>
                 </div>
               </div>
             </div>
 
             <h2 className="titulo-secao mt-6">Sobre o atendimento</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              {oferta.descricao}
-            </p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">{oferta.descricao}</p>
             <p className="mt-2 text-sm text-slate-600">
-              <strong className="text-slate-800">Assuntos:</strong>{" "}
-              {oferta.assunto}
+              <strong className="text-slate-800">Assuntos:</strong> {oferta.assunto}
             </p>
           </div>
 
@@ -100,14 +82,12 @@ export default function DetalheMonitoria() {
           <div className="cartao p-6">
             <h2 className="titulo-secao mb-3">Horarios disponiveis</h2>
             <div className="grid gap-2 sm:grid-cols-2">
-              {oferta.horarios.map((horario) => (
+              {(oferta.horarios ?? []).map((horario) => (
                 <div
                   key={horario.id}
                   className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3"
                 >
-                  <span className="text-xs font-medium text-slate-800">
-                    {horario.dia}
-                  </span>
+                  <span className="text-xs font-medium text-slate-800">{horario.dia}</span>
                   <span className="text-xs text-slate-500">
                     {horario.inicio} - {horario.fim}
                   </span>
@@ -123,14 +103,10 @@ export default function DetalheMonitoria() {
               {AVALIACOES_EXEMPLO.map((avaliacao) => (
                 <li key={avaliacao.id} className="rounded-lg bg-slate-50 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-slate-800">
-                      {avaliacao.autor}
-                    </span>
+                    <span className="text-xs font-medium text-slate-800">{avaliacao.autor}</span>
                     <Estrelas nota={avaliacao.nota} />
                   </div>
-                  <p className="mt-1.5 text-xs text-slate-600">
-                    {avaliacao.texto}
-                  </p>
+                  <p className="mt-1.5 text-xs text-slate-600">{avaliacao.texto}</p>
                 </li>
               ))}
             </ul>
@@ -141,31 +117,14 @@ export default function DetalheMonitoria() {
         <aside className="cartao h-fit p-5">
           <h2 className="titulo-secao mb-3">Resumo</h2>
           <dl className="space-y-3 text-xs">
-            <Linha
-              icone={BookOpen}
-              rotulo="Disciplina"
-              valor={oferta.disciplina}
-            />
+            <Linha icone={BookOpen} rotulo="Disciplina" valor={oferta.disciplina} />
             <Linha icone={MapPin} rotulo="Local" valor={oferta.local} />
-            <Linha
-              icone={Users}
-              rotulo="Vagas livres"
-              valor={`${vagasRestantes} de ${oferta.vagas}`}
-            />
-            <Linha
-              icone={Wallet}
-              rotulo="Valor"
-              valor={formatarValor(oferta.valor)}
-            />
+            <Linha icone={Users} rotulo="Vagas livres" valor={`${vagasRestantes} de ${oferta.vagas}`} />
+            <Linha icone={Wallet} rotulo="Valor" valor={formatarValor(oferta.valor)} />
           </dl>
 
           {vagasRestantes > 0 ? (
-            <Botao
-              as={Link}
-              to={`/app/apoio/${oferta.id}/agendar`}
-              larguraTotal
-              className="mt-5"
-            >
+            <Botao as={Link} to={`/app/apoio/${oferta.id}/agendar`} larguraTotal className="mt-5">
               Agendar horario
             </Botao>
           ) : (
@@ -173,7 +132,8 @@ export default function DetalheMonitoria() {
               Sem vagas disponiveis
             </Botao>
           )}
-          {oferta.monitorId === usuario.id && (
+
+          {ehDono && (
             <Botao
               variante="contorno"
               larguraTotal
@@ -195,7 +155,7 @@ function Linha({ icone: Icone, rotulo, valor }) {
       <Icone size={14} className="mt-0.5 shrink-0 text-slate-400" />
       <div>
         <dt className="text-[11px] text-slate-500">{rotulo}</dt>
-        <dd className="font-medium text-slate-800">{valor}</dd>
+        <dd className="font-medium text-slate-800">{valor || "-"}</dd>
       </div>
     </div>
   );

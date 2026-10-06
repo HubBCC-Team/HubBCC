@@ -1,23 +1,16 @@
 /* ---------------------------------------------------------------------------
    pages/oportunidades/DetalheOportunidade.jsx
-   TELA 8 — Detalhe da oportunidade (rota "/app/oportunidades/:id").
+   TELA 8 - Detalhe da oportunidade (rota "/app/oportunidades/:id").
 
-   useParams() le o ":id" da URL. Com ele buscamos a oportunidade no service.
+   TANSTACK QUERY:
+   - useOportunidade(id)       -> busca a oportunidade (useQuery)
+   - useEncerrarOportunidade() -> encerra (useMutation). Ao concluir, o
+     cache do detalhe e da lista e atualizado sozinho; nao ha "recarregar".
 --------------------------------------------------------------------------- */
 import { Link, useParams, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  CalendarDays,
-  MapPin,
-  Users,
-  Wallet,
-  Clock,
-} from "lucide-react";
-import { useRequisicao } from "../../hooks/useRequisicao";
-import {
-  buscarOportunidade,
-  encerrarOportunidade,
-} from "../../service/oportunidadeService";
+import { ArrowLeft, CalendarDays, MapPin, Users, Wallet, Clock } from "lucide-react";
+import { useOportunidade, useEncerrarOportunidade } from "../../queries";
+import { useToast } from "../../contexts/useToast";
 import Botao from "../../components/ui/Botao";
 import Selo, { SeloSituacao } from "../../components/ui/Selo";
 import { Carregando, Erro } from "../../components/ui/Estado";
@@ -27,26 +20,25 @@ import { usePermissao } from "../../hooks/usePermissao";
 export default function DetalheOportunidade() {
   const { id } = useParams();
   const navegar = useNavigate();
+  const toast = useToast();
   const { podeGerenciar } = usePermissao();
 
-  const {
-    dados: item,
-    carregando,
-    erro,
-    recarregar,
-  } = useRequisicao(() => buscarOportunidade(id), [id], null);
+  const { data: item, isLoading, isError, error, refetch } = useOportunidade(id);
+  const encerrar = useEncerrarOportunidade();
 
-  if (carregando) return <Carregando />;
-  if (erro) return <Erro mensagem={erro} aoTentarNovamente={recarregar} />;
+  if (isLoading) return <Carregando />;
+  if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;
   if (!item) return null;
 
   const aberta = item.situacao === "Aberta";
 
-  // Encerrar e uma acao de quem publicou (aqui: monitor/admin) — caso de uso 5.
-  async function aoEncerrar() {
+  // Encerrar e uma acao de quem publicou (aqui: monitor/admin) - caso de uso 5.
+  function aoEncerrar() {
     if (!confirm("Deseja realmente encerrar esta oportunidade?")) return;
-    await encerrarOportunidade(item.id);
-    recarregar();
+    encerrar.mutate(item.id, {
+      onSuccess: () => toast.sucesso("Oportunidade encerrada."),
+      onError: (e) => toast.erro(e.message),
+    });
   }
 
   return (
@@ -69,28 +61,18 @@ export default function DetalheOportunidade() {
               <Selo>{item.modalidade}</Selo>
             </div>
 
-            <h1 className="text-xl font-semibold text-slate-900">
-              {item.titulo}
-            </h1>
-
+            <h1 className="text-xl font-semibold text-slate-900">{item.titulo}</h1>
             <p className="mt-1 text-xs text-slate-500">
               {item.departamento} · {item.responsavel}
             </p>
 
             <h2 className="titulo-secao mt-6">Sobre a oportunidade</h2>
-
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              {item.descricao}
-            </p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.descricao}</p>
 
             <h2 className="titulo-secao mt-6">Requisitos</h2>
-
             <ul className="mt-2 space-y-1.5">
-              {item.requisitos.map((requisito) => (
-                <li
-                  key={requisito}
-                  className="flex gap-2 text-sm text-slate-600"
-                >
+              {(item.requisitos ?? []).map((requisito) => (
+                <li key={requisito} className="flex gap-2 text-sm text-slate-600">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-marca-500" />
                   {requisito}
                 </li>
@@ -98,13 +80,9 @@ export default function DetalheOportunidade() {
             </ul>
 
             <h2 className="titulo-secao mt-6">Atividades previstas</h2>
-
             <ul className="mt-2 space-y-1.5">
-              {item.atividades.map((atividade) => (
-                <li
-                  key={atividade}
-                  className="flex gap-2 text-sm text-slate-600"
-                >
+              {(item.atividades ?? []).map((atividade) => (
+                <li key={atividade} className="flex gap-2 text-sm text-slate-600">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
                   {atividade}
                 </li>
@@ -117,39 +95,17 @@ export default function DetalheOportunidade() {
         <aside className="space-y-4">
           <div className="cartao p-6 anim-surgir">
             <h2 className="titulo-secao mb-3">Informacoes</h2>
-
             <dl className="space-y-3 text-xs">
               <Linha icone={Wallet} rotulo="Bolsa" valor={item.bolsa} />
-
-              <Linha
-                icone={Clock}
-                rotulo="Carga horaria"
-                valor={item.cargaHoraria}
-              />
-
-              <Linha
-                icone={Users}
-                rotulo="Vagas"
-                valor={`${item.vagas} vaga(s)`}
-              />
-
+              <Linha icone={Clock} rotulo="Carga horaria" valor={item.cargaHoraria} />
+              <Linha icone={Users} rotulo="Vagas" valor={`${item.vagas} vaga(s)`} />
               <Linha icone={MapPin} rotulo="Local" valor={item.local} />
-
-              <Linha
-                icone={CalendarDays}
-                rotulo="Inscricoes ate"
-                valor={formatarData(item.prazoInscricao)}
-              />
+              <Linha icone={CalendarDays} rotulo="Inscricoes ate" valor={formatarData(item.prazoInscricao)} />
             </dl>
 
             {/* Caso de uso 6: candidatar-se (so quando a vaga esta aberta) */}
             {aberta ? (
-              <Botao
-                as={Link}
-                to={`/app/oportunidades/${item.id}/candidatura`}
-                larguraTotal
-                className="mt-5"
-              >
+              <Botao as={Link} to={`/app/oportunidades/${item.id}/candidatura`} larguraTotal className="mt-5">
                 Candidatar-se
               </Botao>
             ) : (
@@ -165,6 +121,7 @@ export default function DetalheOportunidade() {
                 larguraTotal
                 className="mt-2"
                 onClick={aoEncerrar}
+                carregando={encerrar.isPending}
               >
                 Encerrar oportunidade
               </Botao>
@@ -194,7 +151,7 @@ function Linha({ icone: Icone, rotulo, valor }) {
       <Icone size={14} className="mt-0.5 shrink-0 text-slate-400" />
       <div>
         <dt className="text-[11px] text-slate-500">{rotulo}</dt>
-        <dd className="font-medium text-slate-800">{valor}</dd>
+        <dd className="font-medium text-slate-800">{valor || "-"}</dd>
       </div>
     </div>
   );

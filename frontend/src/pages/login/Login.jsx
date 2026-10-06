@@ -1,51 +1,45 @@
 /* ---------------------------------------------------------------------------
    pages/login/Login.jsx
-   TELA 2 — Login (rota "/login").
+   TELA 2 - Login (rota "/login").
 
-   FLUXO:
-   1) O usuario preenche e-mail e senha.
-   2) Chamamos entrar() do AuthContext, que chama o authService.
-   3) Dando certo, navegamos para /app (ou para a pagina que ele tentou abrir).
-   4) Dando errado, mostramos a mensagem de erro acima do formulario.
+   - React Hook Form + Zod (loginSchema): e-mail valido e senha preenchida,
+     mensagens embaixo de cada campo.
+   - TanStack Query (useEntrar -> useMutation) chama o AuthContext.entrar().
+   - Erro do servidor (senha errada) aparece no <Alerta>.
 
-   CONTAS DE TESTE (definidas em src/mocks/db.js):
-     aluno@hubbcc.br   / 123456
-     monitor@hubbcc.br / 123456
-     admin@hubbcc.br   / 123456
+   CONTAS DE TESTE (db.json): aluno@ / monitor@ / admin@hubbcc.br - senha 123456
 --------------------------------------------------------------------------- */
-import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/useAuth";
-import { useFormulario } from "../../hooks/useFormulario";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEntrar } from "../../queries";
+import { loginSchema } from "../../schemas/authSchemas";
 import Campo from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
 import Alerta from "../../components/ui/Alerta";
 
 export default function Login() {
-  const { entrar } = useAuth();
   const navegar = useNavigate();
   const localizacao = useLocation();
+  const entrar = useEntrar();
 
-  // Campos do formulario.
-  const { valores, aoMudar } = useFormulario({ email: "", senha: "", lembrar: false });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", senha: "", lembrar: false },
+    mode: "onTouched",
+  });
 
-  const [erro, setErro] = useState(null);
-  const [enviando, setEnviando] = useState(false);
-
-  async function aoEnviar(evento) {
-    evento.preventDefault(); // impede o recarregamento da pagina
-    setErro(null);
-    setEnviando(true);
-
+  async function aoEnviar({ email, senha }) {
     try {
-      await entrar(valores.email, valores.senha);
+      await entrar.mutateAsync({ email, senha });
       // Se a RotaPrivada mandou o usuario para ca, voltamos ao destino original.
-      const destino = localizacao.state?.de ?? "/app";
-      navegar(destino, { replace: true });
-    } catch (e) {
-      setErro(e.message);
-    } finally {
-      setEnviando(false);
+      navegar(localizacao.state?.de ?? "/app", { replace: true });
+    } catch {
+      // A mensagem fica em entrar.error e aparece no <Alerta> abaixo.
     }
   }
 
@@ -54,42 +48,33 @@ export default function Login() {
       <h1 className="text-2xl font-semibold text-slate-900">Bem-vindo de volta</h1>
       <p className="mt-1 text-sm text-slate-500">Acesse sua conta para continuar.</p>
 
-      {/* Mensagem de erro do login */}
-      {erro && (
+      {entrar.isError && (
         <Alerta variante="erro" className="mt-4">
-         {erro}
+          {entrar.error.message}
         </Alerta>
       )}
 
-      <form onSubmit={aoEnviar} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit(aoEnviar)} noValidate className="mt-6 space-y-4">
         <Campo
           rotulo="E-mail institucional"
-          name="email"
           type="email"
-          required
+          autoComplete="email"
           placeholder="seu.nome@aluno.edu.br"
-          value={valores.email}
-          onChange={aoMudar}
+          erro={errors.email?.message}
+          {...register("email")}
         />
         <Campo
           rotulo="Senha"
-          name="senha"
           type="password"
-          required
+          autoComplete="current-password"
           placeholder="Digite sua senha"
-          value={valores.senha}
-          onChange={aoMudar}
+          erro={errors.senha?.message}
+          {...register("senha")}
         />
 
         <div className="flex items-center justify-between text-xs">
           <label className="flex items-center gap-2 text-slate-600">
-            <input
-              type="checkbox"
-              name="lembrar"
-              checked={valores.lembrar}
-              onChange={aoMudar}
-              className="rounded border-slate-300"
-            />
+            <input type="checkbox" className="rounded border-slate-300" {...register("lembrar")} />
             Lembrar de mim
           </label>
           <Link to="/recuperar-senha" className="text-marca-700 hover:underline">
@@ -97,7 +82,7 @@ export default function Login() {
           </Link>
         </div>
 
-        <Botao type="submit" larguraTotal tamanho="grande" carregando={enviando}>
+        <Botao type="submit" larguraTotal tamanho="grande" carregando={isSubmitting}>
           Entrar
         </Botao>
       </form>
@@ -114,7 +99,6 @@ export default function Login() {
         </Link>
       </p>
 
-      {/* Lembrete das credenciais de teste — remova quando houver backend real */}
       <div className="mt-6 rounded-lg bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-500">
         <strong className="text-slate-600">Contas de teste:</strong>
         <br />

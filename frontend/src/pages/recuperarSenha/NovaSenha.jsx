@@ -1,177 +1,157 @@
-import { useState } from "react";
+/* ---------------------------------------------------------------------------
+   pages/recuperarSenha/NovaSenha.jsx
+   Segunda etapa da recuperacao: criar nova senha.
+
+   - React Hook Form + Zod (novaSenhaSchema): 8+ caracteres, maiuscula,
+     numero/simbolo e confirmacao igual. A barra de forca e a lista de
+     requisitos leem o valor digitado com watch().
+   - TanStack Query (useRedefinirSenha -> useMutation) chama
+     POST /auth/nova-senha no JSON Server (antes era um setTimeout simulado).
+--------------------------------------------------------------------------- */
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
+import { useRedefinirSenha } from "../../queries";
+import { novaSenhaSchema, REGRAS_SENHA } from "../../schemas/authSchemas";
 import Botao from "../../components/ui/Botao";
 import Alerta from "../../components/ui/Alerta";
 
+const CORES_FORCA = ["bg-slate-200", "bg-erro", "bg-alerta", "bg-sucesso"];
+
 export default function NovaSenha() {
   const navegar = useNavigate();
-  const [senha, setSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const redefinir = useRedefinirSenha();
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  const [erro, setErro] = useState(null);
-  const [sucesso, setSucesso] = useState(false);
-  const [carregando, setCarregando] = useState(false);
 
-  // Lógica da barra de força
-  const temTamanho = senha.length >= 8;
-  const temMaiuscula = /[A-Z]/.test(senha);
-  const temNumeroOuSimbolo = /[0-9\W]/.test(senha);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(novaSenhaSchema),
+    defaultValues: { senha: "", confirmarSenha: "" },
+    mode: "onTouched",
+  });
 
-  const forca = [temTamanho, temMaiuscula, temNumeroOuSimbolo].filter(
-    Boolean,
-  ).length;
+  const senha = watch("senha");
+  const forca = REGRAS_SENHA.filter((regra) => regra.teste(senha)).length;
 
-  let corBarra = "bg-slate-200";
-  if (forca === 1) corBarra = "bg-erro"; // Vermelho
-  if (forca === 2) corBarra = "bg-alerta"; // Amarelo
-  if (forca === 3) corBarra = "bg-sucesso"; // Verde
+  // Depois do sucesso, volta para o login em 3 segundos.
+  useEffect(() => {
+    if (!redefinir.isSuccess) return;
+    const timer = setTimeout(() => navegar("/login"), 3000);
+    return () => clearTimeout(timer);
+  }, [redefinir.isSuccess, navegar]);
 
-  async function aoSubmeter(e) {
-    e.preventDefault();
-    setErro(null);
-
-    if (forca < 3) {
-      return setErro(
-        "A senha precisa cumprir todos os requisitos de segurança.",
-      );
-    }
-    if (senha !== confirmarSenha) {
-      return setErro("As senhas não coincidem.");
-    }
-
-    setCarregando(true);
-    try {
-      // Simula o tempo de resposta do mock backend
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      setSucesso(true);
-      // Aguarda 3 segundos e envia o utilizador de volta para o login
-      setTimeout(() => navegar("/login"), 3000);
-    } catch (err) {
-      setErro("Ocorreu um erro ao redefinir a senha. Tente novamente.");
-    } finally {
-      setCarregando(false);
-    }
+  function aoSubmeter({ senha: novaSenha }) {
+    redefinir.mutate(novaSenha);
   }
 
-  // Ecrã de Sucesso
-  if (sucesso) {
+  if (redefinir.isSuccess) {
     return (
       <div className="flex flex-col items-center text-center">
         <div className="mb-4 rounded-full bg-sucesso/10 p-4 text-sucesso">
           <CheckCircle2 size={48} />
         </div>
-        <h1 className="mb-2 text-2xl font-bold text-slate-800">
-          Senha alterada!
-        </h1>
-        <p className="text-slate-600">
-          A sua senha foi atualizada com sucesso. Será redirecionado para o
-          login.
-        </p>
+        <h1 className="mb-2 text-2xl font-bold text-slate-800">Senha alterada!</h1>
+        <p className="text-slate-600">Sua senha foi atualizada com sucesso. Voce sera redirecionado para o login.</p>
       </div>
     );
   }
+
+  const classeInput = (erro) =>
+    [
+      "w-full rounded-lg border py-2.5 pl-10 text-sm outline-none transition focus:border-marca-600 focus:ring-1 focus:ring-marca-600",
+      erro ? "border-red-400" : "border-slate-300",
+    ].join(" ");
 
   return (
     <div className="flex flex-col">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Criar nova senha</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Digite a sua nova senha abaixo. Ela precisa de ser forte para garantir
-          a segurança da sua conta.
+          Digite sua nova senha abaixo. Ela precisa ser forte para garantir a seguranca da sua conta.
         </p>
       </div>
 
-      {erro && (
+      {redefinir.isError && (
         <Alerta variante="erro" className="mb-6">
-          {erro}
+          {redefinir.error.message}
         </Alerta>
       )}
 
-      <form onSubmit={aoSubmeter} className="flex flex-col gap-5">
-        {/* Campo da Nova Senha */}
-        <div className="relative">
-          <label className="mb-1.5 block text-[13px] font-medium text-slate-700">
+      <form onSubmit={handleSubmit(aoSubmeter)} noValidate className="flex flex-col gap-5">
+        {/* Nova senha */}
+        <div>
+          <label htmlFor="senha" className="mb-1.5 block text-[13px] font-medium text-slate-700">
             Nova senha
           </label>
           <div className="relative flex items-center">
             <Lock size={18} className="absolute left-3 text-slate-400" />
             <input
+              id="senha"
               type={mostrarSenha ? "text" : "password"}
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
+              autoComplete="new-password"
               placeholder="••••••••"
-              className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-marca-600 focus:ring-1 focus:ring-marca-600"
-              required
+              className={`${classeInput(errors.senha)} pr-10`}
+              {...register("senha")}
             />
             <button
               type="button"
               onClick={() => setMostrarSenha(!mostrarSenha)}
               className="absolute right-3 text-slate-400 hover:text-slate-600"
+              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
             >
               {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
+          {errors.senha && <p className="mt-1 text-[11px] text-erro">{errors.senha.message}</p>}
         </div>
 
-        {/* Requisitos e Barra de Força */}
+        {/* Barra de forca + requisitos */}
         <div className="rounded-lg bg-slate-50 p-4">
           <div className="mb-3 flex h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
             <div
-              className={`h-full transition-all duration-300 ${corBarra}`}
-              style={{ width: `${(forca / 3) * 100}%` }}
+              className={`h-full transition-all duration-300 ${CORES_FORCA[forca]}`}
+              style={{ width: `${(forca / REGRAS_SENHA.length) * 100}%` }}
             />
           </div>
           <ul className="space-y-1.5 text-[11px] sm:text-xs">
-            <li
-              className={`flex items-center gap-2 ${temTamanho ? "text-sucesso" : "text-slate-500"}`}
-            >
-              {temTamanho ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-              Mínimo de 8 caracteres
-            </li>
-            <li
-              className={`flex items-center gap-2 ${temMaiuscula ? "text-sucesso" : "text-slate-500"}`}
-            >
-              {temMaiuscula ? (
-                <CheckCircle2 size={14} />
-              ) : (
-                <XCircle size={14} />
-              )}
-              Pelo menos uma letra maiúscula
-            </li>
-            <li
-              className={`flex items-center gap-2 ${temNumeroOuSimbolo ? "text-sucesso" : "text-slate-500"}`}
-            >
-              {temNumeroOuSimbolo ? (
-                <CheckCircle2 size={14} />
-              ) : (
-                <XCircle size={14} />
-              )}
-              Pelo menos um número ou símbolo
-            </li>
+            {REGRAS_SENHA.map((regra) => {
+              const ok = regra.teste(senha);
+              return (
+                <li key={regra.id} className={`flex items-center gap-2 ${ok ? "text-sucesso" : "text-slate-500"}`}>
+                  {ok ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                  {regra.texto}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
-        {/* Campo Confirmar Senha */}
-        <div className="relative">
-          <label className="mb-1.5 block text-[13px] font-medium text-slate-700">
+        {/* Confirmar senha */}
+        <div>
+          <label htmlFor="confirmarSenha" className="mb-1.5 block text-[13px] font-medium text-slate-700">
             Confirmar senha
           </label>
           <div className="relative flex items-center">
             <Lock size={18} className="absolute left-3 text-slate-400" />
             <input
+              id="confirmarSenha"
               type={mostrarSenha ? "text" : "password"}
-              value={confirmarSenha}
-              onChange={(e) => setConfirmarSenha(e.target.value)}
+              autoComplete="new-password"
               placeholder="••••••••"
-              className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-marca-600 focus:ring-1 focus:ring-marca-600"
-              required
+              className={`${classeInput(errors.confirmarSenha)} pr-3`}
+              {...register("confirmarSenha")}
             />
           </div>
+          {errors.confirmarSenha && <p className="mt-1 text-[11px] text-erro">{errors.confirmarSenha.message}</p>}
         </div>
 
-        <Botao type="submit" carregando={carregando} className="mt-2 w-full">
+        <Botao type="submit" carregando={redefinir.isPending} className="mt-2 w-full">
           Redefinir senha
         </Botao>
       </form>

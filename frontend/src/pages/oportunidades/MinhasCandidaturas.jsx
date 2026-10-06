@@ -1,20 +1,19 @@
 /* ---------------------------------------------------------------------------
    pages/oportunidades/MinhasCandidaturas.jsx
-   TELA 11 — Minhas candidaturas (rota "/app/candidaturas").
-
+   TELA 11 - Minhas candidaturas (rota "/app/candidaturas").
    Casos de uso 7 (consultar) e cancelamento de candidatura.
+
+   TANSTACK QUERY:
+   - useCandidaturas(usuarioId, filtros) -> lista (a aba faz parte da chave)
+   - useCancelarCandidatura()            -> cancela e invalida a lista
    Mostra os dados em TABELA no desktop e em CARTOES no mobile.
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
 import { useToast } from "../../contexts/useToast";
-import { useRequisicao } from "../../hooks/useRequisicao";
-import {
-  listarCandidaturas,
-  cancelarCandidatura,
-} from "../../service/oportunidadeService";
+import { useCandidaturas, useCancelarCandidatura } from "../../queries";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Botao from "../../components/ui/Botao";
 import { SeloSituacao } from "../../components/ui/Selo";
@@ -29,27 +28,33 @@ export default function MinhasCandidaturas() {
   const toast = useToast();
   const [aba, setAba] = useState("Todas");
 
-  const {
-    dados: lista,
-    carregando,
-    erro,
-    recarregar,
-  } = useRequisicao(
-    () =>
-      listarCandidaturas(usuario.id, aba === "Todas" ? {} : { situacao: aba }),
-    [usuario.id, aba],
-    [],
-  );
+  const filtros = aba === "Todas" ? {} : { situacao: aba };
+  const { data: lista = [], isLoading, isError, error, refetch } = useCandidaturas(usuario?.id, filtros);
+  const cancelar = useCancelarCandidatura();
 
-  async function aoCancelar(id) {
+  function aoCancelar(id) {
     if (!confirm("Deseja cancelar esta candidatura?")) return;
-    try {
-      await cancelarCandidatura(id);
-      toast.sucesso("Candidatura cancelada com sucesso!");
-      recarregar();
-    } catch (e) {
-      toast.erro("Erro ao cancelar a candidatura.");
-    }
+    cancelar.mutate(id, {
+      onSuccess: () => toast.sucesso("Candidatura cancelada com sucesso!"),
+      onError: (e) => toast.erro(e.message || "Erro ao cancelar a candidatura."),
+    });
+  }
+
+  // Botao de lixeira: mostra spinner so na linha que esta sendo cancelada.
+  // (funcao comum, e nao componente, para nao ser recriado a cada render)
+  function botaoCancelar(item, className = "") {
+    const cancelandoEste = cancelar.isPending && cancelar.variables === item.id;
+    return (
+      <button
+        type="button"
+        onClick={() => aoCancelar(item.id)}
+        disabled={cancelar.isPending}
+        className={`text-slate-400 transition hover:text-erro disabled:opacity-50 ${className}`}
+        aria-label="Cancelar candidatura"
+      >
+        {cancelandoEste ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+      </button>
+    );
   }
 
   return (
@@ -83,12 +88,12 @@ export default function MinhasCandidaturas() {
       </div>
 
       <div className="cartao overflow-hidden">
-        {carregando ? (
+        {isLoading ? (
           <div className="p-4">
             <Skeleton variante="linhaTabela" linhas={4} />
           </div>
-        ) : erro ? (
-          <Erro mensagem={erro} aoTentarNovamente={recarregar} />
+        ) : isError ? (
+          <Erro mensagem={error.message} aoTentarNovamente={refetch} />
         ) : lista.length === 0 ? (
           <Vazio
             titulo="Nenhuma candidatura encontrada"
@@ -96,7 +101,7 @@ export default function MinhasCandidaturas() {
           />
         ) : (
           <>
-            {/* VISÃO DESKTOP */}
+            {/* VISAO DESKTOP */}
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
@@ -120,23 +125,12 @@ export default function MinhasCandidaturas() {
                         </Link>
                       </td>
                       <td className="px-5 py-3 text-slate-500">{item.tipo}</td>
-                      <td className="px-5 py-3 text-slate-500">
-                        {formatarData(item.dataEnvio)}
-                      </td>
+                      <td className="px-5 py-3 text-slate-500">{formatarData(item.dataEnvio)}</td>
                       <td className="px-5 py-3">
                         <SeloSituacao situacao={item.situacao} />
                       </td>
                       <td className="px-5 py-3 text-right">
-                        {item.situacao === "Em analise" && (
-                          <button
-                            type="button"
-                            onClick={() => aoCancelar(item.id)}
-                            className="text-slate-400 transition hover:text-erro"
-                            aria-label="Cancelar candidatura"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        )}
+                        {item.situacao === "Em analise" && botaoCancelar(item)}
                       </td>
                     </tr>
                   ))}
@@ -144,13 +138,10 @@ export default function MinhasCandidaturas() {
               </table>
             </div>
 
-            {/* VISÃO MOBILE */}
+            {/* VISAO MOBILE */}
             <div className="flex flex-col divide-y divide-slate-100 md:hidden">
               {lista.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-4 transition hover:bg-slate-50/60"
-                >
+                <div key={item.id} className="p-4 transition hover:bg-slate-50/60">
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <Link
                       to={`/app/oportunidades/${item.oportunidadeId}`}
@@ -166,16 +157,7 @@ export default function MinhasCandidaturas() {
                       <span className="h-1 w-1 rounded-full bg-slate-300" />
                       <span>{formatarData(item.dataEnvio)}</span>
                     </div>
-                    {item.situacao === "Em analise" && (
-                      <button
-                        type="button"
-                        onClick={() => aoCancelar(item.id)}
-                        className="p-1 text-slate-400 transition hover:text-erro"
-                        aria-label="Cancelar candidatura"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    )}
+                    {item.situacao === "Em analise" && botaoCancelar(item, "p-1")}
                   </div>
                 </div>
               ))}
