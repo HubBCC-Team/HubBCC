@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload, BookOpen, FlaskConical, HeartHandshake, CalendarDays, Trash2, FileText } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
@@ -45,7 +45,7 @@ export default function FormularioAtividade({ valoresIniciais, aoSalvar, titulo,
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     setError,
     clearErrors,
@@ -56,9 +56,9 @@ export default function FormularioAtividade({ valoresIniciais, aoSalvar, titulo,
     mode: "onTouched",
   });
 
-  const categoria = watch("categoria");
-  const comprovante = watch("comprovante");
-  const comprovanteArquivo = watch("comprovanteArquivo");
+  const categoria = useWatch({ control, name: "categoria" });
+  const comprovante = useWatch({ control, name: "comprovante" });
+  const comprovanteArquivo = useWatch({ control, name: "comprovanteArquivo" });
   const opcoes = { shouldDirty: true, shouldValidate: isSubmitted };
 
   /* ------------------------ Upload (clique ou arrastar) ------------------------ */

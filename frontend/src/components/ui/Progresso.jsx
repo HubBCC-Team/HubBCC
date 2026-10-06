@@ -14,24 +14,20 @@ export function ProgressoCircular({ percentual = 0, tamanho = 110, legenda }) {
   // Numero mostrado no centro, que sobe de 0 ate "valor" em vez de aparecer pronto.
   const [valorExibido, setValorExibido] = useState(0);
 
-  useEffect(() => {
-    setValorExibido(0);
+   useEffect(() => {
+    // Conta de 0 ate o valor real, somando 1 a cada 15ms.
+    // O primeiro setState acontece dentro do setInterval (e nao direto no efeito).
+    let atual = 0;
+    const alvo = Math.round(percentual);
 
-    // A cada 15ms soma 1, ate alcancar o valor real. Para numeros grandes isso
-    // ainda fica rapido (ex.: 74% leva pouco mais de 1s pra contar).
     const intervalo = setInterval(() => {
-      setValorExibido((atual) => {
-        if (atual >= valor) {
-          clearInterval(intervalo);
-          return valor;
-        }
-        return atual + 1;
-      });
+      atual += 1;
+      setValorExibido(Math.min(atual, alvo));
+      if (atual >= alvo) clearInterval(intervalo);
     }, 15);
 
-    // Limpeza: se o componente sumir ou o valor mudar de novo, para o intervalo antigo.
     return () => clearInterval(intervalo);
-  }, [valor]);
+  }, [percentual]);
 
   const raio = (tamanho - 12) / 2;
   const circunferencia = 2 * Math.PI * raio;

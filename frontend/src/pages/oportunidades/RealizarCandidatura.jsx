@@ -13,7 +13,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useOportunidade, useRealizarCandidatura } from "../../queries";
 import { candidaturaSchema, CARTA_MAXIMO } from "../../schemas/oportunidadeSchemas";
@@ -43,7 +43,7 @@ export default function RealizarCandidatura() {
     register,
     handleSubmit,
     trigger,
-    watch,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(candidaturaSchema),
@@ -51,7 +51,7 @@ export default function RealizarCandidatura() {
     mode: "onTouched",
   });
 
-  const carta = watch("carta");
+  const carta = useWatch({ control, name: "carta" });
 
   if (isLoading) return <Carregando />;
   if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;

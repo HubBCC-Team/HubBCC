@@ -19,6 +19,7 @@
    RESETAR:     npm run db:reset  (ou POST /dev/reset, botao do Perfil)
 --------------------------------------------------------------------------- */
 import jsonServer from "json-server";
+import process from "node:process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,7 +42,11 @@ server.use(jsonServer.bodyParser);
 ------------------------------------------------------------------------- */
 const erro = (res, status, mensagem) => res.status(status).json({ mensagem });
 
-const semSenha = ({ senha: _omitida, ...resto }) => resto;
+const semSenha = (usuario) => {
+const copia = { ...usuario };
+delete copia.senha;
+return copia;
+};
 
 const proximoId = (colecao) => {
   const lista = db.get(colecao).value();

@@ -17,7 +17,7 @@
    - acoesExtras     : botoes adicionais na coluna lateral (ex.: Cancelar oferta)
 --------------------------------------------------------------------------- */
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeftRight } from "lucide-react";
 import { useDisciplinas } from "../../queries";
@@ -42,7 +42,7 @@ export default function FormularioOferta({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     setError,
     clearErrors,
@@ -53,9 +53,9 @@ export default function FormularioOferta({
     mode: "onTouched",
   });
 
-  const horarios = watch("horarios");
-  const gratuita = watch("gratuita");
-  const vagas = watch("vagas");
+  const horarios = useWatch({ control, name: "horarios" });
+  const gratuita = useWatch({ control, name: "gratuita" });
+  const vagas = useWatch({ control, name: "vagas" });
 
   // Marca/desmarca um horario da grade (cada bloco tem 2 horas).
   function alternarHorario(dia, inicio) {

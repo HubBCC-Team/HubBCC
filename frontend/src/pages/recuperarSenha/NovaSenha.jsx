@@ -4,13 +4,13 @@
 
    - React Hook Form + Zod (novaSenhaSchema): 8+ caracteres, maiuscula,
      numero/simbolo e confirmacao igual. A barra de forca e a lista de
-     requisitos leem o valor digitado com watch().
+     requisitos leem o valor digitado com useWatch().
    - TanStack Query (useRedefinirSenha -> useMutation) chama
      POST /auth/nova-senha no JSON Server (antes era um setTimeout simulado).
 --------------------------------------------------------------------------- */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
 import { useRedefinirSenha } from "../../queries";
@@ -28,7 +28,7 @@ export default function NovaSenha() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(novaSenhaSchema),
@@ -36,7 +36,7 @@ export default function NovaSenha() {
     mode: "onTouched",
   });
 
-  const senha = watch("senha");
+  const senha = useWatch({ control, name: "senha" });
   const forca = REGRAS_SENHA.filter((regra) => regra.teste(senha)).length;
 
   // Depois do sucesso, volta para o login em 3 segundos.

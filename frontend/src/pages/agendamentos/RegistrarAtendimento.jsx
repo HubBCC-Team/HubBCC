@@ -13,7 +13,7 @@
    - useRegistrarAtendimento   (useMutation) grava e marca como "Realizado".
 --------------------------------------------------------------------------- */
 import { useParams, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, X, CalendarDays, Clock, MapPin } from "lucide-react";
 import { useToast } from "../../contexts/useToast";
@@ -37,7 +37,7 @@ export default function RegistrarAtendimento() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm({
@@ -46,7 +46,7 @@ export default function RegistrarAtendimento() {
     mode: "onTouched",
   });
 
-  const compareceu = watch("compareceu");
+  const compareceu = useWatch({ control, name: "compareceu" });
 
   if (isLoading) return <Carregando />;
   if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;

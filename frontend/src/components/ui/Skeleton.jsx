@@ -1,36 +1,34 @@
 /* ---------------------------------------------------------------------------
    components/ui/Skeleton.jsx
-   COMPONENTE DE CARREGAMENTO (SKELETON SCREEN).
+   Bloco cinza pulsante exibido enquanto os dados carregam.
 
-   Mostra silhuetas cinzas pulsantes enquanto os dados carregam.
-   Variantes: "texto" (padrao), "cartao", "linhaTabela".
+   PROPS
+   - variante: "texto" (padrao) | "cartao" | "linhaTabela"
+   - linhas:   quantas copias empilhar (padrao 1)
+   - className: classes extras (ex.: "h-44", "w-1/3", "hidden md:block")
+
+   Correcao de lint: antes o bloco era um componente criado DENTRO do render
+   (const Elemento = () => ...), o que recria o componente a cada render.
+   Agora a altura padrao vem de um objeto fixo e o bloco e um <div> comum.
 --------------------------------------------------------------------------- */
+const BASE = "animate-pulse rounded-md bg-slate-200";
 
-export default function Skeleton({
-  variante = "texto",
-  className = "",
-  linhas = 1,
-}) {
-  const base = "animate-pulse bg-slate-200 rounded-md";
+const ALTURA_PADRAO = {
+  texto: "h-4",
+  cartao: "h-32",
+  linhaTabela: "h-12",
+};
 
-  const Elemento = () => {
-    if (variante === "cartao") {
-      return <div className={`${base} h-32 w-full ${className}`} />;
-    }
-    if (variante === "linhaTabela") {
-      return <div className={`${base} h-12 w-full ${className}`} />;
-    }
-    // Padrao: texto
-    return <div className={`${base} h-4 w-full ${className}`} />;
-  };
+export default function Skeleton({ variante = "texto", linhas = 1, className = "" }) {
+  const classes = `${BASE} ${ALTURA_PADRAO[variante] ?? ALTURA_PADRAO.texto} w-full ${className}`;
 
-  if (linhas === 1) return <Elemento />;
+  if (linhas === 1) return <div className={classes} aria-hidden="true" />;
 
-  // Se pedir varias linhas, devolve uma lista delas com espacamento
+  // Varias linhas: lista com espacamento
   return (
-    <div className="flex w-full flex-col gap-3">
-      {Array.from({ length: linhas }).map((_, i) => (
-        <Elemento key={i} />
+    <div className="space-y-3" aria-hidden="true">
+      {Array.from({ length: linhas }, (_, indice) => (
+        <div key={indice} className={classes} />
       ))}
     </div>
   );

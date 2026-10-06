@@ -11,7 +11,7 @@
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDays, Clock, MapPin, Plus } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
@@ -267,7 +267,7 @@ function FormAvaliar({ agendamento, aoFechar }) {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitted },
   } = useForm({
@@ -275,8 +275,8 @@ function FormAvaliar({ agendamento, aoFechar }) {
     defaultValues: { nota: 0, tags: [], comentario: "" },
   });
 
-  const nota = watch("nota");
-  const tags = watch("tags");
+  const nota = useWatch({ control, name: "nota" });
+  const tags = useWatch({ control, name: "tags" });
 
   function alternarTag(tag) {
     const novas = tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag];

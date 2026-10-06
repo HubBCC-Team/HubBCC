@@ -17,7 +17,7 @@
      deve lancar (throw) - este componente mostra a mensagem no Alerta.
 --------------------------------------------------------------------------- */
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Campo, { CampoSelecao, CampoTexto } from "../../components/ui/Campo";
@@ -39,7 +39,7 @@ export default function FormularioOportunidade({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setError,
     clearErrors,
     formState: { errors, isSubmitting },
@@ -49,13 +49,13 @@ export default function FormularioOportunidade({
     mode: "onTouched", // valida ao sair do campo; depois, a cada digitacao
   });
 
-  // watch() le os valores em tempo real para a pre-visualizacao.
-  const [tipo, tituloDigitado, departamento, descricao] = watch([
+  // useWatch le os valores em tempo real para a pre-visualizacao.
+  const [tipo, tituloDigitado, departamento, descricao] = useWatch({ control, name: [
     "tipo",
     "titulo",
     "departamento",
     "descricao",
-  ]);
+  ] });
 
   // So e chamado quando o Zod aprovou todos os campos.
   async function aoEnviar(dadosValidados) {

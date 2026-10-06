@@ -12,30 +12,22 @@
    Usamos removeQueries, e nao clear(), para nao apagar a propria mutation
    de login que ainda esta em andamento.
 --------------------------------------------------------------------------- */
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import * as authService from "../service/authService";
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const queryClient = useQueryClient();
-  const [usuario, setUsuario] = useState(null);
-  const [carregando, setCarregando] = useState(true);
+  // Recupera a sessao salva JA NA CRIACAO do estado (inicializacao preguicosa).
+  // Assim o usuario existe desde o primeiro render: o app nao "pisca" no login
+  // ao dar F5 e nao precisamos de useEffect + setState.
+  const [usuario, setUsuario] = useState(lerSessaoSalva);
 
-  // Recupera a sessao salva ao abrir o app (evita "piscar" no login ao dar F5).
-  useEffect(() => {
-    const salvo = localStorage.getItem("hubbcc_usuario");
-    if (salvo) {
-      try {
-        setUsuario(JSON.parse(salvo));
-      } catch {
-        localStorage.removeItem("hubbcc_usuario");
-      }
-    }
-    setCarregando(false);
-  }, []);
+  // Mantido para compatibilidade com quem le "carregando" (ex.: RotaPrivada).
+  // Como a leitura agora e sincrona, nunca ha espera.
+  const carregando = false;
 
   const salvarSessao = useCallback(
     ({ token, usuario: dadosUsuario }) => {
@@ -91,4 +83,16 @@ export function AuthProvider({ children }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// Le o usuario salvo no localStorage; devolve null se nao houver ou se estiver corrompido.
+function lerSessaoSalva() {
+  const salvo = localStorage.getItem("hubbcc_usuario");
+  if (!salvo) return null;
+  try {
+    return JSON.parse(salvo);
+  } catch {
+    localStorage.removeItem("hubbcc_usuario");
+    return null;
+  }
 }

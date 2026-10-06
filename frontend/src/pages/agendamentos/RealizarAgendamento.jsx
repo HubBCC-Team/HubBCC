@@ -11,7 +11,7 @@
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, ChevronRight, CalendarDays, Clock, MapPin } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
@@ -67,7 +67,7 @@ export default function RealizarAgendamento() {
 
   const {
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitted },
   } = useForm({
@@ -75,8 +75,8 @@ export default function RealizarAgendamento() {
     defaultValues: { data: "", hora: "" },
   });
 
-  const dataEscolhida = watch("data");
-  const horaEscolhida = watch("hora");
+  const dataEscolhida = useWatch({ control, name: "data" });
+  const horaEscolhida = useWatch({ control, name: "hora" });
 
   if (isLoading) return <Carregando />;
   if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;

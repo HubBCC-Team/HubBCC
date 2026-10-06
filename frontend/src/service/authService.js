@@ -7,7 +7,11 @@
 import api from "../api/axios";
 
 // Nunca guardar a senha no front, mesmo que a API devolva.
-const semSenha = ({ senha: _senha, ...resto }) => resto;
+function semSenha(usuario) {
+  const copia = { ...usuario };
+  delete copia.senha;
+  return copia;
+}
 
 export async function login(email, senha) {
   const { data } = await api.post("/auth/login", { email: email.trim(), senha });

@@ -20,7 +20,7 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   // Funcao principal que adiciona um novo toast na fila
-  const adicionarToast = useCallback((mensagem, tipo = "sucesso") => {
+  /*const adicionarToast = useCallback((mensagem, tipo = "sucesso") => {
     const id = Date.now() + Math.random();
 
     setToasts((atuais) => [...atuais, { id, mensagem, tipo }]);
@@ -34,7 +34,23 @@ export function ToastProvider({ children }) {
   // Remove um toast especifico da fila pelo ID
   const removerToast = useCallback((id) => {
     setToasts((atuais) => atuais.filter((toast) => toast.id !== id));
+  }, []);*/
+
+    // Remove um toast especifico da fila pelo ID
+  const removerToast = useCallback((id) => {
+    setToasts((atuais) => atuais.filter((toast) => toast.id !== id));
   }, []);
+
+  // Adiciona um toast na fila e remove automaticamente apos 4 segundos
+  const adicionarToast = useCallback(
+    (tipo, mensagem) => {
+      const id = Date.now() + Math.random();
+      setToasts((atuais) => [...atuais, { id, tipo, mensagem }]);
+      setTimeout(() => removerToast(id), 4000);
+    },
+    [removerToast]
+  );
+
 
   // Objeto exposto para as telas do aplicativo usarem
   const toast = {
