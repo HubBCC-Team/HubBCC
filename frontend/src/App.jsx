@@ -17,11 +17,17 @@
    4) se ela deve aparecer no menu, inclua tambem em components/layout/MenuLateral.jsx
 --------------------------------------------------------------------------- */
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { ToastProvider } from "./contexts/ToastContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import RotaPrivada from "./components/rotas/RotaPrivada";
 
-// Layouts (o "esqueleto" que envolve varias telas)
+// Layouts
 import LayoutAcesso from "./components/layout/LayoutAcesso";
 import LayoutApp from "./components/layout/LayoutApp";
 
@@ -34,22 +40,30 @@ import NovaSenha from "./pages/recuperarSenha/NovaSenha";
 
 // Telas internas
 import Home from "./pages/home/Home";
+
 import ListaOportunidades from "./pages/oportunidades/ListaOportunidades";
 import DetalheOportunidade from "./pages/oportunidades/DetalheOportunidade";
 import CadastrarOportunidade from "./pages/oportunidades/CadastrarOportunidade";
 import RealizarCandidatura from "./pages/oportunidades/RealizarCandidatura";
 import EditarOportunidade from "./pages/oportunidades/EditarOportunidade";
 import MinhasCandidaturas from "./pages/oportunidades/MinhasCandidaturas";
+import AvaliarCandidaturas from "./pages/oportunidades/AvaliarCandidaturas";
+
 import ListaApoio from "./pages/apoio/ListaApoio";
 import DetalheMonitoria from "./pages/apoio/DetalheMonitoria";
 import CriarOferta from "./pages/apoio/CriarOferta";
 import EditarOferta from "./pages/apoio/EditarOferta";
+
 import RealizarAgendamento from "./pages/agendamentos/RealizarAgendamento";
 import MeusAgendamentos from "./pages/agendamentos/MeusAgendamentos";
 import RegistrarAtendimento from "./pages/agendamentos/RegistrarAtendimento";
+
 import AtividadesHoras from "./pages/atividades/AtividadesHoras";
 import RegistrarAtividade from "./pages/atividades/RegistrarAtividade";
 import EditarAtividade from "./pages/atividades/EditarAtividade";
+
+import Disciplinas from "./pages/disciplinas/Disciplinas";
+
 import Perfil from "./pages/perfil/Perfil";
 
 // Telas de erro
@@ -58,92 +72,207 @@ import Unauthorized from "./pages/Unauthorized";
 
 export default function App() {
   return (
-    // BrowserRouter = habilita a navegacao por URL
     <BrowserRouter>
-      {/* AuthProvider = deixa o usuario logado disponivel em todas as telas */}
-      <AuthProvider>
-        <Routes>
-          {/* ===================== ROTAS PUBLICAS ===================== */}
-          <Route path="/" element={<Landing />} />
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
+            {/* ===================== ROTAS PUBLICAS ===================== */}
 
-          {/* Estas compartilham o painel azul do LayoutAcesso */}
-          <Route element={<LayoutAcesso />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Cadastro />} />
-            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
-            <Route path="/nova-senha" element={<NovaSenha />} />
-          </Route>
+            <Route
+              path="/"
+              element={<Landing />}
+            />
 
-          {/* ===================== ROTAS PRIVADAS ===================== */}
-          {/* RotaPrivada barra quem nao esta logado.                     */}
-          {/* LayoutApp desenha menu lateral + barra superior.            */}
-          <Route element={<RotaPrivada />}>
-            <Route path="/app" element={<LayoutApp />}>
-              {/* index = a tela mostrada em "/app" */}
-              <Route index element={<Home />} />
-
-              {/* --- Oportunidades academicas (casos de uso 1 a 8) --- */}
-              <Route path="oportunidades" element={<ListaOportunidades />} />
+            <Route element={<LayoutAcesso />}>
               <Route
-                path="oportunidades/:id"
-                element={<DetalheOportunidade />}
+                path="/login"
+                element={<Login />}
               />
-              <Route
-                path="oportunidades/:id/candidatura"
-                element={<RealizarCandidatura />}
-              />
-              <Route path="candidaturas" element={<MinhasCandidaturas />} />
 
-              <Route element={<RotaPrivada perfis={["monitor", "admin"]} />}>
+              <Route
+                path="/cadastro"
+                element={<Cadastro />}
+              />
+
+              <Route
+                path="/recuperar-senha"
+                element={<RecuperarSenha />}
+              />
+
+              <Route
+                path="/nova-senha"
+                element={<NovaSenha />}
+              />
+            </Route>
+
+            {/* ===================== ROTAS PRIVADAS ===================== */}
+
+            <Route element={<RotaPrivada />}>
+              <Route
+                path="/app"
+                element={<LayoutApp />}
+              >
                 <Route
-                  path="oportunidades/nova"
-                  element={<CadastrarOportunidade />}
+                  index
+                  element={<Home />}
                 />
+
+                {/* ---------------- OPORTUNIDADES ---------------- */}
+
                 <Route
-                  path="oportunidades/:id/editar"
-                  element={<EditarOportunidade />}
+                  path="oportunidades"
+                  element={<ListaOportunidades />}
+                />
+
+                <Route
+                  path="oportunidades/:id"
+                  element={<DetalheOportunidade />}
+                />
+
+                <Route
+                  path="oportunidades/:id/candidatura"
+                  element={<RealizarCandidatura />}
+                />
+
+                <Route
+                  path="candidaturas"
+                  element={<MinhasCandidaturas />}
+                />
+
+                {/* Monitor e administrador */}
+                <Route
+                  element={
+                    <RotaPrivada
+                      perfis={["monitor", "admin"]}
+                    />
+                  }
+                >
+                  <Route
+                    path="oportunidades/nova"
+                    element={<CadastrarOportunidade />}
+                  />
+
+                  <Route
+                    path="oportunidades/:id/editar"
+                    element={<EditarOportunidade />}
+                  />
+
+                  <Route
+                    path="oportunidades/:id/candidaturas"
+                    element={<AvaliarCandidaturas />}
+                  />
+                </Route>
+
+                {/* ---------------- DISCIPLINAS ---------------- */}
+
+                {/* Apenas administrador */}
+                <Route
+                  element={
+                    <RotaPrivada perfis={["admin"]} />
+                  }
+                >
+                  <Route
+                    path="disciplinas"
+                    element={<Disciplinas />}
+                  />
+                </Route>
+
+                {/* ---------------- APOIO ACADEMICO ---------------- */}
+
+                <Route
+                  path="apoio"
+                  element={<ListaApoio />}
+                />
+
+                <Route
+                  path="apoio/:id"
+                  element={<DetalheMonitoria />}
+                />
+
+                <Route
+                  path="apoio/:id/agendar"
+                  element={<RealizarAgendamento />}
+                />
+
+                {/* Apenas monitor */}
+                <Route
+                  element={
+                    <RotaPrivada perfis={["monitor"]} />
+                  }
+                >
+                  <Route
+                    path="apoio/nova"
+                    element={<CriarOferta />}
+                  />
+
+                  <Route
+                    path="apoio/:id/editar"
+                    element={<EditarOferta />}
+                  />
+
+                  <Route
+                    path="agendamentos/:id/registrar"
+                    element={<RegistrarAtendimento />}
+                  />
+                </Route>
+
+                {/* ---------------- AGENDAMENTOS ---------------- */}
+
+                <Route
+                  path="agendamentos"
+                  element={<MeusAgendamentos />}
+                />
+
+                {/* ----------- ATIVIDADES COMPLEMENTARES ----------- */}
+
+                <Route
+                  path="atividades"
+                  element={<AtividadesHoras />}
+                />
+
+                <Route
+                  path="atividades/nova"
+                  element={<RegistrarAtividade />}
+                />
+
+                <Route
+                  path="atividades/:id/editar"
+                  element={<EditarAtividade />}
+                />
+
+                {/* ---------------- PERFIL ---------------- */}
+
+                <Route
+                  path="perfil"
+                  element={<Perfil />}
                 />
               </Route>
-
-              {/* --- Apoio academico (casos de uso 9 a 13) --- */}
-              <Route path="apoio" element={<ListaApoio />} />
-              <Route path="apoio/nova" element={<CriarOferta />} />
-              <Route path="apoio/:id" element={<DetalheMonitoria />} />
-              <Route
-                path="apoio/:id/agendar"
-                element={<RealizarAgendamento />}
-              />
-              <Route path="apoio/:id/editar" element={<EditarOferta />} />
-
-              {/* --- Agendamentos (casos de uso 14 a 18) --- */}
-              <Route path="agendamentos" element={<MeusAgendamentos />} />
-              <Route
-                path="agendamentos/:id/registrar"
-                element={<RegistrarAtendimento />}
-              />
-
-              {/* --- Atividades complementares (casos de uso 19 e 20) --- */}
-              <Route path="atividades" element={<AtividadesHoras />} />
-              <Route path="atividades/nova" element={<RegistrarAtividade />} />
-              <Route
-                path="atividades/:id/editar"
-                element={<EditarAtividade />}
-              />
-
-              <Route path="perfil" element={<Perfil />} />
             </Route>
-          </Route>
 
-          {/* ====================== ROTAS DE ERRO ====================== */}
-          <Route path="/sem-acesso" element={<Unauthorized />} />
+            {/* ====================== ROTAS DE ERRO ====================== */}
 
-          {/* Atalhos antigos continuam funcionando */}
-          <Route path="/home" element={<Navigate to="/app" replace />} />
+            <Route
+              path="/sem-acesso"
+              element={<Unauthorized />}
+            />
 
-          {/* "*" pega qualquer coisa que nao casou acima */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AuthProvider>
+            <Route
+              path="/home"
+              element={
+                <Navigate
+                  to="/app"
+                  replace
+                />
+              }
+            />
+
+            <Route
+              path="*"
+              element={<NotFound />}
+            />
+          </Routes>
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

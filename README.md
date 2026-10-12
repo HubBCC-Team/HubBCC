@@ -1,9 +1,8 @@
 # HubBCC
 
-**Plataforma de apoio e desenvolvimento acadêmico**
-Bacharelado em Ciência da Computação
+**Plataforma de apoio e desenvolvimento acadêmico** para o curso de Bacharelado em Ciência da Computação.
 
-Sistema web que reúne, em um único ambiente, as oportunidades acadêmicas do curso, o apoio entre alunos (monitorias e tutorias) e o controle de horas complementares.
+O HubBCC é uma aplicação web que reúne, em um único ambiente, oportunidades acadêmicas, apoio entre alunos por meio de monitorias e tutorias e o acompanhamento de atividades e horas complementares.
 
 ---
 
@@ -11,229 +10,374 @@ Sistema web que reúne, em um único ambiente, as oportunidades acadêmicas do c
 
 1. [O problema e a proposta](#1-o-problema-e-a-proposta)
 2. [Tecnologias](#2-tecnologias)
-3. [Como executar](#3-como-executar)
-4. [Contas de teste](#4-contas-de-teste)
-5. [Arquitetura](#5-arquitetura)
-6. [Estrutura de pastas](#6-estrutura-de-pastas)
-7. [Telas implementadas](#7-telas-implementadas)
-8. [Casos de uso](#8-casos-de-uso)
-9. [Modelo de dados](#9-modelo-de-dados)
-10. [API simulada](#10-api-simulada)
-11. [Design system](#11-design-system)
-12. [Convenções de código](#12-convenções-de-código)
-13. [Situação atual do projeto](#13-situação-atual-do-projeto)
-14. [Ligando o backend real](#14-ligando-o-backend-real)
-15. [Equipe](#15-equipe)
+3. [Requisitos da disciplina](#3-requisitos-da-disciplina)
+4. [Como executar](#4-como-executar)
+5. [Contas de teste](#5-contas-de-teste)
+6. [Arquitetura](#6-arquitetura)
+7. [Estrutura de pastas](#7-estrutura-de-pastas)
+8. [Telas e rotas](#8-telas-e-rotas)
+9. [Casos de uso e funcionalidades](#9-casos-de-uso-e-funcionalidades)
+10. [Modelo de dados](#10-modelo-de-dados)
+11. [Backend mockado com JSON Server](#11-backend-mockado-com-json-server)
+12. [TanStack Query](#12-tanstack-query)
+13. [Formulários e validação](#13-formulários-e-validação)
+14. [Design e responsividade](#14-design-e-responsividade)
+15. [Controle de acesso](#15-controle-de-acesso)
+16. [Convenções de código](#16-convenções-de-código)
+17. [Situação atual do projeto](#17-situação-atual-do-projeto)
+18. [Documentação](#18-documentação)
+19. [Equipe](#19-equipe)
 
 ---
 
 ## 1. O problema e a proposta
 
-Hoje o aluno de BCC precisa recorrer a canais dispersos — murais, grupos de mensagem, e-mails de departamento, planilhas pessoais — para três coisas que são centrais na graduação:
+Durante a graduação, os alunos têm acesso a diferentes oportunidades acadêmicas, como iniciação científica, projetos de extensão, monitorias, eventos e grupos de pesquisa.
 
-| Necessidade | Como é hoje | Como fica no HubBCC |
-|---|---|---|
-| Descobrir oportunidades (IC, extensão, monitoria, eventos) | avisos espalhados, prazos perdidos | catálogo único com filtro e candidatura pelo sistema |
-| Conseguir ajuda em uma disciplina | busca informal, "quem sabe fazer isso?" | ofertas de monitoria/tutoria com horários e agendamento |
-| Controlar horas complementares | planilha pessoal, contagem manual | registro com comprovante e progresso automático |
+Entretanto, essas informações costumam estar distribuídas entre diversos canais, como e-mails, grupos de mensagens, redes sociais e páginas de departamentos.
 
-A proposta é integrar os três fluxos, de modo que a mesma pessoa que hoje **busca** ajuda possa amanhã **oferecer** ajuda, e que toda participação vire registro de horas sem retrabalho.
+Além disso:
 
-### Fluxo principal do sistema
+- nem todas as disciplinas possuem monitoria oficial;
+- alunos podem precisar de apoio em horários diferentes dos oferecidos pela instituição;
+- estudantes que já cursaram determinadas disciplinas podem oferecer auxílio a outros alunos;
+- certificados e horas complementares normalmente precisam ser controlados separadamente.
 
-```
-cadastro → login → explorar oportunidades → candidatar-se → aprovação
-                                                                ↓
-                                                        virar monitor
-                                                                ↓
-                                                     criar oferta de apoio
-                                                                ↓
-outro aluno busca apoio → agenda horário → atendimento → registro → avaliação
-                                                                ↓
-                                                    horas complementares
+O **HubBCC** busca centralizar esses recursos.
+
+| Necessidade | Solução no HubBCC |
+| --- | --- |
+| Encontrar oportunidades acadêmicas | catálogo centralizado com filtros e candidaturas |
+| Acompanhar candidaturas | consulta da situação e possibilidade de cancelamento |
+| Encontrar ajuda em disciplinas | ofertas de monitoria e tutoria |
+| Oferecer apoio acadêmico | criação e gerenciamento de ofertas |
+| Reservar atendimento | agendamento de horários disponíveis |
+| Acompanhar horas complementares | registro de atividades e cálculo de progresso |
+| Gerenciar disciplinas | CRUD administrativo de disciplinas |
+
+### Fluxo geral
+
+```text
+Cadastro
+   ↓
+Login
+   ↓
+Explorar oportunidades
+   ↓
+Realizar candidatura
+   ↓
+Acompanhar situação
+
+Aluno busca apoio
+   ↓
+Consulta monitorias/tutorias
+   ↓
+Realiza agendamento
+   ↓
+Atendimento
+   ↓
+Registro e avaliação
+
+Aluno participa de atividades
+   ↓
+Registra atividade complementar
+   ↓
+Acompanha total de horas
 ```
 
 ---
 
 ## 2. Tecnologias
 
-| Camada | Tecnologia | Papel no projeto |
-|---|---|---|
-| Biblioteca de UI | **React 19** | construção das interfaces por componentes |
-| Build e dev server | **Vite** | compilação rápida e recarregamento instantâneo |
-| Estilo | **Tailwind CSS v4** | estilização por classes utilitárias e tokens de tema |
-| Roteamento | **React Router DOM v7** | navegação entre telas sem recarregar a página |
-| HTTP | **axios** | comunicação com a API |
-| API simulada | **axios-mock-adapter** | backend falso para desenvolvimento e testes |
-| Ícones | **lucide-react** | biblioteca de ícones |
-| Qualidade | **ESLint** | padronização e detecção de erros |
-
-**Por que Tailwind v4:** dispensa o `tailwind.config.js`. Todo o tema (cores, fontes) é declarado em CSS dentro de `@theme`, o que reduz a configuração a um único arquivo.
-
-**Por que mock e não backend:** permite que o frontend seja desenvolvido, demonstrado e avaliado de forma independente, sem depender de servidor, banco de dados ou infraestrutura. A troca pelo backend real é uma mudança de configuração, não de código.
+| Camada | Tecnologia | Uso |
+| --- | --- | --- |
+| Interface | React 19 | componentes funcionais e hooks |
+| Linguagem | JavaScript ES6+ | módulos, async/await, destructuring e demais recursos modernos |
+| Build | Vite 8 | ambiente de desenvolvimento e build |
+| Estilo | Tailwind CSS v4 | layout, componentes e responsividade |
+| Roteamento | React Router DOM v7 | navegação e rotas protegidas |
+| Requisições HTTP | Axios | comunicação com a API |
+| Cache e estado remoto | TanStack Query v5 | consultas, mutations e invalidação de cache |
+| Formulários | React Hook Form | gerenciamento dos principais formulários |
+| Validação | Zod + @hookform/resolvers | validação de dados dos formulários |
+| Backend mockado | JSON Server | API REST e persistência local |
+| Ícones | Lucide React / Phosphor Icons | elementos visuais |
+| Qualidade | ESLint | análise estática do código |
+| Execução paralela | concurrently | inicialização conjunta da API e do frontend |
 
 ---
 
-## 3. Como executar
+## 3. Requisitos da disciplina
+
+O projeto utiliza as tecnologias solicitadas para a implementação do frontend e integração com backend mockado.
+
+| Requisito | Implementação |
+| --- | --- |
+| React | componentes funcionais e hooks em `src/` |
+| ES6+ | utilizado em toda a aplicação |
+| Framework de estilização | Tailwind CSS v4 |
+| Responsividade | breakpoints responsivos do Tailwind |
+| React Hook Form | formulários estruturados da aplicação |
+| Zod | schemas em `src/schemas/` |
+| TanStack Query | hooks em `src/queries/` |
+| JSON Server | `server/server.js` + `db.json` |
+| Dados iniciais | `server/db.seed.json` |
+| API HTTP | Axios centralizado em `src/api/axios.js` |
+
+---
+
+## 4. Como executar
 
 ### Pré-requisitos
 
-- Node.js 18 ou superior
+- **Node.js 20.19 ou superior**
 - npm
 
-### Passos
+Para verificar as versões:
+
+```bash
+node --version
+npm --version
+```
+
+### Instalação
+
+Na raiz do repositório:
 
 ```bash
 cd frontend
 npm install
+```
+
+### Executar frontend e backend juntos
+
+```bash
+npm run dev:all
+```
+
+Serviços utilizados:
+
+| Serviço | Endereço |
+| --- | --- |
+| Frontend | `http://localhost:5173` |
+| API | `http://localhost:3001` |
+
+### Executar separadamente
+
+Terminal 1:
+
+```bash
+npm run server
+```
+
+Terminal 2:
+
+```bash
 npm run dev
 ```
 
-A aplicação abre em `http://localhost:5173`.
-
 ### Scripts disponíveis
 
-| Comando | O que faz |
-|---|---|
-| `npm run dev` | sobe o servidor de desenvolvimento |
-| `npm run build` | gera a versão de produção na pasta `dist` |
-| `npm run preview` | testa localmente a versão de produção |
-| `npm run lint` | verifica o padrão do código |
+| Comando | Função |
+| --- | --- |
+| `npm run dev` | inicia somente o Vite |
+| `npm run server` | inicia somente o JSON Server |
+| `npm run dev:all` | inicia frontend e backend juntos |
+| `npm run db:reset` | restaura os dados iniciais |
+| `npm run build` | gera a build de produção |
+| `npm run preview` | executa localmente a build |
+| `npm run lint` | executa o ESLint |
 
+### Restaurar o banco inicial
 
-## 4. Contas de teste
+```bash
+npm run db:reset
+```
 
-O sistema já vem com três usuários cadastrados, um para cada perfil:
+O comando copia novamente os dados de:
 
-| E-mail | Senha | Perfil | Para que serve |
-|---|---|---|---|
-| `aluno@hubbcc.br` | `123456` | aluno | visão de quem busca oportunidades e agenda monitorias |
-| `monitor@hubbcc.br` | `123456` | monitor | visão de quem oferece apoio e gerencia atendimentos |
-| `admin@hubbcc.br` | `123456` | admin | visão de gestão do curso |
+```text
+frontend/server/db.seed.json
+```
 
-**Persistência:** os dados ficam no `localStorage` do navegador. Tudo que você criar — uma oferta, um agendamento, uma atividade — continua lá depois de recarregar a página.
+para:
 
-**Para voltar ao estado inicial:** acesse **Perfil → Resetar dados de teste**. Útil para demonstrar o sistema do zero.
+```text
+frontend/db.json
+```
 
 ---
 
-## 5. Arquitetura
+## 5. Contas de teste
 
-O projeto segue uma separação em camadas. Cada camada só conversa com a vizinha, nunca pula etapas:
+O banco inicial possui usuários para os três perfis do sistema.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  PAGES          telas que o usuário vê                  │
-│                 ex.: RealizarAgendamento.jsx            │
-└────────────────────────┬────────────────────────────────┘
-                         │ chama funções de negócio
-┌────────────────────────▼────────────────────────────────┐
-│  SERVICE        uma função por caso de uso              │
-│                 ex.: realizarAgendamento(dados)         │
-└────────────────────────┬────────────────────────────────┘
-                         │ faz a requisição HTTP
-┌────────────────────────▼────────────────────────────────┐
-│  API/AXIOS      instância única: token, erros, timeout  │
-└────────────────────────┬────────────────────────────────┘
-                         │ interceptado em modo mock
-┌────────────────────────▼────────────────────────────────┐
-│  MOCKADAPTER    servidor falso: rotas e regras          │
-└────────────────────────┬────────────────────────────────┘
-                         │ lê e grava
-┌────────────────────────▼────────────────────────────────┐
-│  MOCKS/DB       dados em memória + localStorage         │
-└─────────────────────────────────────────────────────────┘
+| Perfil | E-mail | Senha |
+| --- | --- | --- |
+| Aluno | `aluno@hubbcc.br` | `123456` |
+| Monitor | `monitor@hubbcc.br` | `123456` |
+| Administrador | `admin@hubbcc.br` | `123456` |
+
+Os dados utilizados durante a execução são persistidos em:
+
+```text
+frontend/db.json
 ```
 
-### A regra de ouro
-
-> **Nenhuma tela chama `axios` diretamente.** Se uma tela precisa de dados, ela chama uma função de `src/service/`.
-
-Essa regra é o que permite trocar o backend simulado pelo real **sem alterar uma única tela**. É também o que mantém a lógica de negócio fora dos componentes visuais.
-
-### Decisões de projeto
-
-| Decisão | Motivo |
-|---|---|
-| Camada `service` separada | isola as telas das rotas da API; se um endpoint mudar de nome, muda em um arquivo só |
-| Contexto de autenticação | o usuário logado fica acessível em qualquer componente sem passar props em cascata |
-| Hooks próprios (`useRequisicao`, `useFormulario`) | eliminam a repetição de "carregando / erro / dados" e do controle de formulários em 22 telas |
-| Componentes de UI reutilizáveis | garantem consistência visual e reduzem o código de cada tela |
-| Persistência em `localStorage` | o estado sobrevive ao recarregamento, tornando a demonstração realista |
-| Atraso artificial de 350ms no mock | força o tratamento correto dos estados de carregamento |
+Portanto, cadastros, alterações e exclusões permanecem salvos enquanto o banco não for restaurado.
 
 ---
 
-## 6. Estrutura de pastas
+## 6. Arquitetura
 
+O frontend está organizado em camadas.
+
+```text
+PAGES
+  ↓
+QUERIES
+  ↓
+SERVICES
+  ↓
+AXIOS
+  ↓
+JSON SERVER
+  ↓
+db.json
 ```
+
+### Pages
+
+As páginas representam as telas da aplicação.
+
+```text
+src/pages/
+```
+
+Elas utilizam componentes, hooks e queries para montar a interface.
+
+### Queries
+
+A camada:
+
+```text
+src/queries/
+```
+
+centraliza os hooks do TanStack Query.
+
+Ela é responsável por:
+
+- buscar dados;
+- executar mutations;
+- controlar loading e erro;
+- manter cache;
+- invalidar consultas após alterações.
+
+### Services
+
+A camada:
+
+```text
+src/service/
+```
+
+contém as funções responsáveis pelas requisições HTTP.
+
+Exemplos:
+
+```text
+authService.js
+oportunidadeService.js
+apoioService.js
+agendamentoService.js
+atividadeService.js
+```
+
+### Axios
+
+A configuração da comunicação HTTP fica centralizada em:
+
+```text
+src/api/axios.js
+```
+
+As páginas não precisam criar novas instâncias do Axios.
+
+### JSON Server
+
+O backend acadêmico é executado por:
+
+```text
+frontend/server/server.js
+```
+
+e utiliza:
+
+```text
+frontend/db.json
+```
+
+como banco persistente.
+
+---
+
+## 7. Estrutura de pastas
+
+```text
 frontend/
+│
+├── server/
+│   ├── server.js
+│   └── db.seed.json
+│
+├── db.json
+│
 ├── public/
+│
 ├── src/
 │   ├── api/
-│   │   ├── axios.js            instância do axios: baseURL, token, tratamento de erro
-│   │   └── mockAdapter.js      servidor falso: todos os endpoints e regras de negócio
+│   │   └── axios.js
 │   │
-│   ├── mocks/
-│   │   └── db.js               banco de dados falso + persistência no localStorage
-│   │
-│   ├── service/                uma função por caso de uso — a ponte entre tela e API
-│   │   ├── authService.js          login, cadastro, recuperação de senha
-│   │   ├── oportunidadeService.js  oportunidades e candidaturas
-│   │   ├── apoioService.js         disciplinas e ofertas de monitoria
-│   │   ├── agendamentoService.js   agendar, reagendar, registrar, avaliar
-│   │   └── atividadeService.js     atividades complementares e horas
-│   │
-│   ├── contexts/
-│   │   ├── AuthContext.jsx     guarda o usuário logado para toda a aplicação
-│   │   └── useAuth.js          atalho de leitura do contexto
-│   │
-│   ├── hooks/
-│   │   ├── useRequisicao.js    busca dados + estados de carregando/erro
-│   │   └── useFormulario.js    controle de campos de formulário
+│   ├── assets/
 │   │
 │   ├── components/
-│   │   ├── ui/                 peças reutilizáveis de interface
-│   │   │   ├── Botao.jsx           5 variantes, 3 tamanhos, estado de carregando
-│   │   │   ├── Campo.jsx           input, select e textarea com rótulo e erro
-│   │   │   ├── Selo.jsx            etiquetas coloridas por situação
-│   │   │   ├── Modal.jsx           janela flutuante com fechamento por ESC
-│   │   │   ├── Estado.jsx          telas de carregando, erro e lista vazia
-│   │   │   ├── Progresso.jsx       anel e barra de progresso
-│   │   │   ├── Estrelas.jsx        avaliação por estrelas
-│   │   │   ├── Avatar.jsx          círculo com iniciais
-│   │   │   └── Cabecalho.jsx       título de página padronizado
-│   │   │
-│   │   ├── layout/             esqueletos de página
-│   │   │   ├── LayoutApp.jsx       menu lateral + barra superior (telas internas)
-│   │   │   ├── LayoutAcesso.jsx    painel azul + formulário (login/cadastro)
-│   │   │   ├── MenuLateral.jsx     navegação principal
-│   │   │   ├── BarraSuperior.jsx   busca, notificações, avatar
-│   │   │   └── Logo.jsx
-│   │   │
-│   │   └── rotas/
-│   │       └── RotaPrivada.jsx bloqueia acesso de quem não está logado
+│   │   ├── layout/
+│   │   ├── rotas/
+│   │   └── ui/
 │   │
-│   ├── pages/                  uma pasta por área do sistema
-│   │   ├── landing/            página pública de apresentação
-│   │   ├── login/
+│   ├── contexts/
+│   │
+│   ├── hooks/
+│   │   └── usePermissao.js
+│   │
+│   ├── lib/
+│   │   └── queryClient.js
+│   │
+│   ├── pages/
+│   │   ├── agendamentos/
+│   │   ├── apoio/
+│   │   ├── atividades/
 │   │   ├── cadastro/
-│   │   ├── recuperarSenha/
-│   │   ├── home/               dashboard
-│   │   ├── oportunidades/      lista, detalhe, cadastro, candidatura
-│   │   ├── apoio/              ofertas de monitoria e tutoria
-│   │   ├── agendamentos/       agendar, listar, registrar
-│   │   ├── atividades/         horas complementares
+│   │   ├── disciplinas/
+│   │   ├── home/
+│   │   ├── landing/
+│   │   ├── login/
+│   │   ├── oportunidades/
 │   │   ├── perfil/
-│   │   ├── NotFound.jsx
-│   │   └── Unauthorized.jsx
+│   │   └── recuperarSenha/
+│   │
+│   ├── queries/
+│   │
+│   ├── schemas/
+│   │
+│   ├── service/
 │   │
 │   ├── utils/
-│   │   └── formatadores.js     data, moeda, iniciais
 │   │
-│   ├── App.jsx                 MAPA DE ROTAS — comece a leitura por aqui
-│   ├── main.jsx                ponto de entrada da aplicação
-│   └── index.css               Tailwind + tokens do tema + classes utilitárias
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
 │
 ├── .env.example
 ├── eslint.config.js
@@ -242,139 +386,204 @@ frontend/
 └── vite.config.js
 ```
 
-### Por onde começar a ler o código
+Os mocks antigos em `src/mocks` foram removidos após a migração definitiva para JSON Server.
 
-| Ordem | Arquivo | O que você entende |
-|---|---|---|
-| 1 | `src/App.jsx` | todas as telas que existem e seus endereços |
-| 2 | `src/mocks/db.js` | o formato de todos os dados do sistema |
-| 3 | `src/api/mockAdapter.js` | todos os endpoints e as regras de negócio |
-| 4 | `src/pages/oportunidades/MinhasCandidaturas.jsx` | o padrão de uma tela completa |
-
-Todos os arquivos começam com um bloco de comentário explicando o que fazem e como mexer neles.
+Arquivos vazios ou não utilizados também foram removidos durante a limpeza final do projeto.
 
 ---
 
-## 7. Telas implementadas
-
-22 telas, todas navegáveis.
+## 8. Telas e rotas
 
 ### Área pública
 
-| # | Tela | Rota | Descrição |
-|---|---|---|---|
-| 1 | Abertura / Landing | `/` | apresentação do sistema, indicadores e chamadas para cadastro |
-| 2 | Login | `/login` | autenticação com e-mail institucional |
-| 3 | Cadastro | `/cadastro` | criação de conta com validação de senha |
-| 4 | Recuperar senha | `/recuperar-senha` | envio de link de redefinição |
+| Tela | Rota |
+| --- | --- |
+| Landing page | `/` |
+| Login | `/login` |
+| Cadastro | `/cadastro` |
+| Recuperar senha | `/recuperar-senha` |
+| Nova senha | `/nova-senha` |
 
 ### Área autenticada
 
-| # | Tela | Rota | Descrição |
-|---|---|---|---|
-| 5 | Home / Dashboard | `/app` | indicadores, próximos agendamentos e progresso de horas |
-| 6 | Oportunidades — lista | `/app/oportunidades` | catálogo com busca e abas por tipo |
-| 7 | Oportunidades — filtros | modal na lista | filtro por tipo, modalidade e situação |
-| 8 | Oportunidade — detalhe | `/app/oportunidades/:id` | descrição, requisitos, atividades e inscrição |
-| 9 | Realizar candidatura | `/app/oportunidades/:id/candidatura` | formulário em 3 etapas com carta de motivação |
-| 10 | Cadastrar oportunidade | `/app/oportunidades/nova` | publicação com pré-visualização ao vivo |
-| 11 | Minhas candidaturas | `/app/candidaturas` | acompanhamento por situação |
-| 12 | Apoio acadêmico — lista | `/app/apoio` | ofertas de monitoria e tutoria com filtros |
-| 13 | Apoio — detalhe | `/app/apoio/:id` | horários, avaliações e vagas |
-| 14 | Criar oferta de apoio | `/app/apoio/nova` | cadastro com grade de disponibilidade semanal |
-| 15 | Realizar agendamento | `/app/apoio/:id/agendar` | calendário mensal com horários disponíveis |
-| 16 | Reagendar / cancelar | modal em agendamentos | alteração de data e hora |
-| 17 | Meus agendamentos | `/app/agendamentos` | listagem por situação com ações |
-| 18 | Registrar atendimento | `/app/agendamentos/:id/registrar` | presença, duração e observações |
-| 19 | Avaliar atendimento | modal em agendamentos | nota, etiquetas e comentário |
-| 20 | Registrar atividade | `/app/atividades/nova` | categoria, horas e comprovante |
-| 21 | Atividades e horas | `/app/atividades` | progresso, distribuição e histórico |
-| 22 | Perfil | `/app/perfil` | dados, estatísticas e preferências |
+| Tela | Rota |
+| --- | --- |
+| Home | `/app` |
+| Lista de oportunidades | `/app/oportunidades` |
+| Detalhe da oportunidade | `/app/oportunidades/:id` |
+| Realizar candidatura | `/app/oportunidades/:id/candidatura` |
+| Minhas candidaturas | `/app/candidaturas` |
+| Cadastrar oportunidade | `/app/oportunidades/nova` |
+| Editar oportunidade | `/app/oportunidades/:id/editar` |
+| Avaliar candidaturas | `/app/oportunidades/:id/candidaturas` |
+| Lista de apoio acadêmico | `/app/apoio` |
+| Criar oferta | `/app/apoio/nova` |
+| Detalhe da oferta | `/app/apoio/:id` |
+| Agendar atendimento | `/app/apoio/:id/agendar` |
+| Editar oferta | `/app/apoio/:id/editar` |
+| Meus agendamentos | `/app/agendamentos` |
+| Registrar atendimento | `/app/agendamentos/:id/registrar` |
+| Atividades complementares | `/app/atividades` |
+| Registrar atividade | `/app/atividades/nova` |
+| Editar atividade | `/app/atividades/:id/editar` |
+| Gerenciar disciplinas | `/app/disciplinas` |
+| Perfil | `/app/perfil` |
 
 ### Telas de sistema
 
-| Tela | Rota | Quando aparece |
-|---|---|---|
-| Acesso não autorizado | `/sem-acesso` | perfil sem permissão para a rota |
-| Página não encontrada | qualquer outra | endereço inexistente |
+| Tela | Rota |
+| --- | --- |
+| Acesso não autorizado | `/sem-acesso` |
+| Página não encontrada | demais rotas inválidas |
 
 ---
 
-## 8. Casos de uso
+## 9. Casos de uso e funcionalidades
 
-Os 20 casos de uso do levantamento de requisitos, e onde cada um está implementado.
+A prototipagem inicial definiu **20 casos de uso**.
+
+Durante o refinamento da prototipagem e a construção da Matriz CRUD, foram identificadas **9 funcionalidades adicionais**, totalizando **29 operações previstas no escopo refinado**.
 
 ### Oportunidades acadêmicas
 
-| # | Caso de uso | Situação | Onde |
-|---|---|---|---|
-| 1 | Cadastrar oportunidade | ✅ | `CadastrarOportunidade.jsx` |
-| 2 | Consultar oportunidades | ✅ | `ListaOportunidades.jsx` |
-| 3 | Filtrar oportunidades | ✅ | modal de filtros na lista |
-| 4 | Alterar oportunidade | ⚠️ service pronto, falta tela | `alterarOportunidade()` |
-| 5 | Encerrar oportunidade | ✅ | `DetalheOportunidade.jsx` |
-| 6 | Realizar candidatura | ✅ | `RealizarCandidatura.jsx` |
-| 7 | Consultar candidaturas | ✅ | `MinhasCandidaturas.jsx` |
-| 8 | Avaliar candidatura | ⚠️ service pronto, falta tela | `avaliarCandidatura()` |
+| Funcionalidade | Situação |
+| --- | --- |
+| Cadastrar oportunidade acadêmica | Implementado |
+| Consultar oportunidades acadêmicas | Implementado |
+| Filtrar oportunidades | Implementado |
+| Alterar oportunidade acadêmica | Implementado |
+| Encerrar oportunidade acadêmica | Implementado |
+| Excluir oportunidade acadêmica | Implementado |
+
+A exclusão definitiva remove também as candidaturas vinculadas à oportunidade.
+
+### Candidaturas
+
+| Funcionalidade | Situação |
+| --- | --- |
+| Realizar candidatura | Implementado |
+| Consultar candidaturas | Implementado |
+| Avaliar candidatura | Implementado |
+| Cancelar candidatura | Implementado |
+
+A avaliação permite aprovar ou reprovar candidaturas associadas a uma oportunidade.
 
 ### Apoio acadêmico
 
-| # | Caso de uso | Situação | Onde |
-|---|---|---|---|
-| 9 | Criar oferta de apoio | ✅ | `CriarOferta.jsx` |
-| 10 | Consultar ofertas | ✅ | `ListaApoio.jsx` |
-| 11 | Filtrar ofertas | ✅ | filtros da lista de apoio |
-| 12 | Alterar oferta | ⚠️ service pronto, falta tela | `alterarOferta()` |
-| 13 | Cancelar oferta | ⚠️ service pronto, falta tela | `cancelarOferta()` |
+| Funcionalidade | Situação |
+| --- | --- |
+| Criar oferta de apoio acadêmico | Implementado |
+| Consultar ofertas de apoio | Implementado |
+| Filtrar ofertas | Implementado |
+| Alterar oferta | Implementado |
+| Cancelar oferta | Implementado |
 
 ### Agendamentos
 
-| # | Caso de uso | Situação | Onde |
-|---|---|---|---|
-| 14 | Realizar agendamento | ✅ | `RealizarAgendamento.jsx` |
-| 15 | Consultar agendamentos | ✅ | `MeusAgendamentos.jsx` |
-| 16 | Reagendar / cancelar | ✅ | modal em `MeusAgendamentos.jsx` |
-| 17 | Registrar atendimento | ✅ | `RegistrarAtendimento.jsx` |
-| 18 | Avaliar atendimento | ✅ | modal em `MeusAgendamentos.jsx` |
+| Funcionalidade | Situação |
+| --- | --- |
+| Realizar agendamento | Implementado |
+| Consultar agendamentos | Implementado |
+| Reagendar atendimento | Implementado |
+| Registrar realização do atendimento | Implementado |
+| Avaliar atendimento | Implementado |
+| Cancelar agendamento | Implementado |
+
+Ao cancelar um agendamento confirmado, a vaga correspondente volta a ficar disponível.
 
 ### Atividades complementares
 
-| # | Caso de uso | Situação | Onde |
-|---|---|---|---|
-| 19 | Registrar atividade | ✅ | `RegistrarAtividade.jsx` |
-| 20 | Consultar atividades e horas | ✅ | `AtividadesHoras.jsx` |
+| Funcionalidade | Situação |
+| --- | --- |
+| Registrar atividade complementar | Implementado |
+| Consultar atividades e horas | Implementado |
+| Alterar atividade complementar | Implementado |
+| Excluir atividade complementar | Implementado |
 
-**Cobertura: 16 de 20 casos de uso com interface completa.** Os 4 restantes têm a lógica pronta na camada de serviço, faltando apenas a tela — estão mapeados no guia de tarefas.
+### Disciplinas
+
+| Funcionalidade | Situação |
+| --- | --- |
+| Cadastrar disciplina | Implementado |
+| Consultar disciplinas | Implementado |
+| Alterar disciplina | Implementado |
+| Excluir disciplina | Implementado |
+
+O gerenciamento de disciplinas é disponibilizado ao perfil de administrador.
 
 ---
 
-## 9. Modelo de dados
+## 10. Modelo de dados
 
-Definido em `src/mocks/db.js`. Este é o contrato que o backend real deverá respeitar.
+As coleções principais utilizadas no `db.json` são:
+
+```text
+usuarios
+disciplinas
+oportunidades
+candidaturas
+ofertas
+agendamentos
+atividades
+config
+```
 
 ### Usuário
 
 ```js
 {
-  id, nome, email, senha, perfil,     // "aluno" | "monitor" | "admin"
-  matricula, curso, periodo, telefone, iniciais
+  id,
+  nome,
+  email,
+  senha,
+  perfil,
+  matricula,
+  curso,
+  periodo,
+  telefone,
+  iniciais
 }
+```
+
+Perfis disponíveis:
+
+```text
+aluno
+monitor
+admin
 ```
 
 ### Disciplina
 
 ```js
-{ id, codigo, nome, periodo }
+{
+  id,
+  codigo,
+  nome,
+  periodo
+}
 ```
 
 ### Oportunidade
 
 ```js
 {
-  id, titulo, tipo, area, departamento, responsavel,
-  descricao, requisitos[], atividades[],
-  bolsa, cargaHoraria, modalidade, local, vagas,
-  prazoInscricao, situacao                // "Aberta" | "Encerrada"
+  id,
+  titulo,
+  tipo,
+  area,
+  departamento,
+  responsavel,
+  descricao,
+  requisitos,
+  atividades,
+  bolsa,
+  cargaHoraria,
+  modalidade,
+  local,
+  vagas,
+  prazoInscricao,
+  situacao
 }
 ```
 
@@ -382,9 +591,14 @@ Definido em `src/mocks/db.js`. Este é o contrato que o backend real deverá res
 
 ```js
 {
-  id, usuarioId, oportunidadeId, oportunidadeTitulo,
-  tipo, dataEnvio, carta,
-  situacao    // "Em analise" | "Aprovada" | "Reprovada" | "Cancelada"
+  id,
+  usuarioId,
+  oportunidadeId,
+  oportunidadeTitulo,
+  tipo,
+  dataEnvio,
+  carta,
+  situacao
 }
 ```
 
@@ -392,12 +606,22 @@ Definido em `src/mocks/db.js`. Este é o contrato que o backend real deverá res
 
 ```js
 {
-  id, disciplinaId, disciplina, titulo, assunto,
-  monitorId, monitor, iniciais,
-  tipo, modalidade, local,                // "Monitoria" | "Tutoria"
-  gratuita, valor, vagas, vagasOcupadas,
-  nota, totalAvaliacoes, descricao,
-  horarios: [{ id, dia, inicio, fim }]
+  id,
+  disciplinaId,
+  disciplina,
+  titulo,
+  assunto,
+  monitorId,
+  monitor,
+  tipo,
+  modalidade,
+  local,
+  gratuita,
+  valor,
+  vagas,
+  vagasOcupadas,
+  descricao,
+  horarios
 }
 ```
 
@@ -405,11 +629,19 @@ Definido em `src/mocks/db.js`. Este é o contrato que o backend real deverá res
 
 ```js
 {
-  id, usuarioId, ofertaId, titulo, disciplina, monitor,
-  data, hora, modalidade, local,
-  situacao,                               // "Confirmado" | "Realizado" | "Cancelado"
-  avaliacao: { nota, comentario, tags[] } | null,
-  registro: { compareceu, duracao, observacoes } | null
+  id,
+  usuarioId,
+  ofertaId,
+  titulo,
+  disciplina,
+  monitor,
+  data,
+  hora,
+  modalidade,
+  local,
+  situacao,
+  avaliacao,
+  registro
 }
 ```
 
@@ -417,234 +649,515 @@ Definido em `src/mocks/db.js`. Este é o contrato que o backend real deverá res
 
 ```js
 {
-  id, usuarioId, titulo, categoria, data, horas,
-  situacao,                               // "Aprovada" | "Em analise" | "Recusada"
-  comprovante
+  id,
+  usuarioId,
+  titulo,
+  categoria,
+  data,
+  horas,
+  descricao,
+  situacao,
+  comprovante,
+  comprovanteArquivo
+}
+```
+
+### Configuração
+
+```js
+{
+  metaHorasComplementares: 200
 }
 ```
 
 ---
 
-## 10. API simulada
+## 11. Backend mockado com JSON Server
 
-Definida em `src/api/mockAdapter.js`. São os endpoints que o backend real deverá implementar.
+O projeto utiliza **JSON Server 0.17.4** como backend acadêmico.
 
-### Autenticação
+O servidor é iniciado por:
 
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/auth/login` | autentica e devolve token + usuário |
-| POST | `/auth/cadastro` | cria conta de aluno |
-| POST | `/auth/recuperar-senha` | dispara e-mail de redefinição |
+```text
+frontend/server/server.js
+```
 
-### Oportunidades e candidaturas
+O banco utilizado durante a execução é:
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/oportunidades` | lista com filtros por query string |
-| GET | `/oportunidades/:id` | detalhe |
-| POST | `/oportunidades` | cadastra |
-| PUT | `/oportunidades/:id` | altera ou encerra |
-| DELETE | `/oportunidades/:id` | exclui |
-| GET | `/candidaturas` | lista por usuário e situação |
-| POST | `/candidaturas` | realiza candidatura |
-| PUT | `/candidaturas/:id` | aprova ou reprova |
-| DELETE | `/candidaturas/:id` | cancela |
+```text
+frontend/db.json
+```
 
-### Apoio acadêmico
+Os dados iniciais ficam em:
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/disciplinas` | lista de disciplinas |
-| GET | `/ofertas` | lista com filtros |
-| GET | `/ofertas/:id` | detalhe |
-| POST | `/ofertas` | cria oferta |
-| PUT | `/ofertas/:id` | altera |
-| DELETE | `/ofertas/:id` | cancela |
+```text
+frontend/server/db.seed.json
+```
 
-### Agendamentos
+### CRUD
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/agendamentos` | lista por usuário e situação |
-| POST | `/agendamentos` | agenda |
-| PUT | `/agendamentos/:id` | reagenda, registra ou avalia |
-| DELETE | `/agendamentos/:id` | cancela e libera a vaga |
+O JSON Server fornece operações REST para as principais coleções.
 
-### Atividades complementares
+Exemplos:
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/atividades` | lista por usuário e categoria |
-| GET | `/atividades/resumo` | totais e percentual de horas |
-| POST | `/atividades` | registra |
-| PUT | `/atividades/:id` | altera |
-| DELETE | `/atividades/:id` | exclui |
+```text
+GET    /oportunidades
+GET    /oportunidades/:id
+POST   /oportunidades
+PUT    /oportunidades/:id
+DELETE /oportunidades/:id
+```
 
-### Regras de negócio implementadas no mock
+O mesmo modelo é utilizado para disciplinas, candidaturas, ofertas, agendamentos e atividades.
 
-O servidor simulado não apenas devolve dados — ele aplica as validações do sistema:
+### Rotas adicionais
 
-| Regra | Comportamento |
-|---|---|
-| Candidatura duplicada | bloqueia se já existe candidatura ativa para a mesma oportunidade |
-| Agendamento sem vaga | bloqueia quando `vagasOcupadas >= vagas` |
-| Conflito de horário | bloqueia se o aluno já tem agendamento confirmado na mesma data e hora |
-| Cancelamento | devolve a vaga à oferta automaticamente |
-| Horas complementares | somam apenas atividades com situação "Aprovada" |
-| Nova atividade | entra sempre como "Em analise" |
-| Cadastro duplicado | bloqueia e-mail já registrado |
-| Token expirado | limpa a sessão e redireciona ao login |
+O servidor também implementa operações específicas necessárias para o projeto, incluindo autenticação, recuperação de senha, resumo de atividades e restauração dos dados.
+
+### Regras de negócio
+
+Entre as regras tratadas pela aplicação e pelo servidor estão:
+
+- impedir candidatura duplicada;
+- impedir candidatura em oportunidade encerrada;
+- controlar vagas de ofertas;
+- impedir conflitos de agendamento;
+- devolver vaga ao cancelar agendamento;
+- calcular horas complementares;
+- impedir e-mails duplicados;
+- restaurar dados de teste;
+- remover candidaturas vinculadas ao excluir definitivamente uma oportunidade.
 
 ---
 
-## 11. Design system
+## 12. TanStack Query
 
-### Paleta
+O projeto utiliza TanStack Query para trabalhar com dados remotos.
 
-Declarada em `@theme` no topo de `src/index.css`. Alterar ali muda o sistema inteiro.
+A configuração principal fica em:
 
-| Token | Uso |
-|---|---|
-| `marca-50` … `marca-900` | azul principal: botões, links, destaques |
-| `noite-700` … `noite-900` | azul escuro: menu lateral e painéis de acesso |
-| `sucesso` / `alerta` / `erro` | situações e mensagens |
-| `slate-*` | textos, bordas e fundos neutros |
+```text
+src/lib/queryClient.js
+```
 
-### Classes utilitárias do projeto
+e o provider é carregado em:
 
-| Classe | O que aplica |
-|---|---|
-| `.cartao` | cartão branco com borda, cantos arredondados e sombra |
-| `.campo` | estilo padrão de input, select e textarea |
-| `.rotulo` | rótulo de formulário |
-| `.titulo-secao` | título interno de cartão |
+```text
+src/main.jsx
+```
 
-### Componentes de interface
+Os hooks ficam em:
 
-| Componente | Variações |
-|---|---|
-| `<Botao>` | primário, secundário, contorno, perigo, texto · 3 tamanhos · estado de carregando |
-| `<Campo>` `<CampoSelecao>` `<CampoTexto>` | rótulo, dica, mensagem de erro |
-| `<Selo>` `<SeloSituacao>` | 5 tons · cor automática por situação |
-| `<Modal>` | fecha por ESC, clique no fundo ou botão |
-| `<Carregando>` `<Erro>` `<Vazio>` | os três estados de qualquer tela com dados |
-| `<ProgressoCircular>` `<BarraProgresso>` | indicadores de horas |
-| `<Estrelas>` | leitura ou seleção interativa |
-| `<Avatar>` | 3 tamanhos |
-| `<Cabecalho>` | título, subtítulo e área de ações |
+```text
+src/queries/
+```
 
-### Hooks próprios
+Exemplos:
 
-**`useRequisicao`** — elimina a repetição de buscar dados em 22 telas:
+```text
+useOportunidades.js
+useApoio.js
+useAgendamentos.js
+useAtividades.js
+useAcesso.js
+```
+
+### Consultas
+
+Exemplo:
 
 ```jsx
-const { dados, carregando, erro, recarregar } = useRequisicao(
-  () => listarOfertas(filtros),
-  [filtros],
-  []
-);
+const {
+  data = [],
+  isLoading,
+  isError,
+  error,
+  refetch,
+} = useOportunidades();
 ```
 
-**`useFormulario`** — controla todos os campos com um único handler:
+### Alterações
+
+Exemplo:
 
 ```jsx
-const { valores, aoMudar } = useFormulario({ email: "", senha: "" });
-<Campo name="email" value={valores.email} onChange={aoMudar} />
+const excluir = useExcluirOportunidade();
+
+excluir.mutate(id);
 ```
+
+### Cache
+
+Depois de cadastros, alterações e exclusões, as consultas relacionadas são invalidadas.
+
+Exemplo:
+
+```js
+qc.invalidateQueries({
+  queryKey: chaves.oportunidades.todas,
+});
+```
+
+Isso permite atualizar a interface sem recarregar manualmente a página.
 
 ---
 
-## 12. Convenções de código
+## 13. Formulários e validação
 
-| Assunto | Padrão | Exemplo |
-|---|---|---|
-| Componente e página | PascalCase | `RealizarAgendamento.jsx` |
-| Função e variável | português, camelCase | `aoSalvar`, `carregando` |
-| Handler de evento | prefixo `ao` | `aoEnviar`, `aoFechar` |
-| Buscar dados | sempre `useRequisicao` | nunca `useEffect` + `fetch` manual |
-| Formulário | sempre `useFormulario` | nunca vários `useState` soltos |
-| Cor | apenas tokens do tema | `bg-marca-600`, nunca `bg-[#2447eb]` |
-| Cartão | classe `.cartao` | nunca repetir as classes completas |
-| Campo | componente `<Campo>` | nunca `<input>` cru |
+Os principais formulários da aplicação utilizam:
 
-**Todo arquivo começa com um bloco de comentário** explicando o que faz e como alterá-lo. Nos pontos mais sensíveis — contexto de autenticação, calendário de agendamento, adaptador do mock — os comentários descem a nível de linha.
+- React Hook Form;
+- Zod;
+- `zodResolver`.
 
-**Padrão de qualquer tela que busca dados:**
+Os schemas ficam em:
+
+```text
+src/schemas/
+```
+
+Exemplo:
+
+```js
+const schema = z.object({
+  titulo: z
+    .string()
+    .min(5, "Informe um titulo valido."),
+});
+```
+
+Integração com o formulário:
+
+```js
+const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm({
+  resolver: zodResolver(schema),
+});
+```
+
+Entre os fluxos que utilizam essa estrutura estão:
+
+- login;
+- cadastro;
+- recuperação de senha;
+- oportunidades;
+- candidaturas;
+- ofertas de apoio;
+- agendamentos;
+- avaliações;
+- atividades complementares;
+- dados de perfil.
+
+O gerenciamento de disciplinas utiliza um formulário administrativo simples com validação local dos campos.
+
+---
+
+## 14. Design e responsividade
+
+O projeto utiliza **Tailwind CSS v4**.
+
+Os tokens globais e estilos reutilizáveis ficam em:
+
+```text
+src/index.css
+```
+
+### Classes e componentes reutilizáveis
+
+A aplicação possui componentes compartilhados em:
+
+```text
+src/components/ui/
+```
+
+Exemplos:
+
+- `Botao`;
+- `Campo`;
+- `Alerta`;
+- `Selo`;
+- `Modal`;
+- `Estado`;
+- `Skeleton`;
+- `Progresso`;
+- `Estrelas`;
+- `GradeHorarios`;
+- `VisualizadorArquivo`;
+- `Avatar`;
+- `Cabecalho`.
+
+### Responsividade
+
+A responsividade utiliza os breakpoints do Tailwind.
+
+Exemplo:
 
 ```jsx
-const { dados, carregando, erro, recarregar } = useRequisicao(() => meuService(), [], []);
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+```
 
-if (carregando) return <Carregando />;
-if (erro) return <Erro mensagem={erro} aoTentarNovamente={recarregar} />;
-if (!dados.length) return <Vazio titulo="Nada por aqui" />;
+A navegação lateral também possui comportamento adaptado para dispositivos móveis.
 
-return ( /* conteúdo */ );
+Em telas menores:
+
+- o menu fica recolhido;
+- um botão na barra superior abre a navegação;
+- há uma camada de fundo para fechamento;
+- o menu pode ser fechado ao selecionar uma opção.
+
+---
+
+## 15. Controle de acesso
+
+O sistema possui autenticação e rotas privadas.
+
+O componente utilizado é:
+
+```text
+src/components/rotas/RotaPrivada.jsx
+```
+
+Todas as rotas em:
+
+```text
+/app
+```
+
+exigem autenticação.
+
+Algumas áreas também possuem restrição específica de perfil.
+
+### Oportunidades gerenciais
+
+As rotas de:
+
+- cadastrar oportunidade;
+- editar oportunidade;
+- avaliar candidaturas;
+
+são protegidas para:
+
+```text
+monitor
+admin
+```
+
+### Disciplinas
+
+A rota:
+
+```text
+/app/disciplinas
+```
+
+é restrita ao perfil:
+
+```text
+admin
+```
+
+O item correspondente no menu também é exibido apenas para administradores.
+
+---
+
+## 16. Convenções de código
+
+### Componentes
+
+Utilizar PascalCase:
+
+```text
+DetalheOportunidade.jsx
+RealizarAgendamento.jsx
+Disciplinas.jsx
+```
+
+### Funções e variáveis
+
+Utilizar camelCase:
+
+```js
+buscarOportunidade
+aoSalvar
+usuarioLogado
+```
+
+### Hooks
+
+Hooks React devem começar com `use`:
+
+```js
+useOportunidades
+useDisciplinas
+usePermissao
+```
+
+### Requisições
+
+O fluxo preferencial é:
+
+```text
+Página
+  ↓
+Query
+  ↓
+Service
+  ↓
+Axios
+```
+
+As páginas devem evitar realizar requisições diretamente com Axios.
+
+### Dados remotos
+
+Utilizar TanStack Query para:
+
+- consultas;
+- mutations;
+- carregamento;
+- tratamento de erro;
+- cache;
+- invalidação.
+
+### Estilização
+
+Utilizar Tailwind CSS e os componentes reutilizáveis existentes.
+
+### Commits
+
+Os commits devem possuir mensagens claras.
+
+Exemplos:
+
+```text
+feat: add discipline management page
+feat: add opportunity deletion action
+docs: update installation and user manual
+chore: remove obsolete mocks
 ```
 
 ---
 
-## 13. Situação atual do projeto
+## 17. Situação atual do projeto
 
-### Concluído
+A versão atual possui:
 
-- 22 telas navegáveis, cobrindo os fluxos principais
-- 16 dos 20 casos de uso com interface completa
-- Backend simulado com todas as regras de negócio
-- Autenticação com sessão persistente e proteção de rotas
-- Camada de serviço completa (inclusive para os casos ainda sem tela)
-- Biblioteca de componentes e design system
-- Documentação em todos os arquivos
+- frontend em React;
+- layout com Tailwind CSS;
+- navegação responsiva;
+- autenticação;
+- rotas privadas;
+- perfis de aluno, monitor e administrador;
+- backend mockado com JSON Server;
+- persistência em `db.json`;
+- dados iniciais para demonstração;
+- TanStack Query para dados remotos;
+- React Hook Form e Zod nos principais formulários;
+- oportunidades acadêmicas;
+- candidaturas;
+- avaliação de candidaturas;
+- apoio acadêmico;
+- agendamentos;
+- registro e avaliação de atendimentos;
+- atividades complementares;
+- acompanhamento de horas;
+- CRUD de disciplinas;
+- exclusão de oportunidades com remoção de candidaturas vinculadas;
+- componentes reutilizáveis;
+- navegação adaptada para dispositivos móveis;
+- manual de instalação e utilização atualizado;
+- documento de arquitetura e boas práticas atualizado.
 
-### Em aberto
+O escopo funcional registrado na **Matriz CRUD refinada** está representado na aplicação.
 
-| Item | Prioridade |
-|---|---|
-| Tela de avaliar candidaturas (aprovar/reprovar) | alta — fecha o fluxo principal |
-| Menu lateral no celular | alta — abaixo de 1024px não há navegação |
-| Telas de editar oportunidade, oferta e atividade | alta |
-| Permissões por perfil aplicadas nas rotas | alta |
-| Segunda etapa da recuperação de senha | média |
-| Revisão geral de responsividade | média |
-| Avaliações dinâmicas no detalhe da monitoria | média |
-| Foto de perfil, banner e anexo de PDF | diferencial |
-| Animações e microinterações | diferencial |
-| Sistema de avisos (toast) e notificações | diferencial |
-
-O detalhamento de cada item, com passo a passo e critérios de conclusão, está no **`GUIA_DE_TAREFAS.md`** (24 tarefas divididas entre a equipe).
-
----
-
-## 14. Ligando o backend real
-
-Não é necessário alterar nenhuma tela. Crie um arquivo `.env` na pasta `frontend`, usando o `.env.example` como base:
-
-```
-VITE_API_URL=http://localhost:8080/api
-VITE_USAR_MOCK=false
-```
-
-Com `VITE_USAR_MOCK=false`, o `mockAdapter.js` sequer é carregado — o import é dinâmico e fica fora do build de produção. O axios passa a chamar o servidor real.
-
-O backend deve implementar os endpoints listados na [seção 10](#10-api-simulada), respeitando o modelo de dados da [seção 9](#9-modelo-de-dados). Depois que estiver estável, a pasta `src/mocks/` e o arquivo `src/api/mockAdapter.js` podem ser removidos.
+Antes de uma entrega ou demonstração, recomenda-se executar o sistema com os dados iniciais e percorrer os principais fluxos para validação final.
 
 ---
 
-## 15. Equipe
+## 18. Documentação
+
+A documentação principal está em:
+
+```text
+documents/
+```
+
+### Prototipagem inicial
+
+```text
+documents/doc/initial-prototyping/01-prototipagem.md
+```
+
+Contém:
+
+- propósito do sistema;
+- business case;
+- processo de negócio;
+- casos de uso iniciais;
+- entidades de domínio.
+
+### Refinamento da prototipagem
+
+```text
+documents/doc/diagrams-and-matrices/02-refinamento-prototipagem.md
+```
+
+Contém:
+
+- Matriz CRUD;
+- Matriz Perfil x Funcionalidade;
+- funcionalidades adicionadas durante o refinamento;
+- priorização;
+- divisão de responsabilidades entre os integrantes.
+
+### Manual
+
+```text
+documents/doc/manual.md
+```
+
+Contém:
+
+- pré-requisitos;
+- instalação;
+- execução;
+- contas de teste;
+- perfis;
+- instruções de utilização;
+- problemas comuns.
+
+### Boas práticas
+
+```text
+documents/doc/boasPraticas.md
+```
+
+Contém:
+
+- arquitetura;
+- organização de pastas;
+- padrão das queries e services;
+- formulários;
+- responsividade;
+- nomenclatura;
+- padrões de desenvolvimento.
+
+---
+
+## 19. Equipe
 
 | Integrante |
-|---|---|---|
-| Geovanne Gomes de Souza|   
-| Marina Motta Sampaio |       
-| Mina Iura Mathias Monteiro | 
-| Samuel Trindade Sabino da Silva | 
-
-### Documentos do repositório
-
-| Arquivo | Conteúdo |
-|---|---|
-| `README.md` | este documento |
-| `boasPraticas.md` | padrões de ambiente e arquitetura acordados pela equipe |
-| `documents/` | documentação de requisitos e casos de uso |
+| --- |
+| Geovanne Gomes de Souza |
+| Marina Motta Sampaio |
+| Mina Iura Mathias Monteiro |
+| Samuel Trindade Sabino da Silva |
 
 ---
+
+## HubBCC
+
+**Centralizando oportunidades, apoio acadêmico e desenvolvimento dos alunos de Ciência da Computação em um único ambiente.**

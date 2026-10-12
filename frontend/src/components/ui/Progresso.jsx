@@ -5,10 +5,29 @@
    - <ProgressoCircular percentual={74} />  -> o anel verde do dashboard
    - <BarraProgresso percentual={74} />     -> barra horizontal simples
 --------------------------------------------------------------------------- */
+import { useEffect, useState } from "react";
 
 export function ProgressoCircular({ percentual = 0, tamanho = 110, legenda }) {
   // Garante que o valor fique entre 0 e 100 (evita anel quebrado).
   const valor = Math.min(100, Math.max(0, percentual));
+
+  // Numero mostrado no centro, que sobe de 0 ate "valor" em vez de aparecer pronto.
+  const [valorExibido, setValorExibido] = useState(0);
+
+   useEffect(() => {
+    // Conta de 0 ate o valor real, somando 1 a cada 15ms.
+    // O primeiro setState acontece dentro do setInterval (e nao direto no efeito).
+    let atual = 0;
+    const alvo = Math.round(percentual);
+
+    const intervalo = setInterval(() => {
+      atual += 1;
+      setValorExibido(Math.min(atual, alvo));
+      if (atual >= alvo) clearInterval(intervalo);
+    }, 15);
+
+    return () => clearInterval(intervalo);
+  }, [percentual]);
 
   const raio = (tamanho - 12) / 2;
   const circunferencia = 2 * Math.PI * raio;
@@ -48,7 +67,7 @@ export function ProgressoCircular({ percentual = 0, tamanho = 110, legenda }) {
           textAnchor="middle"
           className="rotate-90 origin-center fill-slate-900 text-lg font-semibold"
         >
-          {valor}%
+          {valorExibido}%
         </text>
       </svg>
       {legenda && <p className="text-[11px] text-slate-500">{legenda}</p>}
@@ -60,7 +79,10 @@ export function BarraProgresso({ percentual = 0, cor = "bg-marca-600" }) {
   const valor = Math.min(100, Math.max(0, percentual));
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-      <div className={`h-full rounded-full ${cor} transition-all duration-700`} style={{ width: `${valor}%` }} />
+      <div
+        className={`h-full rounded-full ${cor} transition-all duration-700`}
+        style={{ width: `${valor}%` }}
+      />
     </div>
   );
 }

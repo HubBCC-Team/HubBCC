@@ -1,8 +1,11 @@
 /* ---------------------------------------------------------------------------
    pages/oportunidades/DetalheOportunidade.jsx
-   TELA 8 — Detalhe da oportunidade (rota "/app/oportunidades/:id").
+   TELA 8 - Detalhe da oportunidade (rota "/app/oportunidades/:id").
 
-   useParams() le o ":id" da URL. Com ele buscamos a oportunidade no service.
+   TANSTACK QUERY:
+   - useOportunidade(id)       -> busca a oportunidade
+   - useEncerrarOportunidade() -> encerra a oportunidade
+   - useExcluirOportunidade()  -> exclui definitivamente a oportunidade
 --------------------------------------------------------------------------- */
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
@@ -13,11 +16,12 @@ import {
   Wallet,
   Clock,
 } from "lucide-react";
-import { useRequisicao } from "../../hooks/useRequisicao";
 import {
-  buscarOportunidade,
-  encerrarOportunidade,
-} from "../../service/oportunidadeService";
+  useOportunidade,
+  useEncerrarOportunidade,
+  useExcluirOportunidade,
+} from "../../queries";
+import { useToast } from "../../contexts/useToast";
 import Botao from "../../components/ui/Botao";
 import Selo, { SeloSituacao } from "../../components/ui/Selo";
 import { Carregando, Erro } from "../../components/ui/Estado";
@@ -27,46 +31,105 @@ import { usePermissao } from "../../hooks/usePermissao";
 export default function DetalheOportunidade() {
   const { id } = useParams();
   const navegar = useNavigate();
+  const toast = useToast();
   const { podeGerenciar } = usePermissao();
 
   const {
-    dados: item,
-    carregando,
-    erro,
-    recarregar,
-  } = useRequisicao(() => buscarOportunidade(id), [id], null);
+    data: item,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useOportunidade(id);
 
-  if (carregando) return <Carregando />;
-  if (erro) return <Erro mensagem={erro} aoTentarNovamente={recarregar} />;
-  if (!item) return null;
+  const encerrar = useEncerrarOportunidade();
+  const excluir = useExcluirOportunidade();
+
+  if (isLoading) {
+    return <Carregando />;
+  }
+
+  if (isError) {
+    return (
+      <Erro
+        mensagem={error.message}
+        aoTentarNovamente={refetch}
+      />
+    );
+  }
+
+  if (!item) {
+    return null;
+  }
 
   const aberta = item.situacao === "Aberta";
 
-  // Encerrar e uma acao de quem publicou (aqui: monitor/admin) — caso de uso 5.
-  async function aoEncerrar() {
-    if (!confirm("Deseja realmente encerrar esta oportunidade?")) return;
-    await encerrarOportunidade(item.id);
-    recarregar();
+  function aoEncerrar() {
+    if (
+      !confirm(
+        "Deseja realmente encerrar esta oportunidade?",
+      )
+    ) {
+      return;
+    }
+
+    encerrar.mutate(item.id, {
+      onSuccess: () =>
+        toast.sucesso("Oportunidade encerrada."),
+      onError: (e) =>
+        toast.erro(
+          e.message || "Erro ao encerrar oportunidade.",
+        ),
+    });
+  }
+
+  function aoExcluir() {
+    if (
+      !confirm(
+        `Deseja realmente excluir a oportunidade "${item.titulo}"? Esta acao e permanente.`,
+      )
+    ) {
+      return;
+    }
+
+    excluir.mutate(item.id, {
+      onSuccess: () => {
+        toast.sucesso("Oportunidade excluida com sucesso.");
+        navegar("/app/oportunidades");
+      },
+      onError: (e) =>
+        toast.erro(
+          e.message || "Erro ao excluir oportunidade.",
+        ),
+    });
   }
 
   return (
     <>
-      {/* Voltar: navegar(-1) volta uma pagina no historico do navegador */}
       <button
+        type="button"
         onClick={() => navegar(-1)}
         className="mb-4 inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-marca-700"
       >
-        <ArrowLeft size={14} /> Voltar
+        <ArrowLeft size={14} />
+        Voltar
       </button>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* ----------------------- Coluna principal ----------------------- */}
         <div className="space-y-4 lg:col-span-2">
           <div className="cartao p-6">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Selo tom="marca">{item.tipo}</Selo>
-              <SeloSituacao situacao={item.situacao} />
-              <Selo>{item.modalidade}</Selo>
+              <Selo tom="marca">
+                {item.tipo}
+              </Selo>
+
+              <SeloSituacao
+                situacao={item.situacao}
+              />
+
+              <Selo>
+                {item.modalidade}
+              </Selo>
             </div>
 
             <h1 className="text-xl font-semibold text-slate-900">
@@ -77,49 +140,66 @@ export default function DetalheOportunidade() {
               {item.departamento} · {item.responsavel}
             </p>
 
-            <h2 className="titulo-secao mt-6">Sobre a oportunidade</h2>
+            <h2 className="titulo-secao mt-6">
+              Sobre a oportunidade
+            </h2>
 
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
               {item.descricao}
             </p>
 
-            <h2 className="titulo-secao mt-6">Requisitos</h2>
+            <h2 className="titulo-secao mt-6">
+              Requisitos
+            </h2>
 
             <ul className="mt-2 space-y-1.5">
-              {item.requisitos.map((requisito) => (
-                <li
-                  key={requisito}
-                  className="flex gap-2 text-sm text-slate-600"
-                >
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-marca-500" />
-                  {requisito}
-                </li>
-              ))}
+              {(item.requisitos ?? []).map(
+                (requisito) => (
+                  <li
+                    key={requisito}
+                    className="flex gap-2 text-sm text-slate-600"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-marca-500" />
+
+                    {requisito}
+                  </li>
+                ),
+              )}
             </ul>
 
-            <h2 className="titulo-secao mt-6">Atividades previstas</h2>
+            <h2 className="titulo-secao mt-6">
+              Atividades previstas
+            </h2>
 
             <ul className="mt-2 space-y-1.5">
-              {item.atividades.map((atividade) => (
-                <li
-                  key={atividade}
-                  className="flex gap-2 text-sm text-slate-600"
-                >
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
-                  {atividade}
-                </li>
-              ))}
+              {(item.atividades ?? []).map(
+                (atividade) => (
+                  <li
+                    key={atividade}
+                    className="flex gap-2 text-sm text-slate-600"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
+
+                    {atividade}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
         </div>
 
-        {/* -------------------------- Coluna lateral -------------------------- */}
         <aside className="space-y-4">
-          <div className="cartao p-5">
-            <h2 className="titulo-secao mb-3">Informacoes</h2>
+          <div className="cartao p-6 anim-surgir">
+            <h2 className="titulo-secao mb-3">
+              Informacoes
+            </h2>
 
             <dl className="space-y-3 text-xs">
-              <Linha icone={Wallet} rotulo="Bolsa" valor={item.bolsa} />
+              <Linha
+                icone={Wallet}
+                rotulo="Bolsa"
+                valor={item.bolsa}
+              />
 
               <Linha
                 icone={Clock}
@@ -133,16 +213,21 @@ export default function DetalheOportunidade() {
                 valor={`${item.vagas} vaga(s)`}
               />
 
-              <Linha icone={MapPin} rotulo="Local" valor={item.local} />
+              <Linha
+                icone={MapPin}
+                rotulo="Local"
+                valor={item.local}
+              />
 
               <Linha
                 icone={CalendarDays}
                 rotulo="Inscricoes ate"
-                valor={formatarData(item.prazoInscricao)}
+                valor={formatarData(
+                  item.prazoInscricao,
+                )}
               />
             </dl>
 
-            {/* Caso de uso 6: candidatar-se (so quando a vaga esta aberta) */}
             {aberta ? (
               <Botao
                 as={Link}
@@ -153,18 +238,37 @@ export default function DetalheOportunidade() {
                 Candidatar-se
               </Botao>
             ) : (
-              <Botao larguraTotal className="mt-5" disabled>
+              <Botao
+                larguraTotal
+                className="mt-5"
+                disabled
+              >
                 Inscricoes encerradas
               </Botao>
             )}
 
-            {/* Acoes de gestao: so monitor e admin enxergam */}
+            {podeGerenciar && (
+              <Botao
+                variante="contorno"
+                larguraTotal
+                className="mt-2"
+                onClick={() =>
+                  navegar(
+                    `/app/oportunidades/${id}/candidaturas`,
+                  )
+                }
+              >
+                Ver candidaturas
+              </Botao>
+            )}
+
             {podeGerenciar && aberta && (
               <Botao
                 variante="perigo"
                 larguraTotal
                 className="mt-2"
                 onClick={aoEncerrar}
+                carregando={encerrar.isPending}
               >
                 Encerrar oportunidade
               </Botao>
@@ -175,9 +279,25 @@ export default function DetalheOportunidade() {
                 variante="contorno"
                 larguraTotal
                 className="mt-2"
-                onClick={() => navegar(`/app/oportunidades/${id}/editar`)}
+                onClick={() =>
+                  navegar(
+                    `/app/oportunidades/${id}/editar`,
+                  )
+                }
               >
                 Editar oportunidade
+              </Botao>
+            )}
+
+            {podeGerenciar && (
+              <Botao
+                variante="perigo"
+                larguraTotal
+                className="mt-2"
+                onClick={aoExcluir}
+                carregando={excluir.isPending}
+              >
+                Excluir oportunidade
               </Botao>
             )}
           </div>
@@ -187,14 +307,26 @@ export default function DetalheOportunidade() {
   );
 }
 
-// Linha de "icone + rotulo + valor" da coluna lateral.
-function Linha({ icone: Icone, rotulo, valor }) {
+function Linha({
+  icone: Icone,
+  rotulo,
+  valor,
+}) {
   return (
     <div className="flex items-start gap-2.5">
-      <Icone size={14} className="mt-0.5 shrink-0 text-slate-400" />
+      <Icone
+        size={14}
+        className="mt-0.5 shrink-0 text-slate-400"
+      />
+
       <div>
-        <dt className="text-[11px] text-slate-500">{rotulo}</dt>
-        <dd className="font-medium text-slate-800">{valor}</dd>
+        <dt className="text-[11px] text-slate-500">
+          {rotulo}
+        </dt>
+
+        <dd className="font-medium text-slate-800">
+          {valor || "-"}
+        </dd>
       </div>
     </div>
   );

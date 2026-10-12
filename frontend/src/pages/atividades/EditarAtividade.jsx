@@ -1,213 +1,77 @@
 /* ---------------------------------------------------------------------------
    pages/atividades/EditarAtividade.jsx
-   TELA 20 — Editar atividade complementar ("/app/atividades/:id/editar").
+   TELA - Editar atividade complementar ("/app/atividades/:id/editar").
 
-   Caso de uso 19. O upload do comprovante e apenas simulado: guardamos o
-   NOME do arquivo. Com backend real, use FormData para enviar o arquivo.
+   CORRECOES em relacao a versao anterior:
+   - os campos agora CHEGAM PREENCHIDOS com a atividade salva (antes abriam
+     vazios, porque a tela nunca buscava a atividade);
+   - nao e mais obrigatorio anexar o comprovante de novo: o arquivo atual
+     e mantido ate o usuario remover/trocar;
+   - atividades "Aprovada" nao podem ser editadas.
+
+   - useAtividade(usuarioId, id)  (TanStack Query) busca a atividade.
+   - useAlterarAtividade()        (useMutation) salva e volta para "Em analise".
 --------------------------------------------------------------------------- */
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  Upload,
-  BookOpen,
-  FlaskConical,
-  HeartHandshake,
-  CalendarDays,
-} from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
-import { useRequisicao } from "../../hooks/useRequisicao";
-import { useFormulario } from "../../hooks/useFormulario";
-import { alterarAtividade, resumoHoras } from "../../service/atividadeService";
+import { useToast } from "../../contexts/useToast";
+import { useAtividade, useAlterarAtividade } from "../../queries";
 import Cabecalho from "../../components/ui/Cabecalho";
-import Campo, { CampoTexto } from "../../components/ui/Campo";
 import Botao from "../../components/ui/Botao";
-import { ProgressoCircular } from "../../components/ui/Progresso";
 import Alerta from "../../components/ui/Alerta";
-
-// Categorias exibidas como cartoes clicaveis.
-const CATEGORIAS = [
-  { nome: "Ensino", icone: BookOpen },
-  { nome: "Pesquisa", icone: FlaskConical },
-  { nome: "Extensao", icone: HeartHandshake },
-  { nome: "Evento", icone: CalendarDays },
-];
+import { Carregando, Erro } from "../../components/ui/Estado";
+import FormularioAtividade from "./FormularioAtividade";
 
 export default function EditarAtividade() {
+  const { id } = useParams();
   const navegar = useNavigate();
   const { usuario } = useAuth();
-  const { id } = useParams();
+  const toast = useToast();
 
-  const resumo = useRequisicao(
-    () => resumoHoras(usuario.id),
-    [usuario.id],
-    null,
-  );
+  const { data: atividade, isLoading, isError, error, refetch } = useAtividade(usuario?.id, id);
+  const alterar = useAlterarAtividade();
 
-  const { valores, aoMudar, definir } = useFormulario({
-    categoria: "Ensino",
-    titulo: "",
-    data: "",
-    horas: "",
-    descricao: "",
-  });
+  if (isLoading) return <Carregando />;
+  if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;
+  if (!atividade) return <Erro mensagem="Atividade nao encontrada." />;
 
-  const [comprovante, setComprovante] = useState(null);
-  const [erro, setErro] = useState(null);
-  const [enviando, setEnviando] = useState(false);
+  if (atividade.situacao === "Aprovada") {
+    return (
+      <>
+        <Cabecalho titulo="Editar atividade complementar" subtitulo={atividade.titulo} />
+        <Alerta variante="aviso">Atividades aprovadas nao podem ser editadas.</Alerta>
+        <Botao variante="contorno" className="mt-4" onClick={() => navegar("/app/atividades")}>
+          Voltar
+        </Botao>
+      </>
+    );
+  }
 
-  async function aoEnviar(evento) {
-    evento.preventDefault();
-    setErro(null);
+  const valoresIniciais = {
+    categoria: atividade.categoria ?? "Ensino",
+    titulo: atividade.titulo ?? "",
+    data: atividade.data ?? "",
+    horas: atividade.horas ?? "",
+    descricao: atividade.descricao ?? "",
+    comprovante: atividade.comprovante ?? "",
+    comprovanteArquivo: atividade.comprovanteArquivo ?? "",
+  };
 
-    if (!comprovante) {
-      return setErro("Anexe o comprovante da atividade.");
-    }
-
-    setEnviando(true);
-    try {
-      await alterarAtividade(id, {
-        ...valores,
-        horas: Number(valores.horas),
-        comprovante: comprovante.name,
-      });
-      navegar("/app/atividades");
-    } catch (e) {
-      setErro(e.message);
-    } finally {
-      setEnviando(false);
-    }
+  async function aoSalvar(dados) {
+    // Toda alteracao volta para conferencia da coordenacao.
+    await alterar.mutateAsync({ id, dados: { ...dados, situacao: "Em analise" } });
+    toast.sucesso("Atividade atualizada! Ela voltou para analise.");
+    navegar("/app/atividades");
   }
 
   return (
-    <>
-      <Cabecalho
-        titulo="Editar atividade complementar"
-        subtitulo="Informe os dados e anexe o certificado para validacao"
-      />
-
-      {erro && (
-        <Alerta variante="erro" className="mb-4">
-          {erro}
-        </Alerta>
-      )}
-
-      <form onSubmit={aoEnviar} className="grid gap-4 lg:grid-cols-3">
-        <div className="cartao space-y-5 p-6 lg:col-span-2">
-          {/* Selecao de categoria */}
-          <div>
-            <p className="rotulo">Categoria</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {CATEGORIAS.map(({ nome, icone: Icone }) => (
-                <button
-                  key={nome}
-                  type="button"
-                  onClick={() => definir("categoria", nome)}
-                  className={[
-                    "flex flex-col items-center gap-1.5 rounded-lg border px-3 py-3 text-[11px] font-medium transition",
-                    valores.categoria === nome
-                      ? "border-marca-600 bg-marca-50 text-marca-700"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50",
-                  ].join(" ")}
-                >
-                  <Icone size={16} />
-                  {nome}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <Campo
-            rotulo="Nome da atividade"
-            name="titulo"
-            required
-            placeholder="Ex.: Semana Nacional de Ciencia e Tecnologia"
-            value={valores.titulo}
-            onChange={aoMudar}
-          />
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Campo
-              rotulo="Data de conclusao"
-              name="data"
-              type="date"
-              required
-              value={valores.data}
-              onChange={aoMudar}
-            />
-            <Campo
-              rotulo="Carga horaria (horas)"
-              name="horas"
-              type="number"
-              min="1"
-              required
-              value={valores.horas}
-              onChange={aoMudar}
-            />
-          </div>
-
-          <CampoTexto
-            rotulo="Descricao (opcional)"
-            name="descricao"
-            linhas={3}
-            value={valores.descricao}
-            onChange={aoMudar}
-          />
-
-          {/* Area de upload. O input real fica escondido dentro da label. */}
-          <div>
-            <p className="rotulo">Comprovante</p>
-            <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 p-6 text-center transition hover:border-marca-400 hover:bg-marca-50/40">
-              <Upload size={20} className="text-slate-400" />
-              <span className="text-xs text-slate-600">
-                {comprovante
-                  ? comprovante.name
-                  : "Clique para anexar o certificado"}
-              </span>
-              <span className="text-[11px] text-slate-400">
-                PDF, JPG ou PNG ate 5 MB
-              </span>
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                className="hidden"
-                onChange={(e) => setComprovante(e.target.files[0])}
-              />
-            </label>
-          </div>
-
-          <div className="flex gap-2 border-t border-slate-100 pt-4">
-            <Botao
-              type="button"
-              variante="contorno"
-              onClick={() => navegar(-1)}
-            >
-              Cancelar
-            </Botao>
-            <Botao type="submit" carregando={enviando}>
-              Editar atividade
-            </Botao>
-          </div>
-        </div>
-
-        {/* Progresso atual, para contexto */}
-        <aside className="cartao h-fit p-5">
-          <h2 className="titulo-secao mb-4">Seu progresso</h2>
-          {resumo.dados && (
-            <>
-              <div className="flex justify-center">
-                <ProgressoCircular
-                  percentual={resumo.dados.percentual}
-                  legenda={`${resumo.dados.horasAprovadas}h de ${resumo.dados.meta}h`}
-                />
-              </div>
-              <p className="mt-4 rounded-lg bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600">
-                Atividades novas entram como <strong>Em analise</strong> e so
-                passam a contar nas horas depois de aprovadas pela coordenacao.
-              </p>
-            </>
-          )}
-        </aside>
-      </form>
-    </>
+    <FormularioAtividade
+      key={id}
+      valoresIniciais={valoresIniciais}
+      aoSalvar={aoSalvar}
+      titulo="Editar atividade complementar"
+      subtitulo="Atualize os dados e, se necessario, troque o certificado"
+      rotuloBotao="Salvar alteracoes"
+    />
   );
 }

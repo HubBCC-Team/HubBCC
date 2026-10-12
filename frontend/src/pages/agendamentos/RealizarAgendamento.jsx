@@ -1,30 +1,29 @@
 /* ---------------------------------------------------------------------------
    pages/agendamentos/RealizarAgendamento.jsx
-   TELA 15 — Realizar agendamento ("/app/apoio/:id/agendar").
+   TELA 15 - Realizar agendamento ("/app/apoio/:id/agendar"). Caso de uso 14.
 
-   Caso de uso 14 — PRIORIDADE 1 do projeto (Mina).
-
-   COMO FUNCIONA:
-   1) Montamos um calendario do mes atual (funcao gerarDiasDoMes).
-   2) O aluno escolhe um dia. So ficam habilitados os dias da semana em que
-      o monitor atende (comparando com oferta.horarios).
-   3) Depois escolhe o horario e confirma.
-   O backend/mock ainda valida vaga disponivel e conflito de horario.
+   - useOferta(id)          (TanStack Query) busca a oferta e seus horarios.
+   - useForm + zodResolver  (React Hook Form + Zod) guarda "data" e "hora".
+     O calendario e os botoes de horario nao sao <input>: eles chamam
+     setValue(). O schema valida que ha dia e horario e que a data nao e passada.
+   - useRealizarAgendamento (useMutation) envia. Erros do servidor (sem vaga,
+     conflito de horario) aparecem no <Alerta>.
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, ChevronRight, CalendarDays, Clock, MapPin } from "lucide-react";
 import { useAuth } from "../../contexts/useAuth";
-import { useRequisicao } from "../../hooks/useRequisicao";
-import { buscarOferta } from "../../service/apoioService";
-import { realizarAgendamento } from "../../service/agendamentoService";
+import { useToast } from "../../contexts/useToast";
+import { useOferta, useRealizarAgendamento } from "../../queries";
+import { agendamentoSchema } from "../../schemas/agendamentoSchemas";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Botao from "../../components/ui/Botao";
+import Alerta from "../../components/ui/Alerta";
 import { Carregando, Erro } from "../../components/ui/Estado";
 import { formatarData, formatarValor } from "../../utils/formatadores";
-import Alerta from "../../components/ui/Alerta";
 
-// Nomes usados na grade do calendario e na comparacao com oferta.horarios.
 const NOMES_DIA_CURTO = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 const NOMES_DIA_COMPLETO = ["Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"];
 const NOMES_MES = [
@@ -32,49 +31,69 @@ const NOMES_MES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-/* Monta a matriz de dias do mes, incluindo os espacos vazios do inicio
-   para que o dia 1 caia na coluna certa da semana. */
 function gerarDiasDoMes(ano, mes) {
-  const primeiroDia = new Date(ano, mes, 1).getDay(); // 0 = domingo
+  const primeiroDia = new Date(ano, mes, 1).getDay();
   const totalDias = new Date(ano, mes + 1, 0).getDate();
-
   const celulas = [];
-  for (let i = 0; i < primeiroDia; i++) celulas.push(null); // espacos vazios
+  for (let i = 0; i < primeiroDia; i++) celulas.push(null);
   for (let dia = 1; dia <= totalDias; dia++) celulas.push(new Date(ano, mes, dia));
   return celulas;
+}
+
+// Date -> "AAAA-MM-DD" usando o dia LOCAL.
+// (toISOString converte para UTC e pode cair no dia anterior/seguinte.)
+function paraISO(data) {
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${data.getFullYear()}-${mes}-${dia}`;
+}
+
+// "AAAA-MM-DD" -> Date local
+function deISO(iso) {
+  const [ano, mes, dia] = iso.split("-").map(Number);
+  return new Date(ano, mes - 1, dia);
 }
 
 export default function RealizarAgendamento() {
   const { id } = useParams();
   const navegar = useNavigate();
   const { usuario } = useAuth();
+  const toast = useToast();
 
-  const { dados: oferta, carregando, erro } = useRequisicao(() => buscarOferta(id), [id], null);
+  const { data: oferta, isLoading, isError, error, refetch } = useOferta(id);
+  const agendar = useRealizarAgendamento();
 
-  // Mes exibido no calendario (comeca no mes atual).
   const [referencia, setReferencia] = useState(() => new Date());
-  const [diaEscolhido, setDiaEscolhido] = useState(null);
-  const [horaEscolhida, setHoraEscolhida] = useState(null);
-  const [erroEnvio, setErroEnvio] = useState(null);
-  const [enviando, setEnviando] = useState(false);
 
-  if (carregando) return <Carregando />;
-  if (erro) return <Erro mensagem={erro} />;
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors, isSubmitted },
+  } = useForm({
+    resolver: zodResolver(agendamentoSchema),
+    defaultValues: { data: "", hora: "" },
+  });
+
+  const dataEscolhida = useWatch({ control, name: "data" });
+  const horaEscolhida = useWatch({ control, name: "hora" });
+
+  if (isLoading) return <Carregando />;
+  if (isError) return <Erro mensagem={error.message} aoTentarNovamente={refetch} />;
   if (!oferta) return null;
 
   const ano = referencia.getFullYear();
   const mes = referencia.getMonth();
   const celulas = gerarDiasDoMes(ano, mes);
+  const horarios = oferta.horarios ?? [];
+  const diasAtendidos = horarios.map((h) => h.dia);
+  const vagasLivres = Math.max(oferta.vagas - (oferta.vagasOcupadas ?? 0), 0);
 
-  // Dias da semana em que existe atendimento (ex.: ["Segunda", "Quarta"]).
-  const diasAtendidos = oferta.horarios.map((h) => h.dia);
-
-  // Horarios disponiveis no dia selecionado.
+  const diaEscolhido = dataEscolhida ? deISO(dataEscolhida) : null;
   const horariosDoDia = diaEscolhido
-    ? oferta.horarios.filter((h) => h.dia === NOMES_DIA_COMPLETO[diaEscolhido.getDay()])
+    ? horarios.filter((h) => h.dia === NOMES_DIA_COMPLETO[diaEscolhido.getDay()])
     : [];
 
-  // Um dia so pode ser escolhido se for futuro E tiver atendimento.
   function diaSelecionavel(data) {
     if (!data) return false;
     const hoje = new Date();
@@ -83,45 +102,51 @@ export default function RealizarAgendamento() {
     return diasAtendidos.includes(NOMES_DIA_COMPLETO[data.getDay()]);
   }
 
-  function mudarMes(passo) {
-    setReferencia(new Date(ano, mes + passo, 1));
-    setDiaEscolhido(null);
-    setHoraEscolhida(null);
+  // shouldValidate depois da 1a tentativa: as mensagens somem ao corrigir.
+  const opcoes = { shouldValidate: isSubmitted, shouldDirty: true };
+
+  function escolherDia(data) {
+    setValue("data", paraISO(data), opcoes);
+    setValue("hora", "", opcoes);
   }
 
-  async function aoConfirmar() {
-    setErroEnvio(null);
-    setEnviando(true);
-    try {
-      await realizarAgendamento({
-        usuarioId: usuario.id,
-        ofertaId: oferta.id,
-        // toISOString gera "2026-09-22T00:00:00Z"; cortamos so a data.
-        data: diaEscolhido.toISOString().slice(0, 10),
-        hora: horaEscolhida,
-      });
-      navegar("/app/agendamentos");
-    } catch (e) {
-      // Aqui chegam as mensagens do mock: "sem vagas", "conflito de horario".
-      setErroEnvio(e.message);
-    } finally {
-      setEnviando(false);
-    }
+  function mudarMes(passo) {
+    setReferencia(new Date(ano, mes + passo, 1));
+    setValue("data", "", opcoes);
+    setValue("hora", "", opcoes);
+  }
+
+  function aoConfirmar({ data, hora }) {
+    agendar.mutate(
+      { usuarioId: usuario.id, ofertaId: oferta.id, data, hora },
+      {
+        onSuccess: () => {
+          toast.sucesso("Agendamento confirmado!");
+          navegar("/app/agendamentos");
+        },
+      }
+    );
   }
 
   return (
     <>
       <Cabecalho titulo="Realizar agendamento" subtitulo={oferta.titulo} />
 
-      {erroEnvio && (
+      {agendar.isError && (
         <Alerta variante="erro" className="mb-4">
-         {erroEnvio}
+          {agendar.error.message}
         </Alerta>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      {vagasLivres === 0 && (
+        <Alerta variante="aviso" className="mb-4">
+          Esta oferta esta sem vagas no momento.
+        </Alerta>
+      )}
+
+      <form onSubmit={handleSubmit(aoConfirmar)} noValidate className="grid gap-4 lg:grid-cols-3">
         {/* --------------------------- Calendario --------------------------- */}
-        <div className="cartao p-6 lg:col-span-2">
+        <div className="cartao p-4 sm:p-6 lg:col-span-2">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="titulo-secao">
               {NOMES_MES[mes]} de {ano}
@@ -130,49 +155,41 @@ export default function RealizarAgendamento() {
               <button
                 type="button"
                 onClick={() => mudarMes(-1)}
-                className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
                 aria-label="Mes anterior"
+                className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
               >
                 <ChevronLeft size={15} />
               </button>
               <button
                 type="button"
                 onClick={() => mudarMes(1)}
-                className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
                 aria-label="Proximo mes"
+                className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
               >
                 <ChevronRight size={15} />
               </button>
             </div>
           </div>
 
-          {/* Cabecalho dos dias da semana */}
-          <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-slate-500">
+          <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[10px] sm:text-[11px] font-medium text-slate-500">
             {NOMES_DIA_CURTO.map((dia) => (
               <span key={dia}>{dia}</span>
             ))}
           </div>
 
-          {/* Grade de dias */}
           <div className="grid grid-cols-7 gap-1">
             {celulas.map((data, indice) => {
               if (!data) return <span key={`vazio-${indice}`} />;
-
               const habilitado = diaSelecionavel(data);
-              const selecionado =
-                diaEscolhido && data.toDateString() === diaEscolhido.toDateString();
-
+              const selecionado = dataEscolhida === paraISO(data);
               return (
                 <button
-                  key={data.toISOString()}
+                  key={paraISO(data)}
                   type="button"
                   disabled={!habilitado}
-                  onClick={() => {
-                    setDiaEscolhido(data);
-                    setHoraEscolhida(null); // zera a hora ao trocar de dia
-                  }}
+                  onClick={() => escolherDia(data)}
                   className={[
-                    "aspect-square rounded-lg text-xs transition",
+                    "aspect-square flex items-center justify-center rounded-md sm:rounded-lg text-[11px] sm:text-xs transition",
                     selecionado
                       ? "bg-marca-600 font-medium text-white"
                       : habilitado
@@ -186,16 +203,13 @@ export default function RealizarAgendamento() {
             })}
           </div>
 
-          <p className="mt-4 text-[11px] text-slate-500">
-            Dias em azul claro possuem atendimento disponivel.
-          </p>
+          <p className="mt-4 text-[11px] text-slate-500">Dias em azul claro possuem atendimento disponivel.</p>
+          {errors.data && <p className="mt-1 text-[11px] text-erro">{errors.data.message}</p>}
         </div>
 
-        {/* ---------------------- Horarios e confirmacao ---------------------- */}
         <aside className="space-y-4">
           <div className="cartao p-5">
             <h2 className="titulo-secao mb-3">Horarios disponiveis</h2>
-
             {!diaEscolhido ? (
               <p className="text-xs text-slate-500">Escolha primeiro um dia no calendario.</p>
             ) : horariosDoDia.length === 0 ? (
@@ -206,7 +220,7 @@ export default function RealizarAgendamento() {
                   <button
                     key={horario.id}
                     type="button"
-                    onClick={() => setHoraEscolhida(horario.inicio)}
+                    onClick={() => setValue("hora", horario.inicio, opcoes)}
                     className={[
                       "flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-xs transition",
                       horaEscolhida === horario.inicio
@@ -217,42 +231,37 @@ export default function RealizarAgendamento() {
                     <span>
                       {horario.inicio} - {horario.fim}
                     </span>
-                    <span className="text-[11px] text-slate-400">
-                      {oferta.vagas - oferta.vagasOcupadas} vaga(s)
-                    </span>
+                    <span className="text-[11px] text-slate-400">{vagasLivres} vaga(s)</span>
                   </button>
                 ))}
               </div>
             )}
+            {errors.hora && diaEscolhido && <p className="mt-2 text-[11px] text-erro">{errors.hora.message}</p>}
           </div>
 
-          {/* Resumo do que sera agendado */}
           <div className="cartao p-5">
             <h2 className="titulo-secao mb-3">Resumo do agendamento</h2>
             <dl className="space-y-2.5 text-xs">
-              <Linha icone={CalendarDays} rotulo="Data" valor={diaEscolhido ? formatarData(diaEscolhido.toISOString().slice(0, 10)) : "-"} />
-              <Linha icone={Clock} rotulo="Horario" valor={horaEscolhida ?? "-"} />
+              <Linha icone={CalendarDays} rotulo="Data" valor={dataEscolhida ? formatarData(dataEscolhida) : "-"} />
+              <Linha icone={Clock} rotulo="Horario" valor={horaEscolhida || "-"} />
               <Linha icone={MapPin} rotulo="Local" valor={oferta.local} />
             </dl>
-
             <p className="mt-3 border-t border-slate-100 pt-3 text-xs">
               <span className="text-slate-500">Valor: </span>
               <strong className="text-slate-800">{formatarValor(oferta.valor)}</strong>
             </p>
-
             <Botao
+              type="submit"
               larguraTotal
               className="mt-4"
-              // So habilita quando dia E hora estiverem escolhidos.
-              disabled={!diaEscolhido || !horaEscolhida}
-              carregando={enviando}
-              onClick={aoConfirmar}
+              disabled={vagasLivres === 0}
+              carregando={agendar.isPending}
             >
               Confirmar agendamento
             </Botao>
           </div>
         </aside>
-      </div>
+      </form>
     </>
   );
 }

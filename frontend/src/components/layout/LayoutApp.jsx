@@ -5,18 +5,26 @@
    O <Outlet /> e onde o React Router encaixa a pagina da rota atual.
    Ver o mapa de rotas em src/App.jsx.
 --------------------------------------------------------------------------- */
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import MenuLateral from "./MenuLateral";
 import BarraSuperior from "./BarraSuperior";
 
 export default function LayoutApp() {
+  const [menuAberto, setMenuAberto] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100">
-      <MenuLateral />
+      <MenuLateral
+        aberto={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+      />
+
       <div className="flex min-w-0 flex-1 flex-col">
-        <BarraSuperior />
+        <BarraSuperior aoAbrirMenu={() => setMenuAberto(true)} />
+
         {/* overflow-y-auto: so o conteudo rola, o menu fica fixo */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

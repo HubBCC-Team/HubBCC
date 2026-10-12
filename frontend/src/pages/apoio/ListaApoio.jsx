@@ -1,51 +1,44 @@
 /* ---------------------------------------------------------------------------
    pages/apoio/ListaApoio.jsx
-   TELA 12 — Apoio Academico / lista de monitorias e tutorias ("/app/apoio").
-
+   TELA 12 - Apoio Academico / lista de monitorias e tutorias ("/app/apoio").
    Casos de uso 10 (consultar ofertas) e 11 (filtrar ofertas).
-   Prioridade 2 e 3 do projeto (Marina e Geovanne).
+
+   TANSTACK QUERY:
+   - useDisciplinas()     -> botoes de filtro por disciplina (cache infinito)
+   - useOfertas(filtros)  -> os filtros fazem parte da chave: ao mudar,
+     busca sozinho; a lista anterior fica na tela enquanto a nova chega.
 --------------------------------------------------------------------------- */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Plus, MapPin, Users } from "lucide-react";
-import { useRequisicao } from "../../hooks/useRequisicao";
-import { listarOfertas, listarDisciplinas } from "../../service/apoioService";
+import { Search, Plus, MapPin, Users, Loader2 } from "lucide-react";
+import { useOfertas, useDisciplinas } from "../../queries";
 import Cabecalho from "../../components/ui/Cabecalho";
 import Botao from "../../components/ui/Botao";
 import Selo from "../../components/ui/Selo";
 import Avatar from "../../components/ui/Avatar";
 import Estrelas from "../../components/ui/Estrelas";
-import { Carregando, Erro, Vazio } from "../../components/ui/Estado";
+import Skeleton from "../../components/ui/Skeleton";
+import { Erro, Vazio } from "../../components/ui/Estado";
 import { formatarValor } from "../../utils/formatadores";
 
+const FILTROS_VAZIOS = { busca: "", disciplinaId: "", tipo: "", modalidade: "", gratuita: "" };
+
 export default function ListaApoio() {
-  const [filtros, setFiltros] = useState({
-    busca: "",
-    disciplinaId: "",
-    tipo: "",
-    modalidade: "",
-    gratuita: "",
-  });
+  const [filtros, setFiltros] = useState(FILTROS_VAZIOS);
 
-  // Lista de disciplinas para montar os botoes de filtro.
-  const disciplinas = useRequisicao(listarDisciplinas, [], []);
-
-  const { dados: ofertas, carregando, erro, recarregar } = useRequisicao(
-    () => listarOfertas(filtros),
-    [JSON.stringify(filtros)],
-    []
-  );
+  const { data: disciplinas = [] } = useDisciplinas();
+  const { data: ofertas = [], isLoading, isFetching, isError, error, refetch } = useOfertas(filtros);
 
   function mudarFiltro(campo, valor) {
     setFiltros((anteriores) => ({ ...anteriores, [campo]: valor }));
   }
 
+  const temFiltro = Object.values(filtros).some(Boolean);
+
   return (
-    <>
-      <Cabecalho
-        titulo="Apoio Academico"
-        subtitulo="Monitorias oficiais e tutorias oferecidas por outros alunos"
-      >
+    // anim-surgir aqui: a pagina inteira entra com o fade-in padrao ao abrir.
+    <div className="anim-surgir">
+      <Cabecalho titulo="Apoio Academico" subtitulo="Monitorias oficiais e tutorias oferecidas por outros alunos">
         <Botao as={Link} to="/app/apoio/nova">
           <Plus size={14} /> Criar oferta
         </Botao>
@@ -62,13 +55,12 @@ export default function ListaApoio() {
             placeholder="Buscar por disciplina, titulo ou monitor..."
             className="campo pl-9"
           />
+          {isFetching && !isLoading && (
+            <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400" />
+          )}
         </div>
 
-        <select
-          className="campo w-auto"
-          value={filtros.tipo}
-          onChange={(e) => mudarFiltro("tipo", e.target.value)}
-        >
+        <select className="campo w-auto" value={filtros.tipo} onChange={(e) => mudarFiltro("tipo", e.target.value)}>
           <option value="">Todos os tipos</option>
           <option value="Monitoria">Monitoria</option>
           <option value="Tutoria">Tutoria</option>
@@ -100,15 +92,12 @@ export default function ListaApoio() {
         </button>
       </div>
 
-      {/* Filtro por disciplina (caso de uso 11 — prioridade 3) */}
+      {/* Filtro por disciplina (caso de uso 11) */}
       <div className="mb-5 flex flex-wrap gap-2">
-        <BotaoDisciplina
-          ativo={filtros.disciplinaId === ""}
-          onClick={() => mudarFiltro("disciplinaId", "")}
-        >
+        <BotaoDisciplina ativo={filtros.disciplinaId === ""} onClick={() => mudarFiltro("disciplinaId", "")}>
           Todas as disciplinas
         </BotaoDisciplina>
-        {disciplinas.dados.map((disciplina) => (
+        {disciplinas.map((disciplina) => (
           <BotaoDisciplina
             key={disciplina.id}
             ativo={String(filtros.disciplinaId) === String(disciplina.id)}
@@ -120,28 +109,39 @@ export default function ListaApoio() {
       </div>
 
       {/* Resultados */}
-      {carregando ? (
-        <Carregando />
-      ) : erro ? (
-        <Erro mensagem={erro} aoTentarNovamente={recarregar} />
+      {isLoading ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <Skeleton variante="cartao" className="h-52" />
+          <Skeleton variante="cartao" className="h-52" />
+          <Skeleton variante="cartao" className="h-52 hidden md:block" />
+        </div>
+      ) : isError ? (
+        <Erro mensagem={error.message} aoTentarNovamente={refetch} />
       ) : ofertas.length === 0 ? (
         <Vazio
           titulo="Nenhuma oferta encontrada"
           descricao="Ajuste os filtros ou crie voce mesmo uma oferta de apoio."
           acao={
-            <Botao as={Link} to="/app/apoio/nova" tamanho="pequeno">
-              Criar oferta
-            </Botao>
+            temFiltro ? (
+              <Botao variante="contorno" tamanho="pequeno" onClick={() => setFiltros(FILTROS_VAZIOS)}>
+                Limpar filtros
+              </Botao>
+            ) : (
+              <Botao as={Link} to="/app/apoio/nova" tamanho="pequeno">
+                Criar oferta
+              </Botao>
+            )
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {ofertas.map((oferta) => (
-            <CartaoOferta key={oferta.id} oferta={oferta} />
+        <div className={`grid gap-4 md:grid-cols-2 xl:grid-cols-3 transition-opacity ${isFetching ? "opacity-60" : ""}`}>
+          {/* indice usado so para a cascata (animationDelay) de cada card */}
+          {ofertas.map((oferta, indice) => (
+            <CartaoOferta key={oferta.id} oferta={oferta} indice={indice} />
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -160,13 +160,16 @@ function BotaoDisciplina({ ativo, onClick, children }) {
   );
 }
 
-function CartaoOferta({ oferta }) {
+function CartaoOferta({ oferta, indice = 0 }) {
   // Calcula as vagas restantes para avisar quando estiver lotada.
-  const vagasRestantes = oferta.vagas - oferta.vagasOcupadas;
+  const vagasRestantes = oferta.vagas - (oferta.vagasOcupadas ?? 0);
   const lotada = vagasRestantes <= 0;
 
   return (
-    <div className="cartao flex flex-col p-5">
+    <div
+      className="cartao anim-surgir flex flex-col p-5 transition hover:-translate-y-1 hover:shadow-md"
+      style={{ animationDelay: `${indice * 50}ms` }}
+    >
       <div className="flex items-start gap-3">
         <Avatar iniciais={oferta.iniciais} />
         <div className="min-w-0 flex-1">
@@ -188,7 +191,7 @@ function CartaoOferta({ oferta }) {
           <MapPin size={12} /> {oferta.modalidade}
         </span>
         <span className="flex items-center gap-1">
-          <Users size={12} /> {vagasRestantes} vaga(s) livre(s)
+          <Users size={12} /> {Math.max(vagasRestantes, 0)} vaga(s) livre(s)
         </span>
       </div>
 
