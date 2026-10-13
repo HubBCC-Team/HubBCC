@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import oportunidadesRouter from "./routes/oportunidades.js";
+import candidaturasRouter from "./routes/candidaturas.js";
 
 const app = express();
 const PORT = 3001;
@@ -13,6 +14,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/oportunidades", oportunidadesRouter);
+app.use("/candidaturas", candidaturasRouter);
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
