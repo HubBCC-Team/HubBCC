@@ -1,6 +1,7 @@
 import express from "express";
 import { agendamentos } from "../data/agendamentos.js";
-// DEPENDENCIA DA MINA: precisa exportar `ofertas`.
+import { atendimentos } from "../data/atendimentos.js";
+
 import { ofertas } from "../data/ofertas.js";
 
 const router = express.Router();
@@ -135,6 +136,13 @@ router.delete("/:id", (req, res) => {
   }
 
   agendamentos.splice(indice, 1);
+
+  // Apaga tambem o atendimento ligado a este agendamento (se existir).
+  for (let i = atendimentos.length - 1; i >= 0; i--) {
+    if (atendimentos[i].agendamentoId === agendamento.id) {
+      atendimentos.splice(i, 1);
+    }
+  }
 
   res.status(204).send();
 });
