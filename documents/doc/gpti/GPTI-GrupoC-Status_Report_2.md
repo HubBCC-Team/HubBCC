@@ -3,10 +3,10 @@
 **Versão:** 1.0  
 **Data de status:** 02/11/2026  
 **Período coberto:** 06/10/2026 a 02/11/2026  
-**Marco em foco:** M2 — Sistema integrado ao backend próprio
-**Semanas no período:** S8 (06/10), S9 (13/10 PSW / 26/10 GPTI) e S10 (27/10 PSW). S11 (03/11 PSW) e S12 (10/11 PSW / 30/11 GPTI) não iniciadas no corte.
-**Início da medição de horas:** S8 (06/10/2026)
-**Semanas reconstituídas:** S1 a S7. O desempenho anterior à S8 foi exatamente o planejado: VP = VA = CR em todas as atividades até a S7.
+**Marco em foco:** M2 — Sistema integrado ao backend próprio  
+**Semanas no período:** S8 (06/10), S9 (13/10 PSW / 26/10 GPTI) e S10 (27/10 PSW). S11 (03/11 PSW) e S12 (10/11 PSW / 30/11 GPTI) não iniciadas no corte.  
+**Início da medição de horas:** S8 (06/10/2026)  
+**Semanas reconstituídas:** S1 a S7. O desempenho anterior à S8 foi exatamente o planejado: VP = VA = CR em todas as atividades até a S7.  
 
 ## 2. Situação geral
 
@@ -115,7 +115,7 @@
 **Percentual estimado de cabeça:** não serve. O VA vem da regra de crédito declarada.
 
 | ID | Atividade | Responsável | Esf. plan. (h) | Horas gastas (h) | Esf. rest. (h) | Regra / % | VA (h) | CR (h) | Fonte / cálculo do VA |
-|---|---|---|---|---:|---:|---:|---|---:|---:|---|
+|---|---|---|---|---:|---:|---:|---|---:|---:|
 | D12 | Base backend (Express) | Marina, Geovanne, Mina e Samuel | 8 | 4 | 4 | 50/50 | 4 | 4 | Backend startado; Marina 2h + Geovanne 2h |
 | D13 | API CRUD por entidade (memória) | Marina, Geovanne, Mina e Samuel | 10 | 4 | 6 | 2 completos + 2 com create não funcional | 3,93 | 4 | Oportunidades (1,43) + Candidaturas (1,43) + Agendamento 50% (0,71) + Atendimento 25% (0,36) |
 | D13.5 | Migração para MongoDB | Marina, Geovanne, Mina e Samuel | 8 | 0 | 8 | 0/100 | 0 | 0 | Não iniciada |
