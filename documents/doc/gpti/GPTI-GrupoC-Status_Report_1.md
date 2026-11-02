@@ -6,11 +6,13 @@
 
 ## 1. Situação geral
 
-Situação geral: Amarelo, parecer baseado na análise estática e dinâmica da aplicação.
+Situação geral: **Amarelo**, parecer baseado na análise estática e dinâmica da aplicação.
+
+A verificação foi feita com o manual de instalação do repositório, em ambiente local, complementada por análise estática do código.
 
 Os cinco módulos previstos em 1.4.1 a 1.4.5 possuem telas, rotas, consultas e operações de alteração conectadas ao simulador JSON Server. No entanto, durante os testes realizados foi possível notar diversas lacunas nestes pacotes. Por sua vez, foi possível observar problemas de permissionamento, UI/UX e requisitos incompletos.
 
-O módulo 1.4.6 foi atendido integralmente. O módulo 1.4.7 não foi demonstrado e sua análise está pendente, pois não há registros de demonstração da entrega atual para o patrocinador.
+O módulo 1.4.6 não foi atendido integralmente, pois depende dos fluxos de 1.4.3 e 1.4.4, que falharam. O módulo 1.4.7 não foi demonstrado e sua análise está pendente, pois não há registros de demonstração da entrega atual para o patrocinador.
 
 ## 2. Escopo do Marco 1
 
@@ -23,8 +25,19 @@ Pacotes diretamente no escopo do M1: **1.4.1 a 1.4.7**.
 | 1.4.3 | Interface de apoio acadêmico | Criar oferta, consultar, filtrar e agendar. | Verificado | Falhou | Rejeitar | Interface permite com que monitor possa agendar horários de monitorias/tutorias pela página "Apoio acadêmico". Botão "Criar oferta" aparece para o nível Aluno, porém ao interagir, um erro de "Acesso não autorizado" é renderizado. |
 | 1.4.4 | Interface de atividades complementares | Registrar atividade com comprovante e consultar total de horas. | Verificado | Falhou | Rejeitar | Não há possibilidade de aprovar as horas em análise de um usuário. Contagem de horas por categoria soma comprovantes que ainda não foram aprovados. |
 | 1.4.5 | Interface de disciplinas (administrador) | Administrador cadastra, consulta, altera e exclui disciplina. | Verificado | Passou | Aceitar | -- |
-| 1.4.6 | Fluxo integrado do M1 | Os fluxos de 1.4.1 a 1.4.5 funcionam em conjunto. | Verificado | Passou | Aceitar | -- |
+| 1.4.6 | Fluxo integrado do M1 | Os fluxos de 1.4.1 a 1.4.5 funcionam em conjunto. | Verificado | **Falhou** | **Rejeitar** | Depende da correção de 1.4.3 e 1.4.4; com os dois rejeitados, o fluxo integrado não fecha. |
 | 1.4.7 | Demonstração do M1 | A demonstração da semana 8 executa o roteiro. | Não demonstrado | Pendente | Pendente | Aguardando avaliação do marco 1 por parte do patrocinador. |
+
+**Controle do escopo — três perguntas:**
+
+1. **O que está na EAP deste marco foi entregue?**  
+   **Não integralmente** — 1.4.3 e 1.4.4 falharam; 1.4.7 não demonstrado. → Q-01, Q-03, Q-04.
+
+2. **O que foi entregue está na EAP?**  
+   **Há item fora da EAP** — recuperação de senha não prevista. → MUD-03.
+
+3. **O que foi entregue atende ao aceite do dicionário?**  
+   **Não em 1.4.2, 1.4.3 e 1.4.4.** → Q-01, Q-02, Q-03, Q-04.
 
 ## 3. Requisitos do Marco 1 e rastreabilidade
 
@@ -36,12 +49,12 @@ A tabela abaixo corrige o alinhamento das colunas do rascunho: REQ-07 está asso
 |---|---|---|---|---|---|
 | REQ-01 | Centralizar oportunidades acadêmicas | 1.4.1 | 1.5.1 | Atendido | Catálogo, detalhe, cadastro, edição e encerramento ligados ao simulador. |
 | REQ-02 | Permitir candidatura e acompanhamento | 1.4.2 | 1.5.2 | Atendido | Envio e consulta da situação vinculados ao usuário. |
-| REQ-03 | Ofertar monitorias e tutorias | 1.4.3 | 1.5.3 | Atendido | Renderizar botão "Criar oferta" para Aluno fere a experiência de usuário. |
-| REQ-04 | Agendar atendimentos | 1.4.3 | 1.5.4 | Atendido | Calendário, horários e confirmação implementados; validação em navegador pendente. |
-| REQ-05 | Registrar atividades complementares | 1.4.4 | 1.5.5 | Atendido | — |
+| REQ-03 | Ofertar monitorias e tutorias | 1.4.3 | 1.5.3 | **Pendente** | Ver Q-03 e Q-04; 1.4.3 rejeitado. |
+| REQ-04 | Agendar atendimentos | 1.4.3 | 1.5.4 | **Pendente** | Ver Q-04; 1.4.3 rejeitado. |
+| REQ-05 | Registrar atividades complementares | 1.4.4 | 1.5.5 | **Pendente** | Ver Q-01; 1.4.4 rejeitado. |
 | REQ-06 | Consultar total de horas | 1.4.4 | 1.5.7 | Pendente | Verificar regras de negócio para aprovação de horas e a entidade responsável. |
 | REQ-07 | Controlar perfis de acesso | 1.3.5 — apoio ao M1 | 1.5.8 | Pendente | Revisar perfis de acesso implementados, especialmente para Apoio Acadêmico. |
-| REQ-08 | Demonstrar sem sistemas reais | 1.3.4 — apoio ao M1 | — | Atendido | JSON Server, arquivo seed e serviços locais. |  
+| REQ-08 | Demonstrar sem sistemas reais | 1.3.4 — apoio ao M1 | — | Atendido | JSON Server, arquivo seed e serviços locais. |
 | REQ-09 | Manter cadastro de disciplinas | 1.4.5 | 1.5.6 | Atendido | — |
 
 ## 4. Questões e mudanças solicitadas
@@ -53,7 +66,7 @@ Os responsáveis abaixo seguem a prestação de contas do dicionário da EAP. Os
 | ID | Questão | Pacote / REQ | Responsável proposto | Prazo proposto | Status |
 |---|---|---|---|---|---|
 | Q-01 | Alinhar o total de horas à regra 8. Atividades novas entram como “Em análise”, não incrementam as horas aprovadas, mas entram no somatório por categoria, e não há como aprovar horas em análise. Definir se o requisito exige horas registradas ou apenas aprovadas, e nesse caso, definir também quem aprova, para ajustar a implementação ou registrar a mudança da regra. | 1.4.4 / REQ-06 | Samuel | 15/10/2026 | Aberta |
-| Q-02 | O botão “Candidatar-se” continua aparecendo para oportunidades em que o usuário já se candidatou. Definir o comportamento esperado (ocultar, desabilitar ou trocar por “Consultar status”/“Cancelar candidatura”) e ajustar a interface. | 1.4.2 / REQ-02 | Mina | 15/10/2026 | Aberta |
+| Q-02 | O botão “Candidatar-se” continua aparecendo para oportunidades em que o usuário já se candidatou. Definir o comportamento esperado (ocultar, desabilitar ou trocar por “Consultar status”/“Cancelar candidatura”) e ajustar a interface. | 1.4.2 / REQ-02 | Marina | 15/10/2026 | Aberta |
 | Q-03 | Definir se o botão "Criar oferta", na listagem de Apoio Acadêmico, deve ficar oculto para alunos ou apenas desabilitado com aviso explicativo. | 1.4.3 / REQ-07 | Mina | 15/10/2026 | Aberta |
 | Q-04 | Revisar a implementação dos perfis de acesso especialmente em Apoio Acadêmico: quem pode criar oferta, quem pode agendar e quem pode visualizar botões/rotas. A interface permite que monitor agende horários, confirmar se isso é regra ou falha. | 1.4.3 / REQ-04 e REQ-07 | Mina | 15/10/2026 | Aberta |
 

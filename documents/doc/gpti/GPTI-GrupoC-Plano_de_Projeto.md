@@ -1,7 +1,7 @@
 # Plano de Projeto — HubBCC
 
-**Versão:** 1.0   
-**Data:** 21/09/2026  
+**Versão:** 1.1
+**Data:** 21/09/2026
 **Patrocinador:** Diogo Silveira Mendonça  
 **Equipe:** 4 alunos de PSW (produto e desenvolvimento) e 4 alunos de GPTI (gestão e validação interna do escopo)
 
@@ -13,11 +13,11 @@
 |---|---:|---|
 | Iniciação, ordem de grandeza | 520 h, R$ 9.800 (−25% a +75%) | Business Case |
 | Capacidade dos calendários | 240 h PSW + 180 h GPTI = 420 h | 5.3 |
-| Atividades niveladas | 216 h PSW + 144 h GPTI = 360 h, R$ 6.784,62 | 5.2, 6.2 |
+| Atividades niveladas | 188 h PSW + 144 h GPTI = 332 h, R$ 6.256,92 | 5.2, 6.2 |
 | Contingência, por evento nomeado | 56 h = 24 h PSW + 32 h GPTI, R$ 1.055,38 | 6.3 |
-| Linha de base de custos | 416 h, R$ 7.840,00 | 6.4 |
-| Reserva gerencial, fora da linha de base | 7%, R$ 548,80 | 6.4 |
-| Orçamento total simulado | R$ 8.388,80; desembolso R$ 0 | 6.4, termo 10 |
+| Linha de base de custos | 388 h, R$ 7.312,31 | 6.4 |
+| Reserva gerencial, fora da linha de base | 7%, R$ 511,86 | 6.4 |
+| Orçamento total simulado | R$ 7.824,17; desembolso R$ 0 | 6.4, termo 10 |
 | Marcos | M1/AV1 na S8: GPTI 05/10 e PSW 06/10. M2 na S12: PSW 10/11; aceite GPTI 30/11 | 5.1 |
 
 ## 1. Objetivo da EAP
@@ -163,21 +163,42 @@ Entregar, em 12 semanas, uma plataforma em que um aluno fictício consulta oport
 | D03 | Prototipagem | — | S3 | 18 h | Geovanne, Marina, Mina e Samuel |
 | D04 | Refinamento da Prototipagem | D03 | S4 | 18 h | Geovanne, Marina, Mina e Samuel |
 | D05 | Componentização do Front-end | D04 | S5 | 8 h | Geovanne, Marina, Mina e Samuel |
-| D06 | Frontend — oportunidades | D05 | S5–S7 | 11 h | Geovanne |
-| D07 | Frontend — candidaturas | D05 | S5–S7 | 10 h | Marina |
-| D08 | Frontend — apoio acadêmico | D05 | S5–S7 | 12 h | Mina |
-| D09 | Frontend — atividades complementares | D05 | S5–S7 | 9 h | Samuel |
+| D06 | Frontend — oportunidades | D05 | S5–S7 | 11 h | Geovanne (filtro), Marina (consulta), Samuel (cadastro) |
+| D07 | Frontend — candidaturas | D05 | S5–S7 | 10 h | Geovanne (cancelar), Marina (consultar), Mina (realizar/avaliar) |
+| D08 | Frontend — apoio acadêmico | D05 | S5–S7 | 12 h | Geovanne, Marina, Mina e Samuel |
+| D09 | Frontend — atividades complementares | D05 | S5–S7 | 9 h | Geovanne (filtro), Marina (consulta), Samuel (registro) |
 | D10 | Candidaturas e agendamentos integrados | D06–D09 | S7–S8 | 12 h | Geovanne, Marina, Mina e Samuel |
 | D11 | Testes e demonstração M1 | D06–D10 | S8 | 10 h | Geovanne, Marina, Mina e Samuel |
-| D12 | Express, MongoDB e persistência | D11 | S9 | 8 h | Geovanne, Marina, Mina e Samuel |
-| D13 | APIs dos módulos — CRUDs | D12 | S9 | 10 h | Geovanne, Marina, Mina e Samuel |
-| D14 | API de candidaturas e agendamentos | D10, D12 | S10 | 8 h | Geovanne, Marina, Mina e Samuel |
-| D15 | Autenticação e perfis | D12 | S10–S11 | 9 h | Geovanne, Marina, Mina e Samuel |
-| D16 | Lógica de apoio e comprovantes | D03, D12 | S10–S11 | 6 h | Geovanne, Marina, Mina e Samuel |
-| D17 | Validações e regras de negócio | D13, D14, D16 | S11 | 12 h | Geovanne, Marina, Mina e Samuel |
-| D18 | Atividades complementares e integrações | D17 | S11–S12 | 7 h | Geovanne, Marina, Mina e Samuel |
-| D19 | Integração, testes e documentação M2 | D13–D18 | S12 | 12 h | Geovanne, Marina, Mina e Samuel |
-| **Subtotal** |  |  |  | **180 h** |  |
+| D12.1 | Base back-end (Express) | D11 | S8 | 2 h | Marina |
+| D12.2 | Base back-end (Express) | D11 | S8 | 2 h | Geovanne |
+| D12.3 | Base back-end (Express) | D11 | S8 | 2 h | Mina |
+| D12.4 | Base back-end (Express) | D11 | S8 | 2 h | Samuel |
+| D13.1 | API CRUD — Oportunidade e Candidatura (memória) | D12 | S8 | 2,5 h | Marina |
+| D13.2 | API CRUD — Agendamento e Atendimento (memória) | D12 | S8 | 2,5 h | Geovanne |
+| D13.3 | API CRUD — Oferta de Apoio (memória) | D12 | S8 | 2,5 h | Mina |
+| D13.4 | API CRUD — Atividade e Disciplina (memória) | D12 | S8 | 2,5 h | Samuel |
+| D13.5.1 | Migração para MongoDB — Oportunidade e Candidatura | D13 | S9 | 2 h | Marina |
+| D13.5.2 | Migração para MongoDB — Agendamento e Atendimento | D13 | S9 | 2 h | Geovanne |
+| D13.5.3 | Migração para MongoDB — Oferta de Apoio | D13 | S9 | 2 h | Mina |
+| D13.5.4 | Migração para MongoDB — Atividade e Disciplina | D13 | S9 | 2 h | Samuel |
+| D14.1 | API fluxo — Candidatura | D10, D13.5 | S9–S10 | 3,5 h | Marina |
+| D14.2 | API fluxo — Agendamento e Atendimento | D10, D13.5 | S9 | 2,5 h | Geovanne |
+| D14.3 | API fluxo — Oferta de Apoio | D10, D13.5 | S9 | 2 h | Mina |
+| D15.1 | Autenticação — perfis aluno e monitor | D13.5 | S10–S11 | 3,5 h | Mina |
+| D15.2 | Autenticação — perfil administrador | D13.5 | S9–S10 | 5,5 h | Samuel |
+| D16.1 | Lógica de Oferta de Apoio | D03, D13.5 | S10–S11 | 2,5 h | Mina |
+| D16.2 | Lógica de Atividade Complementar | D03, D13.5 | S10–S11 | 3,5 h | Samuel |
+| D17.1 | Validações — Oportunidade e Candidatura | D13, D14, D16 | S10–S11 | 4,5 h | Marina |
+| D17.2 | Validações — Agendamento e Atendimento | D13, D14, D16 | S10–S11 | 3,5 h | Geovanne |
+| D17.3 | Validações — Oferta de Apoio | D13, D14, D16 | S11 | 2,5 h | Mina |
+| D17.4 | Validações — Atividade e Disciplina | D13, D14, D16 | S11 | 1,5 h | Samuel |
+| D18.1 | Integrações e regras de Atendimento | D17 | S10–S11 | 5,5 h | Geovanne |
+| D18.2 | Integrações e regras de Disciplina | D17 | S11–S12 | 1,5 h | Samuel |
+| D19.1 | Integração, testes e documentação M2 — Oportunidade/Candidatura | D13–D18 | S11–S12 | 5,5 h | Marina |
+| D19.2 | Integração, testes e documentação M2 — Agendamento/Atendimento | D13–D18 | S11–S12 | 2 h | Geovanne |
+| D19.3 | Integração, testes e documentação M2 — Oferta de Apoio | D13–D18 | S12 | 3 h | Mina |
+| D19.4 | Integração, testes e documentação M2 — Atividade/Disciplina | D13–D18 | S12 | 1,5 h | Samuel |
+| **Subtotal** |  |  |  | **188 h** |  |
 
 ### 5.2 Atividades de gestão — GPTI
 
@@ -201,15 +222,15 @@ Entregar, em 12 semanas, uma plataforma em que um aluno fictício consulta oport
 
 | Grupo | Pessoas | Calendário | Capacidade | Planejado | Utilização | Livre |
 |---|---:|---|---:|---:|---:|---:|
-| PSW | 4 | 5 h/semana, S1–S12 | 240 h | 180 h | 75% | 60 h |
-| GPTI | 4 | 5 h/semana, S4–S12 | 180 h | 144 h | 80% | 36 h |
-| **Total** | **8** |  | **420 h** | **324 h** | **77,1%** | **96 h** |
+| PSW | 4 | 4,5 h/semana, S1–S12 | 240 h | 188 h | 78,3% | 52 h |
+| GPTI | 4 | 4 h/semana, S4–S12 | 180 h | 144 h | 80% | 36 h |
+| **Total** | **8** |  | **420 h** | **332 h** | **79,0%** | **88 h** |
 
 ### 5.4 Desenvolver o cronograma e analisar o caminho crítico
 
 - **Início:** semana 1, em 03/08; **término:** aceite do M2 em 30/11.
 - **M1/AV1:** semana 8, GPTI em 05/10 e PSW em 06/10. **M2:** semana 12, PSW em 10/11 e aceite de GPTI em 30/11.
-- **Caminho crítico técnico:** D03 → D04 → D05 → D08 → D10 → D11 → M1 → D12 → D14/D16 → D17 → D18 → D19 → M2.
+- **Caminho crítico técnico:** D03 → D04 → D05 → D08 → D10 → D11 → M1 → D12/D13 → D13.5 → D14 → D16 → D17 → D18 → D19 → M2.
 - **Cadeia crítica de gestão:** G01/G02/G03 → G04/G05 → G06 → G07 → G08.
 
 ![Gráfico de Gantt com dependências e esforço por atividade](./img/GPTI-cronograma-gantt-recursos.png)
@@ -227,6 +248,98 @@ A visão de controle acima mostra cada bloco com um aluno, uma tarefa da EAP, um
 ![Gráfico de Gantt individual da equipe GPTI](./img/GPTI-cronograma-gantt-gpti.png)
 
 Nestes Gantts, cada linha é uma única atribuição a uma única pessoa. A largura da barra dentro da semana é proporcional ao esforço planejado em relação à capacidade de 5 h/semana. As setas ligam a sequência de execução do próprio aluno; as dependências técnicas entre atividades e entre alunos permanecem na visão de rede anterior.
+
+### 5.5 Alocação individual — PSW (texto)
+
+Uma linha por atribuição. A semana ou intervalo de semanas indica a janela daquela atividade para aquela pessoa. O total por pessoa fecha em 20 h no backend.
+
+| Aluno | ID | Atividade | Semana(s) | Horas |
+|---|---|---|---|---:|
+| Marina | D11 | Testes e demonstração M1 | S8 | 2,5 |
+| Marina | D12.1 | Base back-end (Express) | S8 | 2 |
+| Marina | D13.1 | API CRUD — Oportunidade e Candidatura (memória) | S8 | 2,5 |
+| Marina | D13.5.1 | Migração para MongoDB — Oportunidade e Candidatura | S9 | 2 |
+| Marina | D14.1 | API fluxo — Candidatura | S9–S10 | 3,5 |
+| Marina | D17.1 | Validações — Oportunidade e Candidatura | S10–S11 | 4,5 |
+| Marina | D19.1 | Integração e testes M2 — Oportunidade/Candidatura | S11–S12 | 5,5 |
+| **Marina — total backend** |  |  |  | **20** |
+| Geovanne | D11 | Testes e demonstração M1 | S8 | 2,5 |
+| Geovanne | D12.2 | Base back-end (Express) | S8 | 2 |
+| Geovanne | D13.2 | API CRUD — Agendamento e Atendimento (memória) | S8 | 2,5 |
+| Geovanne | D13.5.2 | Migração para MongoDB — Agendamento e Atendimento | S9 | 2 |
+| Geovanne | D14.2 | API fluxo — Agendamento e Atendimento | S9 | 2,5 |
+| Geovanne | D17.2 | Validações — Agendamento e Atendimento | S10–S11 | 3,5 |
+| Geovanne | D18.1 | Integrações e regras de Atendimento | S10–S11 | 5,5 |
+| Geovanne | D19.2 | Integração e testes M2 — Agendamento/Atendimento | S11–S12 | 2 |
+| **Geovanne — total backend** |  |  |  | **20** |
+| Mina | D11 | Testes e demonstração M1 | S8 | 2,5 |
+| Mina | D12.3 | Base back-end (Express) | S8 | 2 |
+| Mina | D13.3 | API CRUD — Oferta de Apoio (memória) | S8 | 2,5 |
+| Mina | D13.5.3 | Migração para MongoDB — Oferta de Apoio | S9 | 2 |
+| Mina | D14.3 | API fluxo — Oferta de Apoio | S9 | 2 |
+| Mina | D15.1 | Autenticação — perfis aluno e monitor | S10–S11 | 3,5 |
+| Mina | D16.1 | Lógica de Oferta de Apoio | S10–S11 | 2,5 |
+| Mina | D17.3 | Validações — Oferta de Apoio | S11 | 2,5 |
+| Mina | D19.3 | Integração e testes M2 — Oferta de Apoio | S12 | 3 |
+| **Mina — total backend** |  |  |  | **20** |
+| Samuel | D11 | Testes e demonstração M1 | S8 | 2,5 |
+| Samuel | D12.4 | Base back-end (Express) | S8 | 2 |
+| Samuel | D13.4 | API CRUD — Atividade e Disciplina (memória) | S8 | 2,5 |
+| Samuel | D13.5.4 | Migração para MongoDB — Atividade e Disciplina | S9 | 2 |
+| Samuel | D15.2 | Autenticação — perfil administrador | S9–S10 | 5,5 |
+| Samuel | D16.2 | Lógica de Atividade Complementar | S10–S11 | 3,5 |
+| Samuel | D17.4 | Validações — Atividade e Disciplina | S11 | 1,5 |
+| Samuel | D18.2 | Integrações e regras de Disciplina | S11–S12 | 1,5 |
+| Samuel | D19.4 | Integração e testes M2 — Atividade/Disciplina | S12 | 1,5 |
+| **Samuel — total backend** |  |  |  | **20** |
+
+### 5.6 Alocação individual — GPTI (texto)
+
+Uma linha por atribuição. A cadência é semanal, com 4 h por aluno a partir da S4. O total por pessoa fecha em 36 h.
+
+| Aluno | ID | Atividade | Semana(s) | Horas |
+|---|---|---|---|---:|
+| Erick | G01 | Business Case | S4 | 4 |
+| Erick | G04 | EAP e dicionário | S5 | 4 |
+| Erick | G06 | Lista de atividades | S6 | 4 |
+| Erick | G07 | Custos e linha de base | S7 | 4 |
+| Erick | G08 | Revisão do Business Case | S8 | 4 |
+| Erick | G09 | Medição de escopo | S9 | 4 |
+| Erick | G10 | Custo realizado | S10 | 4 |
+| Erick | G11 | Stakeholders | S11 | 4 |
+| Erick | G12 | Aceite e encerramento | S12 | 4 |
+| **Erick — total** |  |  |  | **36** |
+| Gabriel | G02 | Termo de Abertura | S4 | 4 |
+| Gabriel | G04 | Escopo e aceite | S5 | 4 |
+| Gabriel | G06 | Rede e caminho crítico | S6 | 4 |
+| Gabriel | G07 | Riscos e contingência | S7 | 4 |
+| Gabriel | G08 | Revisão do Termo | S8 | 4 |
+| Gabriel | G09 | Atualização do cronograma | S9 | 4 |
+| Gabriel | G10 | Recursos e capacidade | S10 | 4 |
+| Gabriel | G11 | Riscos e respostas | S11 | 4 |
+| Gabriel | G12 | Desempenho final | S12 | 4 |
+| **Gabriel — total** |  |  |  | **36** |
+| Guilherme | G02 | Termo de Abertura | S4 | 2 |
+| Guilherme | G03 | Stakeholders | S4 | 2 |
+| Guilherme | G05 | Requisitos e mudanças | S5 | 4 |
+| Guilherme | G06 | Estimativas e capacidade | S6 | 4 |
+| Guilherme | G07 | Qualidade | S7 | 4 |
+| Guilherme | G08 | Revisão do Plano | S8 | 4 |
+| Guilherme | G09 | Análise de variações | S9 | 4 |
+| Guilherme | G10 | Projeções e reservas | S10 | 4 |
+| Guilherme | G11 | Pendências e decisões | S11 | 4 |
+| Guilherme | G12 | Lições aprendidas | S12 | 4 |
+| **Guilherme — total** |  |  |  | **36** |
+| Rafael | G03 | Governança e riscos | S4 | 4 |
+| Rafael | G05 | RACI e stakeholders | S5 | 4 |
+| Rafael | G06 | Alocação e nivelamento | S6 | 4 |
+| Rafael | G07 | Comunicações e integração | S7 | 4 |
+| Rafael | G08 | Consistência e entrega AV1 | S8 | 4 |
+| Rafael | G09 | Status Report 1 | S9 | 4 |
+| Rafael | G10 | Status Report 2 | S10 | 4 |
+| Rafael | G11 | Status Report 3 | S11 | 4 |
+| Rafael | G12 | Consolidação e arquivo | S12 | 4 |
+| **Rafael — total** |  |  |  | **36** |
 
 ## 6. Orçamento por composição
 
@@ -251,8 +364,8 @@ Nestes Gantts, cada linha é uma única atribuição a uma única pessoa. A larg
 | 9 | 18 h | 16 h | 34 h | R$ 640,77 |
 | 10 | 18 h | 16 h | 34 h | R$ 640,77 |
 | 11 | 18 h | 16 h | 34 h | R$ 640,77 |
-| 12 | 18 h | 16 h | 34 h | R$ 640,77 |
-| **Total** | **180 h** | **144 h** | **324 h** | **R$ 6.106,15** |
+| 12 | 20 h | 16 h | 36 h | R$ 678,46 |
+| **Total** | **188 h** | **144 h** | **332 h** | **R$ 6.256,92** |
 
 ### 6.3 Riscos e contingência
 
@@ -275,14 +388,14 @@ Nestes Gantts, cada linha é uma única atribuição a uma única pessoa. A larg
 
 | Componente | Cálculo | Valor |
 |---|---|---:|
-| Atividades PSW | 180 h × R$ 18,8461538 | R$ 3.392,31 |
+| Atividades PSW | 188 h × R$ 18,8461538 | R$ 3.543,08 |
 | Atividades GPTI | 144 h × R$ 18,8461538 | R$ 2.713,85 |
-| **Custo das atividades** | 324 h | **R$ 6.106,15** |
+| **Custo das atividades** | 332 h | **R$ 6.256,92** |
 | Contingência técnica | 32 h | R$ 603,08 |
 | Contingência de gestão | 24 h | R$ 452,31 |
-| **Linha de base** | 380 h | **R$ 7.161,54** |
-| Reserva gerencial | 7% | R$ 501,31 |
-| **Orçamento total simulado** |  | **R$ 7.662,85** |
+| **Linha de base** | 388 h | **R$ 7.312,31** |
+| Reserva gerencial | 7% | R$ 511,86 |
+| **Orçamento total estimado** |  | **R$ 7.824,17** |
 
 ## 7. Engajamento das partes interessadas
 
