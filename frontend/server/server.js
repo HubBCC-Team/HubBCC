@@ -274,6 +274,29 @@ server.delete("/agendamentos/:id", (req, res) => {
 });
 
 /* -------------------------------------------------------------------------
+   DISCIPLINAS
+------------------------------------------------------------------------- */
+// POST = valida nome obrigatorio e impede duplicidade
+server.post("/disciplinas", (req, res, next) => {
+  const nome = req.body.nome ? req.body.nome.trim() : "";
+  if (!nome) return erro(res, 400, "O nome da disciplina e obrigatorio.");
+
+  const jaExiste = db.get("disciplinas").some((d) => d.nome.toLowerCase() === nome.toLowerCase()).value();
+  if (jaExiste) return erro(res, 409, "Ja existe uma disciplina cadastrada com este nome.");
+
+  req.body.nome = nome;
+  next();
+});
+
+// DELETE = bloqueia exclusao se existirem ofertas vinculadas
+server.delete("/disciplinas/:id", (req, res, next) => {
+  const id = Number(req.params.id);
+  const ofertasVinculadas = db.get("ofertas").some({ disciplinaId: id }).value();
+  if (ofertasVinculadas) return erro(res, 409, "Nao e possivel excluir: existem ofertas de apoio vinculadas a esta disciplina.");
+  next();
+});
+
+/* -------------------------------------------------------------------------
    ATIVIDADES COMPLEMENTARES
 ------------------------------------------------------------------------- */
 // Precisa vir ANTES do router, senao "resumo" seria tratado como :id
@@ -302,6 +325,27 @@ server.get("/atividades/resumo", (req, res) => {
 
 server.post("/atividades", (req, res, next) => {
   req.body = { ...req.body, situacao: "Em analise" }; // toda atividade nova entra para conferencia
+  next();
+});
+
+// DELETE = impede exclusao de atividades ja aprovadas
+server.delete("/atividades/:id", (req, res, next) => {
+  const id = Number(req.params.id);
+  const atividade = db.get("atividades").find({ id }).value();
+  
+  if (!atividade) return erro(res, 404, "Atividade nao encontrada.");
+  if (atividade.situacao === "Aprovada") return erro(res, 409, "Nao e possivel excluir uma atividade ja aprovada.");
+  
+  next();
+});
+
+// PATCH = bloqueia edicao se a atividade ja estiver aprovada
+server.patch("/atividades/:id", (req, res, next) => {
+  const id = Number(req.params.id);
+  const atividade = db.get("atividades").find({ id }).value();
+  
+  if (atividade && atividade.situacao === "Aprovada") return erro(res, 409, "Nao e possivel editar uma atividade ja aprovada.");
+  
   next();
 });
 

@@ -1,0 +1,81 @@
+# -----------------------------------------------------------------------------
+# testes/ofertas.http  -  CRUD de ofertas (extensao "REST Client" do VS Code)
+# A oferta 1 pertence ao monitor 2.
+# -----------------------------------------------------------------------------
+@api = http://localhost:3001
+
+### 200 - lista
+GET {{api}}/ofertas
+
+### 200 - filtros
+GET {{api}}/ofertas?disciplinaId=1&gratuita=true
+
+### 400 - filtro invalido
+GET {{api}}/ofertas?tipo=Aula
+
+### 200 - detalhe
+GET {{api}}/ofertas/1
+
+### 404 - inexistente
+GET {{api}}/ofertas/999
+
+### 400 - sem horarios
+POST {{api}}/ofertas
+Content-Type: application/json
+
+{ "monitorId": 2, "monitor": "Geovanne Gomes", "titulo": "Monitoria de BD",
+  "disciplinaId": 4, "disciplina": "Banco de Dados", "tipo": "Monitoria",
+  "assunto": "Joins", "modalidade": "Remoto", "local": "Meet", "vagas": 5,
+  "gratuita": true, "valor": 0, "horarios": [] }
+
+### 400 - paga sem valor
+POST {{api}}/ofertas
+Content-Type: application/json
+
+{ "monitorId": 2, "monitor": "Geovanne Gomes", "titulo": "Monitoria de BD",
+  "disciplinaId": 4, "tipo": "Tutoria", "assunto": "Joins", "modalidade": "Remoto",
+  "local": "Meet", "vagas": 5, "gratuita": false, "valor": 0,
+  "horarios": [{ "id": "Terca-18:00", "dia": "Terca", "inicio": "18:00", "fim": "20:00" }] }
+
+### 201 - cria (vagasOcupadas e nota enviados sao IGNORADOS)
+POST {{api}}/ofertas
+Content-Type: application/json
+
+{ "monitorId": 2, "monitor": "Geovanne Gomes", "titulo": "Monitoria de BD",
+  "disciplinaId": 4, "disciplina": "Banco de Dados", "tipo": "Monitoria",
+  "assunto": "Joins e normalizacao", "modalidade": "Remoto", "local": "Google Meet",
+  "vagas": 5, "gratuita": true, "valor": 0, "vagasOcupadas": 5, "nota": 5,
+  "horarios": [{ "id": "Terca-18:00", "dia": "Terca", "inicio": "18:00", "fim": "20:00" }] }
+
+### 200 - dono altera
+PUT {{api}}/ofertas/1
+Content-Type: application/json
+
+{ "usuarioId": 2, "titulo": "Monitoria de Calculo I - noite" }
+
+### 403 - outro usuario altera
+PUT {{api}}/ofertas/1
+Content-Type: application/json
+
+{ "usuarioId": 3, "titulo": "Tentativa invalida" }
+
+### 400 - corpo sem alteracao
+PUT {{api}}/ofertas/1
+Content-Type: application/json
+
+{ "usuarioId": 2 }
+
+### 400 - virar paga sem valor
+PUT {{api}}/ofertas/1
+Content-Type: application/json
+
+{ "usuarioId": 2, "gratuita": false }
+
+### 403 - outro usuario cancela
+DELETE {{api}}/ofertas/1?usuarioId=3
+
+### 204 - dono cancela
+DELETE {{api}}/ofertas/1?usuarioId=2
+
+### 404 - ja removida
+GET {{api}}/ofertas/1
