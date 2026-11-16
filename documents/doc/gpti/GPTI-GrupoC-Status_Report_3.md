@@ -156,11 +156,40 @@
 
 ## 6. Variações e índices
 
-*A preencher por Guilherme (G09 — Análise de variações), a partir dos totais da seção 5.*
+**Data-base:** 16/11/2026. **Fonte:** totais da seção 5. **Base de cálculo:** VP = 316 h, VA = 262 h, CR = 264 h, ONT = 332 h; taxa-sombra R$ 18,8461538/h.
+
+| Indicador | Fórmula | Substituição (h) | Resultado (h) | Resultado (R$) | Interpretação |
+|---|---|---:|---:|---:|---|
+| **VPr** — Variação de prazo | VA − VP | 262 − 316 | **−54 h** | **−R$ 1.017,69** | Faltam 54 h de trabalho feito em relação ao planejado. Negativo é ruim. |
+| **VC** — Variação de custo | VA − CR | 262 − 264 | **−2 h** | **−R$ 37,69** | Leve gasto acima do valor entregue. |
+| **IDP** — Índice de desempenho de prazo | VA ÷ VP | 262 ÷ 316 | **0,83** | — | Ritmo de 83% do planejado no acumulado. |
+| **IDC** — Índice de desempenho de custo | VA ÷ CR | 262 ÷ 264 | **0,99** | — | Custo próximo do valor entregue no acumulado. |
+
+**Leitura dos índices:**
+
+- **IDP = 0,83** está abaixo do limite de controle de 0,85 definido no Plano (seção 8). No período medido S8–S11, o IDP é 0,58 (74 h de VA contra 128 h de VP), mostrando que a PSW entregou pouco do que deveria no caminho crítico técnico.
+- **IDC = 0,99** não deve ser lido como saúde do projeto: ele reflete a conclusão das atividades de gestão da GPTI (G09–G11), não o avanço do caminho crítico técnico. O CR de 264 h ainda é pequeno em relação ao ONT de 332 h; um desvio de custo só apareceria com o avanço de D13.5–D19.
+- **VPr = −54 h** é o número que importa para a decisão: é o mesmo déficit de capacidade PSW apontado na seção 8, e é o que sustenta as opções da seção 14.
+- **VC = −2 h** é ruído estatístico; não há estouro de custo relevante até o corte.
 
 ## 7. Previsão
 
-*A preencher por Guilherme (G10 — Projeções e reservas), a partir dos índices da seção 6.*
+**Data-base:** 16/11/2026. **Fonte:** ONT, CR e IDC da seção 5/6; esforço restante bottom-up da seção 4.
+
+| Medida | Fórmula aplicada | Valores usados | Premissa da conta | Resultado |
+|---|---|---|---:|---|
+| **ENT** — Estimativa no término | ONT ÷ IDC | 332 ÷ 0,9924 | O IDC acumulado continua | **334,5 h** = **R$ 6.304,72** |
+| **EPT** — Estimativa para terminar | ENT − CR | 334,5 − 264 | Esforço restante pelo IDC | **70,5 h** = **R$ 1.329,24** |
+| **VNT** — Variação no término | ONT − ENT | 332 − 334,5 | Negativo | **−2,5 h** = **−R$ 47,80** |
+
+**Premissa da conta:** a fórmula ONT ÷ IDC usa o IDC acumulado de 0,9924 (262 ÷ 264). Como o CR de 264 h já inclui a GPTI concluída e a PSW em memória, a previsão por IDC é pouco sensível a variações de custo. O valor de ENT de 334,5 h é **consistente com a previsão bottom-up**: CR (264 h) + esforço restante (70 h) = 334 h. A diferença de 0,5 h é arredondamento.
+
+**Leitura da previsão:**
+
+- **Pelo IDC:** ENT = 334,5 h, ou seja, 2,5 h acima do ONT de 332 h.
+- **Pelo bottom-up:** 70 h restantes (54 h PSW + 16 h G12), que resultam em ENT ≈ 334 h.
+- **Pelo caminho crítico:** as 54 h de PSW não cabem na capacidade restante após 16/11 (0 h de PSW no calendário original; a S12 PSW era 10/11). Sem extensão de prazo ou corte de escopo, o M2 não fecha.
+- **As 16 h de G12** cabem na capacidade GPTI restante (S12 GPTI em 30/11), mas dependem de D19 para a atividade de encerramento. Se o M2 não fechar, G12 fica bloqueada.
 
 ## 8. Recursos e capacidade até o marco 2
 
@@ -228,7 +257,40 @@ O apontamento individual segue a alocação do Plano: G09 com 4,5 h por pessoa, 
 
 ## 10. Controle de qualidade e verificação
 
-*A preencher por Guilherme (G07 — Qualidade), com base nas verificações do M2 e nas questões abertas.*
+**Data-base:** 16/11/2026. **Método:** verificação estática e dinâmica do repositório com o manual de instalação, complementada pela conferência do critério do dicionário para cada pacote.
+
+### 10.1 O que foi verificado
+
+- **D12 (Express base):** aplicação sobe com o manual; rotas de verificação respondem sem acesso direto ao MongoDB.
+- **D13 (APIs CRUD em memória):** as 7 entidades (Oportunidades, Candidaturas, Agendamentos, Atendimentos, Ofertas de Apoio, Atividades e Disciplinas) respondem em memória. O CRUD está completo em memória, mas **não persiste após reiniciar a API** — o critério do dicionário de 1.5.9 não foi atendido.
+- **D14 (APIs de fluxo em memória):** Candidatura, Agendamento/Atendimento e Oferta de Apoio têm rota de fluxo funcional em memória. Passou em memória; não passou contra MongoDB.
+- **G09, G10 e G11:** entregues.
+
+### 10.2 O que não foi verificado
+
+- **1.5.9 (persistência de domínio):** não demonstrado. Depende de D13.5, que não foi iniciada.
+- **1.5.8 (autenticação e perfis):** não demonstrado. D15.1 e D15.2 não foram iniciadas.
+- **1.5.7 (cálculo de horas):** não demonstrado. Depende de 1.5.5 com MongoDB e da decisão Q-01.
+- **1.4.7 (demonstração do M1):** não demonstrado. Não há registro de demonstração da entrega atual para o patrocinador.
+- **Aceite formal do M1:** não existe. O SR1 recomendou rejeição de 1.4.3, 1.4.4 e 1.4.6; nada foi resolvido até o corte.
+- **Verificação independente do M2:** não foi realizada. Este relatório é a verificação interna da GPTI e não substitui a verificação do patrocinador.
+
+### 10.3 Defeitos e limitações abertos
+
+- **Q-01** (regra de horas): aberta. Bloqueia 1.5.7 e 1.4.4.
+- **Q-02** (botão "Candidatar-se"): aberta. Impacto baixo.
+- **Q-03** (botão "Criar oferta" para aluno): aberta. Impacto baixo.
+- **Q-04** (perfis de acesso em Apoio Acadêmico): aberta. Bloqueia 1.5.8.
+- **Q-05** (MongoDB não iniciado): aberta. Bloqueia todo o M2.
+- **Q-06** (D13 faltando 3 entidades): resolvida em memória; falta MongoDB.
+- **Q-07** (D15–D18 não iniciadas): parcialmente resolvida (D14 concluída); D15–D18 continuam não iniciadas.
+- **Q-09** (create não funcional em Agendamento/Atendimento): resolvida em memória; falta MongoDB.
+
+### 10.4 Recomendação de qualidade
+
+- **Não recomendar aceite do M2 no estado atual.** O critério de 1.5.9 (persistência) não foi atendido, 1.5.8 (autenticação) não foi iniciado e 1.5.7 depende de decisão aberta.
+- **Recomendar aceite condicional** apenas se o patrocinador optar por encerrar o M2 com débito técnico declarado (opção B da seção 14), listando 1.5.7, 1.5.8 e 1.5.9 como trabalho futuro.
+- **Aceite pleno** só é possível após D13.5, D15, D16, D17, D18 e D19 serem concluídas e verificadas contra o dicionário.
 
 ## 11. Riscos monitorados
 
@@ -252,15 +314,57 @@ O apontamento individual segue a alocação do Plano: G09 com 4,5 h por pessoa, 
 
 ## 12. Questões
 
-*A preencher por Guilherme (G11 — Pendências e decisões), com base nas questões Q-01 a Q-12 do acompanhamento.*
+**Data-base:** 16/11/2026. **Fonte:** acompanhamento semanal da GPTI e verificação do M2.
+
+| ID | Questão | Pacote / REQ | Dono | Data | Impacto em escopo, prazo e custo | Status |
+|---|---|---|---|---|---|---|
+| Q-01 | Regra das horas: atividades em análise e total por categoria | 1.4.4 / REQ-06 | Samuel | 16/11 | Bloqueia 1.5.7 e 1.4.4 | Aberta |
+| Q-02 | Botão "Candidatar-se" em oportunidade já candidatada | 1.4.2 / REQ-02 | Marina | 16/11 | Baixo impacto em escopo | Aberta |
+| Q-03 | Botão "Criar oferta" visível para aluno | 1.4.3 / REQ-07 | Mina | 16/11 | Baixo impacto em escopo | Aberta |
+| Q-04 | Perfis de acesso em Apoio Acadêmico (monitor agenda) | 1.4.3 / REQ-04 e REQ-07 | Mina | 16/11 | Bloqueia 1.5.8 | Aberta |
+| Q-05 | D13.5 (migração MongoDB) não iniciada | 1.5.9 / REQ-01 a REQ-09 | Marina | 16/11 | Bloqueia todo o M2 | Aberta |
+| Q-06 | D13 incompleto: Ofertas, Atividades e Disciplinas | 1.5.3, 1.5.5, 1.5.6 | Mina, Samuel | 16/11 | Resolvida em memória; falta MongoDB | Resolvida parcialmente |
+| Q-07 | D15 a D18 não iniciadas | 1.5.4, 1.5.7, 1.5.8 | Marina, Geovanne, Mina, Samuel | 16/11 | D15–D18 continuam bloqueando o M2 | Aberta |
+| Q-08 | Nada do SR1 foi resolvido | 1.4.1 a 1.4.7 | Todos | 16/11 | Escopo do M1 continua pendente | Aberta |
+| Q-09 | Agendamento e Atendimento com create não funcional | 1.5.4 / REQ-04 | Geovanne | 16/11 | Resolvida em memória após Ofertas; falta MongoDB | Resolvida parcialmente |
+| Q-10 | M2 não entregue em 10/11 | Cronograma / M2 | Gabriel | 16/11 | Prazo vermelho; exige decisão do patrocinador | Aberta |
+| Q-11 | D14 concluída com atraso e em memória | 1.5.2, 1.5.3, 1.5.4 | Marina, Geovanne, Mina | 16/11 | Atraso no caminho crítico; MongoDB pendente | Aberta |
+| Q-12 | Commits da GPTI concentrados em Erick até o SR2 | Engajamento / comunicação | Erick | 16/11 | Sem impacto direto em escopo; melhoria de rastreabilidade | Em tratamento: todos passam a commitar |
 
 ## 13. Mudanças solicitadas
 
-*A preencher por Guilherme (G05 — Requisitos e mudanças), com base nas MUD-01 a MUD-06.*
+**Data-base:** 16/11/2026. **Fonte:** registro de mudanças do Plano e decisões pendentes do período.
+
+| ID | Mudança | Motivo | Impacto | Decisão | Status |
+|---|---|---|---|---|---|
+| MUD-01 | Regra de horas só com aprovadas | Q-01 | Altera semântica de REQ-06 | Pendente | Em elaboração |
+| MUD-02 | Fluxo de aprovação de horas complementares | Q-01 | Novo fluxo ou tela; afeta REQ-06 e 1.4.4 | Pendente | Em elaboração |
+| MUD-03 | Recuperação de senha | Funcionalidade fora da EAP original | Amplia escopo declarado do M1 | Pendente | Em elaboração |
+| MUD-04 | Corte de escopo do M2 para caber na capacidade | Déficit de 54 h em PSW | Reduz D18.2, D19.3, D19.4 e parte de D19.1/D19.2 | Pendente | Em elaboração |
+| MUD-05 | Adiantamento do cronograma em 1 semana | Decisão do patrocinador para G10 | VP do G10 entra no próximo corte | Aprovada | Aprovada |
+| MUD-06 | Replanejamento do M2 após 10/11 | M2 não entregue; D13.5 não iniciada | Novo prazo, novo caminho crítico e possível corte de escopo | Pendente | Em elaboração |
 
 ## 14. Decisões pedidas ao patrocinador
 
-*A preencher por Guilherme (G11 — Pendências e decisões), com validação de Gabriel em prazo/custo e Erick em escopo/custo.*
+**Data-base:** 16/11/2026. **Contexto:** 54 h de PSW restantes, 0 h de capacidade PSW após 16/11 e M2 vencido em 10/11. A decisão precisa sair até 19/11 para que a PSW ainda tenha janela de execução antes do aceite GPTI de 30/11.
+
+| ID | Decisão necessária | Opção | Efeito em horas | Efeito em prazo | Efeito em custo | Recomendação / consequência | Decisor e prazo |
+|---|---|---|---:|---|---|---|---|
+| D-01 | Como fechar o M2 diante do déficit de 54 h em PSW | **A: Estender a capacidade PSW por 3 semanas (S13–S15)** | +54 h PSW | M2 completo em ~01/12/2026 (ultrapassa o aceite GPTI de 30/11) | +R$ 1.017,69 | Só recomendada se o patrocinador aceitar mover o aceite do M2 | Diogo; 19/11 |
+| D-01 |  | **B: Encerrar o M2 no estado atual (memória, sem MongoDB, sem auth, sem validações)** | 0 h | M2 "entregue" em 16/11, com débito técnico declarado | 0 | **Não recomendada:** 1.5.7, 1.5.8 e 1.5.9 não atendem ao dicionário | Diogo; 19/11 |
+| D-01 |  | **C: Híbrido: 2 semanas extras de PSW (S13–S14) + corte de ~18 h em escopo secundário** | +36 h de extensão; −18 h de corte; líquido +18 h | M2 em ~24/11/2026 (cabe no aceite de 30/11) | +R$ 339,23 líquido | **Recomendada:** cabe no prazo do termo; perde D18.2, D19.3, D19.4 e reduz D19.1/D19.2 e validações não críticas | Diogo; 19/11 |
+| D-02 | Prioridade de execução após a decisão D-01 | **A: D13.5 (MongoDB) primeiro; depois D15–D19** | 8 h PSW em D13.5 | Libera 1.5.9 e destrava D16–D19 | +R$ 150,77 | **Recomendada:** sem D13.5 o M2 não atende ao dicionário, independentemente do corte | Diogo; 19/11 |
+| D-03 | Autorizar apontamento individual retroativo de S11–S12 | **A: Sim** | 0 h | Não altera prazo | 0 | **Recomendada:** sem isso o CR por pessoa fica incompleto e o próximo status report perde rastreabilidade | Diogo; 19/11 |
+
+**Decisão principal:** D-01, opção **C**. O déficit de 54 h em PSW não cabe na capacidade restante após 16/11. A opção A preserva todo o escopo, mas ultrapassa o aceite de 30/11. A opção B não atende ao dicionário. A opção C é a única que cabe no prazo do termo e ainda entrega MongoDB, autenticação e as validações prioritárias, ao custo de cortar integrações e validações secundárias.
+
+**Alavancas consideradas (aula 9):**
+
+- **Paralelismo:** D15.1 + D15.2 em paralelo na S13, economizando ~1 dia. Risco: retrabalho se o contrato de perfis mudar.
+- **Compressão:** alocar Marina e Geovanne em D16.1/D16.2 junto com Mina e Samuel na S13. Custo: +2 h de coordenação.
+- **Escopo:** cortar D18.2, D19.3, D19.4, reduzir D19.1/D19.2 e validações não críticas. Economia: ~18 h. Impacto: Disciplinas e parte de Ofertas ficam para etapa futura.
+- **Reserva:** a reserva gerencial de 7% (R$ 511,86) **não cobre** as 54 h de déficit; só o patrocinador pode liberar.
+- **Recursos:** a GPTI tem 16 h restantes, mas não pode absorver trabalho de PSW por serem competências diferentes.
 
 ## 15. Próximas ações
 
