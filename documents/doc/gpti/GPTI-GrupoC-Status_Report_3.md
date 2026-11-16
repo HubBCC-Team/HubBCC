@@ -52,7 +52,49 @@
 
 ## 3. Cronograma
 
-*A preencher por Gabriel (G09 — Atualização do cronograma), com base no esforço restante das seções 4 e 5.*
+**Data-base:** 16/11/2026. **Unidade de duração restante:** horas-pessoa (h).  
+**Situação:** "Concluída" = critério do dicionário verificado; "Concluída em memória" = funcionalidade pronta no simulador, sem MongoDB; "Não iniciada" = 0 h apontadas.
+
+### 3.1 Atividades
+
+| ID | Atividade | Responsável | Início plan. | Fim plan. | Início real | Fim real | Dur. rest. (h) | Situação |
+|---|---|---|---|---|---|---|---|---|
+| D12.1–D12.4 | Base backend (Express) | Marina, Geovanne, Mina e Samuel | 06/10 (S8) | 06/10 (S8) | 06/10 | 16/11 | 0 | Concluída em memória |
+| D13.1–D13.4 | API CRUD por entidade (memória) | Marina, Geovanne, Mina e Samuel | 06/10 (S8) | 06/10 (S8) | 06/10 | 16/11 | 0 | Concluída em memória (7 de 7 entidades) |
+| D13.5.1–D13.5.4 | Migração para MongoDB | Marina, Geovanne, Mina e Samuel | 13/10 (S9) | 13/10 (S9) | — | — | 8 | Não iniciada |
+| D14.1 | API fluxo — Candidatura | Marina | 13/10 (S9) | 27/10 (S10) | 27/10 | 16/11 | 0 | Concluída em memória (atrasada) |
+| D14.2 | API fluxo — Agendamento e Atendimento | Geovanne | 13/10 (S9) | 13/10 (S9) | 13/10 | 16/11 | 0 | Concluída em memória (atrasada) |
+| D14.3 | API fluxo — Oferta de Apoio | Mina | 13/10 (S9) | 13/10 (S9) | 13/10 | 16/11 | 0 | Concluída em memória (atrasada) |
+| D15.1 | Autenticação — aluno e monitor | Mina | 27/10 (S10) | 03/11 (S11) | — | — | 3,5 | Não iniciada |
+| D15.2 | Autenticação — administrador | Samuel | 13/10 (S9) | 27/10 (S10) | — | — | 5,5 | Não iniciada |
+| D16.1 | Lógica de Oferta de Apoio | Mina | 27/10 (S10) | 03/11 (S11) | — | — | 2,5 | Não iniciada |
+| D16.2 | Lógica de Atividade Complementar | Samuel | 27/10 (S10) | 03/11 (S11) | — | — | 3,5 | Não iniciada |
+| D17.1 | Validações — Oportunidade e Candidatura | Marina | 27/10 (S10) | 03/11 (S11) | — | — | 4,5 | Não iniciada |
+| D17.2 | Validações — Agendamento e Atendimento | Geovanne | 27/10 (S10) | 03/11 (S11) | — | — | 3,5 | Não iniciada |
+| D17.3 | Validações — Oferta de Apoio | Mina | 03/11 (S11) | 03/11 (S11) | — | — | 2,5 | Não iniciada |
+| D17.4 | Validações — Atividade e Disciplina | Samuel | 03/11 (S11) | 03/11 (S11) | — | — | 1,5 | Não iniciada |
+| D18.1 | Integrações e regras de Atendimento | Geovanne | 27/10 (S10) | 03/11 (S11) | — | — | 5,5 | Não iniciada |
+| D18.2 | Integrações e regras de Disciplina | Samuel | 03/11 (S11) | 10/11 (S12) | — | — | 1,5 | Não iniciada |
+| D19.1 | Integração e testes M2 — Oportunidade/Candidatura | Marina | 03/11 (S11) | 10/11 (S12) | — | — | 5,5 | Não iniciada |
+| D19.2 | Integração e testes M2 — Agendamento/Atendimento | Geovanne | 03/11 (S11) | 10/11 (S12) | — | — | 2 | Não iniciada |
+| D19.3 | Integração e testes M2 — Oferta de Apoio | Mina | 10/11 (S12) | 10/11 (S12) | — | — | 3 | Não iniciada |
+| D19.4 | Integração e testes M2 — Atividade/Disciplina | Samuel | 10/11 (S12) | 10/11 (S12) | — | — | 1,5 | Não iniciada |
+| G09 | Status 1 — escopo e tempo | Erick, Gabriel, Guilherme e Rafael | 26/10 (S9) | 26/10 (S9) | 26/10 | 26/10 | 0 | Concluída |
+| G10 | Status 2 — custos e recursos | Erick, Gabriel, Guilherme e Rafael | 09/11 (S10) | 09/11 (S10) | 02/11 | 16/11 | 0 | Concluída |
+| G11 | Status 3 — stakeholders e riscos | Erick, Gabriel, Guilherme e Rafael | 16/11 (S11) | 16/11 (S11) | 16/11 | — | 0 | Em andamento (horas completas) |
+| G12 | Encerramento e lições aprendidas | Erick, Gabriel, Guilherme e Rafael | 30/11 (S12) | 30/11 (S12) | — | — | 16 | Não iniciada |
+
+**Total de duração restante:** 54 h de PSW + 16 h de G12 = **70 h**.
+
+### 3.2 Caminho crítico e data prevista do M2
+
+- **Caminho crítico planejado:** D03 → D04 → D05 → D08 → D10 → D11 → M1 → D12/D13 → D13.5 → D14 → D16 → D17 → D18 → D19 → M2.
+- **Caminho crítico atualizado em 16/11:** D12/D13 concluídas em memória → D14 concluída em memória → **D13.5 não iniciada** → D16 → D17 → D18 → D19 → M2.
+- **Dependências e calendários considerados:** término-início padrão; PSW 4,5 h/semana por aluno; GPTI 4 h/semana por aluno a partir da S4.
+- **Atividades que entraram no crítico no período:** D13.5 (por não ter começado) e D14 (por ter concluído em memória, mas fora do prazo planejado).
+- **Data planejada do M2:** PSW em 10/11/2026; aceite GPTI em 30/11/2026.
+- **Data prevista do M2 pelo caminho crítico:** **não alcançável na data planejada.** D13.5 não começou; restam 54 h de PSW e a capacidade PSW após 16/11 é 0 h (a S12 PSW era 10/11). Sem extensão de prazo ou corte de escopo, o M2 não fecha em 10/11.
+- **Base do cálculo:** o caminho crítico real avança até D14 em memória; a próxima atividade do caminho é D13.5, que não foi iniciada. D16, D17, D18 e D19 estão paradas atrás de D13.5.
 
 ## 4. Valor agregado por atividade
 
@@ -122,7 +164,36 @@
 
 ## 8. Recursos e capacidade até o marco 2
 
-*A preencher por Gabriel (G10 — Recursos e capacidade), a partir do esforço restante de 54 h PSW + 16 h G12 da seção 5.*
+**Data-base:** 16/11/2026. **Unidade:** horas-pessoa (h).  
+**Fontes:** horas planejadas do Plano (v1.1); horas apontadas do acompanhamento semanal e da alocação individual; esforço restante da seção 4.
+
+### 8.1 Horas por pessoa
+
+| Pessoa | Grupo | Horas planejadas até 16/11 | Horas apontadas até 16/11 | Saldo | Capacidade restante até o M2 (h) | Observação |
+|---|---|---:|---:|---:|---:|---|
+| Marina | PSW | 51,5 | 38,5 | 13 | 0 | D12/D13 rateados em 4,5 h; D14.1 3,5 h; S11–S12 apontadas conforme alocação individual |
+| Geovanne | PSW | 50,5 | 38,5 | 12 | 0 | D12/D13 rateados em 4,5 h; D14.2 2,5 h; S11–S12 apontadas conforme alocação individual |
+| Mina | PSW | 50 | 38,5 | 11,5 | 0 | D12/D13 rateados em 4,5 h; D14.3 2 h; S11–S12 apontadas conforme alocação individual |
+| Samuel | PSW | 49,5 | 38,5 | 11 | 0 | D12/D13 rateados em 4,5 h; S11–S12 apontadas conforme alocação individual |
+| Erick | GPTI | 32 | 32,5 | −0,5 | 4 | G09 4,5 h; G10 4 h; G11 4 h |
+| Gabriel | GPTI | 32 | 32,5 | −0,5 | 4 | G09 4,5 h; G10 4 h; G11 4 h |
+| Guilherme | GPTI | 32 | 32,5 | −0,5 | 4 | G09 4,5 h; G10 4 h; G11 4 h |
+| Rafael | GPTI | 32 | 32,5 | −0,5 | 4 | G09 4,5 h; G10 4 h; G11 4 h |
+
+### 8.2 Totais por grupo
+
+| Grupo | Horas planejadas até 16/11 | Horas apontadas | Capacidade restante até o M2 | Esforço restante | Saldo |
+|---|---:|---:|---:|---:|---:|
+| PSW | 201,5 | 154 | 0 | 54 | **−54 h** |
+| GPTI | 128 | 130 | 16 | 16 | 0 |
+| **Total** | **329,5** | **284** | **16** | **70** | **−54 h em PSW** |
+
+### 8.3 Premissas de capacidade
+
+- **PSW:** 4,5 h/semana por aluno. A S12 PSW era 10/11 e já passou no corte. **Capacidade restante após 16/11: 0 h.**
+- **GPTI:** 4 h/semana por aluno. A S12 GPTI é 30/11 e ainda está disponível para G12. **Capacidade restante: 16 h.**
+- **Total:** 16 h, todas de GPTI. O esforço restante de 54 h em PSW não cabe nessa capacidade e não pode ser absorvido pela GPTI, porque são trabalhos diferentes.
+- **Saldo:** −54 h em PSW. Sem extensão de prazo ou corte de escopo, o M2 não fecha.
 
 ## 9. Engajamento da equipe GPTI e apontamento de horas
 
@@ -161,7 +232,23 @@ O apontamento individual segue a alocação do Plano: G09 com 4,5 h por pessoa, 
 
 ## 11. Riscos monitorados
 
-*A preencher por Gabriel (G11 — Riscos e respostas), com base no registro de riscos e nas questões da seção 12.*
+**Data-base:** 16/11/2026. **Fonte:** registro de riscos do Plano (seção 6.3) e questões Q-01 a Q-12 do acompanhamento.
+
+| ID | Risco | Prob. | Impacto | Status em 16/11 | Evidência / resposta | Dono |
+|---|---|---:|---:|---|---|---|
+| RT02 | Defeitos em regras de negócio | Média | Alto | **Materializado** | Q-01, Q-03 e Q-04 abertas; regras de horas e perfis sem fechamento. Resposta: fechar Q-01 a Q-04 antes de iniciar D15–D19 | Samuel / Mina |
+| RT03 | Contratos divergentes entre frontend e API | Média | Médio | Monitorado | D13 e D14 em memória concluídas; falta contrato com MongoDB. Resposta: validar contrato no início de D13.5 | Marina |
+| RT04 | Falha de persistência | Média | Médio | **Não testado** | D13.5 não iniciada; nenhum teste de persistência executado. Resposta: incluir teste de reinício da API como critério de D13.5 | Samuel |
+| RG02 | Indisponibilidade de aluno | Média | Alto | **Materializado** | PSW sem capacidade restante após 16/11; S12 PSW já passou. Resposta: decisão D-01 (corte ou extensão) | Gabriel |
+| RG03 | Escopo fora da EAP | Média | Médio | Controlado | Nada novo fora da EAP no período. Resposta: manter controle de mudanças | Guilherme |
+| RG05 | Decisão de marco atrasa | Baixa | Médio | **Materializado** | D-01 e MUD-04 pendentes; M2 vencido em 10/11. Resposta: escalar ao patrocinador com prazo de 19/11 | Erick / Gabriel |
+
+**Riscos novos identificados no período:**
+
+| ID | Risco | Prob. | Impacto | Status | Evidência / resposta | Dono |
+|---|---|---:|---:|---|---|---|
+| RG06 | Déficit de capacidade PSW até o M2 | Alta | Alto | **Materializado** | 54 h de PSW restantes contra 0 h de capacidade após 16/11. Resposta: decisão D-01 do patrocinador | Gabriel |
+| RG07 | Atraso em cascata de D13.5 sobre D16–D19 | Alta | Alto | **Materializado** | D13.5 não iniciada; D16–D19 paradas atrás dela. Resposta: priorizar D13.5 assim que D-01 for decidida | Gabriel |
 
 ## 12. Questões
 
