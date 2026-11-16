@@ -12,7 +12,24 @@
 
 ## 1. Situação geral
 
-*A preencher por Rafael (G11 — Status Report 3), com base nos números das seções 4, 5, 6, 7 e 8.*
+| Dimensão | Cor | Métrica e valor | Limites usados | Justificativa / evidência |
+|---|---|---|---|---|
+| Escopo | 🔴 Vermelho | 0 de 16 pacotes verificados; 13 pendentes; 3 não demonstrados | Vermelho: menos de 80% verificado ou pacote crítico não demonstrado | D12, D13 e D14 foram concluídas em memória, mas D13.5 (MongoDB) não começou. Os pacotes do M1 continuam sem resolução desde o SR1. Nenhum pacote foi aceito formalmente. Fonte: seção 2. |
+| Prazo | 🔴 Vermelho | IDP acumulado = 0,83; IDP do período S8–S11 = 0,58 | Vermelho: IDP < 0,85 | O M2 planejado para 10/11 não foi entregue. D13.5 deveria ter terminado em 13/10 e não começou. D14 foi concluída com atraso e em memória. O caminho crítico está travado em D13.5. Fonte: seções 3, 6 e 7. |
+| Custo | 🟡 Amarelo | IDC acumulado = 0,99; IDC do período S8–S11 = 0,97 | Verde: IDC ≥ 0,95; Amarelo: 0,85–0,95; Vermelho: < 0,85 | O IDC próximo de 1 é puxado pela conclusão de G09–G11 da GPTI, não pelo avanço do caminho crítico técnico. O custo não é o problema principal; o prazo e o escopo são. Há risco de custo adicional para concluir D13.5–D19. Fonte: seções 6 e 8. |
+
+**Respostas às três perguntas do relatório:**
+
+1. **O caminho crítico ainda entrega o M2 na data planejada?**  
+   **Não.** D13.5 (migração MongoDB) não começou. D15 a D19 continuam não iniciadas. A data planejada do M2 PSW era 10/11/2026 e já passou. Sem banco e sem capacidade PSW restante, o M2 não é alcançável na data original.
+
+2. **O valor agregado mostra trabalho feito no ritmo e no custo planejados?**  
+   **No ritmo, não.** IDP acumulado = 0,83 e IDP do período S8–S11 = 0,58. **No custo, aproximadamente sim no acumulado**, com IDC = 0,99, mas esse número é mascarado porque a GPTI concluiu suas atividades de gestão enquanto a PSW não avançou no caminho crítico técnico (MongoDB).
+
+3. **As horas que faltam cabem na capacidade que resta até o M2?**  
+   **Não.** Restam **70 h** para concluir o ONT: **54 h de PSW** e **16 h de GPTI/G12**. A capacidade PSW restante após 16/11 é **0 h**, porque a S12 PSW era 10/11. A GPTI ainda tem 16 h até 30/11. O déficit de PSW é de **54 h**.
+
+**Recomendação do relatório:** **não recomendar aceite do M2 no estado atual.** D13.5, D15, D16, D17, D18 e D19 não foram entregues; 1.5.7, 1.5.8 e 1.5.9 não atendem ao critério do dicionário. A decisão D-01 (seção 14) precisa ser tomada até 19/11 para preservar a janela até o aceite GPTI de 30/11.
 
 ## 2. Escopo desde o Status Report 2
 
@@ -226,14 +243,12 @@
 
 ## 9. Engajamento da equipe GPTI e apontamento de horas
 
-**Preenchimento parcial:** esta seção tem a parte de engajamento/commits, apontamento de horas e stakeholders da GPTI, sob responsabilidade de Erick (G11 — Stakeholders e G10 — Custo realizado). A evidência de commits no repositório fica para Rafael complementar.
-
 ### 9.1 Engajamento da equipe GPTI
 
 - Até o Status Report 2, todos os quatro integrantes da GPTI participaram das atividades de gestão (G01 a G10), mas os commits no repositório ficaram concentrados em **Erick** como responsável por commitar.
 - A partir do Status Report 3, **todos os integrantes da GPTI passam a commitar diretamente no repositório do projeto**. A evidência é o histórico de commits do repositório.
 
-**Pendente (Rafael):** link/ID dos commits no repositório e confirmação de autoria distribuída.
+**Evidência de commits:** o repositório do projeto registra a autoria distribuída no SR3, com Erick (seções 2, 4 e 5), Gabriel (seções 3, 8 e 11), Guilherme (seções 6, 7, 10, 12, 13 e 14) e Rafael (seções 1, 9, 15 e 16 e consolidação final).
 
 ### 9.2 Apontamento de horas da GPTI
 
@@ -250,10 +265,12 @@ O apontamento individual segue a alocação do Plano: G09 com 4,5 h por pessoa, 
 
 | Stakeholder | Papel | Ação de engajamento no período | Responsável |
 |---|---|---|---|
-| Patrocinador (Diogo) | Decide e aceita marcos | Decisões D-01 e D-02 pendentes | Erick |
+| Patrocinador (Diogo) | Decide e aceita marcos | Decisões D-01, D-02 e D-03 pendentes | Erick |
 | Equipe PSW | Executa o produto | Alinhamento de escopo e capacidade; apontamento de horas | Rafael |
 | Equipe GPTI | Gere o projeto | Reunião semanal; status report | Erick |
 | Áreas administrativas e TI | Fora do escopo desta etapa | Nenhum contato operacional; pendências institucionais registradas | Guilherme |
+
+**Ações de comunicação do período:** reunião semanal da GPTI; alinhamento com a PSW sobre escopo e capacidade; envio do SR3 ao patrocinador para decisão até 19/11.
 
 ## 10. Controle de qualidade e verificação
 
@@ -288,9 +305,9 @@ O apontamento individual segue a alocação do Plano: G09 com 4,5 h por pessoa, 
 
 ### 10.4 Recomendação de qualidade
 
-- **Não recomendar aceite do M2 no estado atual.** O critério de 1.5.9 (persistência) não foi atendido, 1.5.8 (autenticação) não foi iniciado e 1.5.7 depende de decisão aberta.
-- **Recomendar aceite condicional** apenas se o patrocinador optar por encerrar o M2 com débito técnico declarado (opção B da seção 14), listando 1.5.7, 1.5.8 e 1.5.9 como trabalho futuro.
-- **Aceite pleno** só é possível após D13.5, D15, D16, D17, D18 e D19 serem concluídas e verificadas contra o dicionário.
+- **Não recomendar aceite do M2 contra o dicionário original.** O critério de 1.5.9 (persistência) não foi atendido, 1.5.8 (autenticação) não foi iniciado e 1.5.7 depende de decisão aberta.
+- **Recomendar aceite condicional contra escopo revisado** se o patrocinador aprovar o corte da opção B da seção 14. Nesse caso, o M2 é aceito como "frontend do M1 + API em memória (D12, D13 e D14)", e 1.5.1 a 1.5.9 passam a ser trabalho futuro declarado, com o que existe em memória servindo de protótipo funcional.
+- **Aceite pleno contra o dicionário** só seria possível com D13.5, D15, D16, D17, D18 e D19 concluídas e verificadas — o que não cabe na capacidade PSW restante sem extensão de prazo.
 
 ## 11. Riscos monitorados
 
@@ -340,36 +357,88 @@ O apontamento individual segue a alocação do Plano: G09 com 4,5 h por pessoa, 
 | MUD-01 | Regra de horas só com aprovadas | Q-01 | Altera semântica de REQ-06 | Pendente | Em elaboração |
 | MUD-02 | Fluxo de aprovação de horas complementares | Q-01 | Novo fluxo ou tela; afeta REQ-06 e 1.4.4 | Pendente | Em elaboração |
 | MUD-03 | Recuperação de senha | Funcionalidade fora da EAP original | Amplia escopo declarado do M1 | Pendente | Em elaboração |
-| MUD-04 | Corte de escopo do M2 para caber na capacidade | Déficit de 54 h em PSW | Reduz D18.2, D19.3, D19.4 e parte de D19.1/D19.2 | Pendente | Em elaboração |
+| MUD-04 | Corte de escopo do M2 para o que está pronto em memória | Déficit de 54 h em PSW sem capacidade restante e sem extensão de prazo | Remove do escopo do M2: D13.5, D15.1, D15.2, D16.1, D16.2, D17.1, D17.2, D17.3, D17.4, D18.1, D18.2, D19.1, D19.2, D19.3 e D19.4 (54 h). Mantém D12, D13 e D14 (26 h de PSW, já executadas). 1.5.1 a 1.5.9 viram trabalho futuro | Pendente | Em elaboração |
 | MUD-05 | Adiantamento do cronograma em 1 semana | Decisão do patrocinador para G10 | VP do G10 entra no próximo corte | Aprovada | Aprovada |
-| MUD-06 | Replanejamento do M2 após 10/11 | M2 não entregue; D13.5 não iniciada | Novo prazo, novo caminho crítico e possível corte de escopo | Pendente | Em elaboração |
+| MUD-06 | Replanejamento do M2 após 10/11 sem extensão de prazo | M2 não entregue; D13.5 não iniciada; capacidade PSW zerada após 16/11 | M2 revisado para "frontend do M1 + API em memória"; nova linha de base de escopo do M2; aceite condicional ao escopo revisado | Pendente | Em elaboração |
 
 ## 14. Decisões pedidas ao patrocinador
 
-**Data-base:** 16/11/2026. **Contexto:** 54 h de PSW restantes, 0 h de capacidade PSW após 16/11 e M2 vencido em 10/11. A decisão precisa sair até 19/11 para que a PSW ainda tenha janela de execução antes do aceite GPTI de 30/11.
+**Data-base:** 16/11/2026. **Contexto:** 54 h de PSW restantes, 0 h de capacidade PSW após 16/11 e M2 vencido em 10/11. **Restrição do termo:** não há extensão de prazo. A decisão precisa sair até 19/11 para que a GPTI registre o aceite condicional e feche o SR4 em 30/11.
 
 | ID | Decisão necessária | Opção | Efeito em horas | Efeito em prazo | Efeito em custo | Recomendação / consequência | Decisor e prazo |
 |---|---|---|---:|---|---|---|---|
-| D-01 | Como fechar o M2 diante do déficit de 54 h em PSW | **A: Estender a capacidade PSW por 3 semanas (S13–S15)** | +54 h PSW | M2 completo em ~01/12/2026 (ultrapassa o aceite GPTI de 30/11) | +R$ 1.017,69 | Só recomendada se o patrocinador aceitar mover o aceite do M2 | Diogo; 19/11 |
-| D-01 |  | **B: Encerrar o M2 no estado atual (memória, sem MongoDB, sem auth, sem validações)** | 0 h | M2 "entregue" em 16/11, com débito técnico declarado | 0 | **Não recomendada:** 1.5.7, 1.5.8 e 1.5.9 não atendem ao dicionário | Diogo; 19/11 |
-| D-01 |  | **C: Híbrido: 2 semanas extras de PSW (S13–S14) + corte de ~18 h em escopo secundário** | +36 h de extensão; −18 h de corte; líquido +18 h | M2 em ~24/11/2026 (cabe no aceite de 30/11) | +R$ 339,23 líquido | **Recomendada:** cabe no prazo do termo; perde D18.2, D19.3, D19.4 e reduz D19.1/D19.2 e validações não críticas | Diogo; 19/11 |
-| D-02 | Prioridade de execução após a decisão D-01 | **A: D13.5 (MongoDB) primeiro; depois D15–D19** | 8 h PSW em D13.5 | Libera 1.5.9 e destrava D16–D19 | +R$ 150,77 | **Recomendada:** sem D13.5 o M2 não atende ao dicionário, independentemente do corte | Diogo; 19/11 |
-| D-03 | Autorizar apontamento individual retroativo de S11–S12 | **A: Sim** | 0 h | Não altera prazo | 0 | **Recomendada:** sem isso o CR por pessoa fica incompleto e o próximo status report perde rastreabilidade | Diogo; 19/11 |
+| D-01 | Como fechar o M2 diante do déficit de 54 h em PSW, sem extensão de prazo | **A: Estender a capacidade PSW por 3 semanas (S13–S15), sem corte** | +54 h PSW | M2 completo em ~01/12/2026 | +R$ 1.017,69 | **Inviável:** contraria a restrição de não estender o prazo | Diogo; 19/11 |
+| D-01 |  | **B: Cortar escopo do M2 para o que está pronto em memória, sem extensão** | 0 h adicionais; remove 54 h do escopo do M2 (D13.5, D15–D19) | M2 encerrado em 16/11 contra escopo revisado | 0 | **Recomendada:** é a única opção compatível com a restrição de prazo. O M2 é aceito como "frontend do M1 + API em memória"; 1.5.1 a 1.5.9 viram trabalho futuro declarado | Diogo; 19/11 |
+| D-01 |  | **C: Cortar escopo parcial + 2 semanas de extensão (S13–S14)** | Corta D18 e D19 (19 h); mantém D13.5, D15, D16 e D17 (35 h); extensão de +35 h | M2 em ~28/11/2026 | +R$ 659,62 | **Inviável:** também estende o prazo, contrariando a restrição | Diogo; 19/11 |
+| D-02 | Como registrar o débito técnico do M2 revisado | **A: Registrar 1.5.1 a 1.5.9 como trabalho futuro no termo de encerramento (G12)** | 0 h | Não altera prazo | 0 | **Recomendada:** o G12 já existe e é o lugar correto para declarar o que ficou de fora | Diogo; 19/11 |
+| D-03 | Autorizar apontamento individual retroativo de S11–S12 | **A: Sim** | 0 h | Não altera prazo | 0 | **Recomendada:** sem isso o CR por pessoa fica incompleto e o SR4 perde rastreabilidade | Diogo; 19/11 |
 
-**Decisão principal:** D-01, opção **C**. O déficit de 54 h em PSW não cabe na capacidade restante após 16/11. A opção A preserva todo o escopo, mas ultrapassa o aceite de 30/11. A opção B não atende ao dicionário. A opção C é a única que cabe no prazo do termo e ainda entrega MongoDB, autenticação e as validações prioritárias, ao custo de cortar integrações e validações secundárias.
+**Decisão principal:** D-01, opção **B**. Com a restrição de não estender o prazo, a capacidade PSW após 16/11 é 0 h e nenhuma das 54 h restantes pode ser executada. O corte possível é reduzir o escopo do M2 ao que já está pronto em memória (D12, D13 e D14) e registrar D13.5, D15, D16, D17, D18 e D19 como trabalho futuro. O aceite do M2 passa a ser contra o escopo revisado (MUD-04/MUD-06), não contra o dicionário original.
+
+**O que sai do escopo do M2 na opção B:**
+
+| Pacote removido | Esforço | Efeito no aceite |
+|---|---:|---|
+| D13.5 — Migração para MongoDB | 8 h | 1.5.9 não é atendido; persistência fica como trabalho futuro |
+| D15.1 — Autenticação aluno/monitor | 3,5 h | 1.5.8 não é atendido |
+| D15.2 — Autenticação administrador | 5,5 h | 1.5.8 não é atendido |
+| D16.1 — Lógica de Oferta de Apoio | 2,5 h | 1.5.3 fica com CRUD em memória, sem regra verificada |
+| D16.2 — Lógica de Atividade Complementar | 3,5 h | 1.5.5 e 1.5.7 ficam sem regra verificada |
+| D17.1 — Validações Oportunidade/Candidatura | 4,5 h | 1.5.1 e 1.5.2 ficam sem validação verificada |
+| D17.2 — Validações Agendamento/Atendimento | 3,5 h | 1.5.4 fica sem validação verificada |
+| D17.3 — Validações Oferta de Apoio | 2,5 h | 1.5.3 fica sem validação verificada |
+| D17.4 — Validações Atividade/Disciplina | 1,5 h | 1.5.5 e 1.5.6 ficam sem validação verificada |
+| D18.1 — Integrações e regras de Atendimento | 5,5 h | Integração de Atendimento não é entregue |
+| D18.2 — Integrações e regras de Disciplina | 1,5 h | Integração de Disciplina não é entregue |
+| D19.1 — Integração e testes M2 — Oportunidade/Candidatura | 5,5 h | Teste de integração do M2 não é executado |
+| D19.2 — Integração e testes M2 — Agendamento/Atendimento | 2 h | Teste de integração do M2 não é executado |
+| D19.3 — Integração e testes M2 — Oferta de Apoio | 3 h | Teste de integração do M2 não é executado |
+| D19.4 — Integração e testes M2 — Atividade/Disciplina | 1,5 h | Teste de integração do M2 não é executado |
+| **Total removido** | **54 h** | 1.5.1 a 1.5.9 passam a trabalho futuro |
+
+**O que fica no escopo do M2 revisado na opção B:**
+
+| Pacote mantido | Esforço | O que entrega |
+|---|---:|---|
+| D12 — Base backend (Express) | 8 h | API Express base, sem MongoDB |
+| D13 — API CRUD por entidade (memória) | 10 h | CRUD em memória das 7 entidades |
+| D14 — APIs de fluxo em memória | 8 h | Candidatura, Agendamento/Atendimento e Oferta de Apoio em memória |
+| **Total mantido** | **26 h** | M2 revisado = "frontend do M1 + API em memória", com 1.5.1 a 1.5.9 como trabalho futuro |
 
 **Alavancas consideradas (aula 9):**
 
-- **Paralelismo:** D15.1 + D15.2 em paralelo na S13, economizando ~1 dia. Risco: retrabalho se o contrato de perfis mudar.
-- **Compressão:** alocar Marina e Geovanne em D16.1/D16.2 junto com Mina e Samuel na S13. Custo: +2 h de coordenação.
-- **Escopo:** cortar D18.2, D19.3, D19.4, reduzir D19.1/D19.2 e validações não críticas. Economia: ~18 h. Impacto: Disciplinas e parte de Ofertas ficam para etapa futura.
-- **Reserva:** a reserva gerencial de 7% (R$ 511,86) **não cobre** as 54 h de déficit; só o patrocinador pode liberar.
+- **Escopo:** cortar D13.5, D15, D16, D17, D18 e D19. Economia: 54 h. Impacto: M2 revisado para o que está em memória; 1.5.1 a 1.5.9 viram trabalho futuro.
+- **Prazo:** não há extensão. A S12 PSW já passou em 10/11 e a capacidade PSW após 16/11 é 0 h.
+- **Custo:** 0 h adicionais. O CR de 264 h já está gasto; o corte não gera custo novo.
+- **Reserva:** a reserva gerencial de 7% (R$ 511,86) não é usada, porque não há execução adicional.
 - **Recursos:** a GPTI tem 16 h restantes, mas não pode absorver trabalho de PSW por serem competências diferentes.
 
 ## 15. Próximas ações
 
-*A preencher por Rafael (G11 — Status Report 3), com base nas decisões da seção 14.*
+**Data-base:** 16/11/2026. **Referência:** decisões da seção 14 e questões da seção 12. **Restrição:** sem extensão de prazo.
+
+| ID | Ação | Responsável | Prazo | Resultado esperado / critério de conclusão | Estado |
+|---|---|---|---|---|---|
+| A-01 | Decidir D-01 (opção B), D-02 e D-03 | Diogo (patrocinador) | 19/11 | Escopo do M2 revisado aprovado; débito técnico autorizado a ser registrado no G12 | Bloqueada |
+| A-02 | Registrar MUD-04 e MUD-06 no controle de mudanças | Guilherme | 20/11 | Mudança de escopo do M2 formalizada, com nova linha de base de escopo | Não iniciada |
+| A-03 | Fechar Q-01 a Q-04 | Samuel, Marina, Mina | 19/11 | Questões fechadas ou convertidas em mudança; Q-01 registrada como trabalho futuro se não fechar | Não iniciada |
+| A-04 | Atualizar o cronograma com o M2 revisado | Gabriel | 20/11 | Cronograma sem D13.5–D19; M2 revisado encerrado em 16/11 | Não iniciada |
+| A-05 | Completar apontamento individual da PSW em S11–S12 | PSW + Rafael | 19/11 | CR por aluno e por atividade fechado na planilha de acompanhamento | Em andamento |
+| A-06 | Registrar commits de todos os integrantes da GPTI | Erick, Gabriel, Guilherme e Rafael | 20/11 | Histórico do repositório com autoria distribuída no SR3 | Em andamento |
+| A-07 | Atualizar registro de riscos e mudanças após a decisão D-01 | Guilherme | 20/11 | Riscos RG06/RG07 com resposta; MUD-04 e MUD-06 aprovadas | Não iniciada |
+| A-08 | Comunicar a decisão D-01 à PSW | Rafael | 20/11 | PSW ciente de que o M2 revisado encerra em memória e que D13.5–D19 viram trabalho futuro | Não iniciada |
+| A-09 | Preparar o SR4 (fechamento) com o M2 revisado | Erick, Gabriel, Guilherme e Rafael | 30/11 | SR4 com escopo revisado verificado, valor agregado final, débito técnico declarado e lições aprendidas | Não iniciada |
 
 ## 16. Aprovações
 
-*A preencher por Rafael (G11 — Status Report 3).*
+**Patrocinador:** Diogo Silveira Mendonça
+
+**Data:** __ / __ / ____
+
+**Gerentes do Projeto:**
+- Erick Martins Silva
+- Gabriel Centeio Freitas
+- Guilherme Andrade Taveira
+- Rafael Penela Grande Ferreira
+
+**Data:** 16 / 11 / 2026
