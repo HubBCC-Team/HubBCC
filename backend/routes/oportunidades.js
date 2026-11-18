@@ -75,6 +75,7 @@ router.post("/", (req, res) => {
   const novaOportunidade = {
     id: novoId,
     ...dados,
+    situacao: "Aberta",
   };
 
   oportunidades.push(novaOportunidade);
