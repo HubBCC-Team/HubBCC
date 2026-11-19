@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Oportunidade {
+  id             Int           @id @default(autoincrement())
+  titulo         String
+  tipo           String
+  area           String
+  departamento   String
+  responsavel    String
+  modalidade     String
+  local          String
+  bolsa          String        @default("")
+  cargaHoraria   String        @default("")
+  vagas          Int
+  prazoInscricao DateTime      @db.Date
+  descricao      String
+  requisitos     String[]      @default([])
+  atividades     String[]      @default([])
+  situacao       String        @default("Aberta")
+
+  candidaturas Candidatura[]
+}
+
+model Candidatura {
+  id             Int          @id @default(autoincrement())
+  usuarioId      Int
+  oportunidadeId Int
+  carta          String
+  situacao       String       @default("Em analise")
+  dataEnvio      DateTime     @default(now()) @db.Date
+
+  oportunidade Oportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, oportunidadeId])
+}

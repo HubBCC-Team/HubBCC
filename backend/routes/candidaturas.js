@@ -1,6 +1,5 @@
 import express from "express";
-import { candidaturas } from "../data/candidaturas.js";
-import { oportunidades } from "../data/oportunidades.js";
+import { prisma } from "../lib/prisma.js";
 import {
   candidaturaCriacaoSchema,
   candidaturaAtualizacaoSchema,
@@ -11,8 +10,6 @@ const router = express.Router();
 
 /* ------------------------------- AUXILIARES ------------------------------ */
 
-// Valida os dados com Zod.
-// Se houver erro, responde 400 e interrompe a operacao.
 function validar(schema, dados, res) {
   const resultado = schema.safeParse(dados ?? {});
 
@@ -33,10 +30,30 @@ function validar(schema, dados, res) {
   return null;
 }
 
+function formatarCandidatura(candidatura) {
+  const {
+    oportunidade,
+    ...dados
+  } = candidatura;
+
+  return {
+    ...dados,
+    dataEnvio: candidatura.dataEnvio
+      .toISOString()
+      .slice(0, 10),
+
+    oportunidadeTitulo:
+      oportunidade?.titulo ?? "",
+
+    tipo:
+      oportunidade?.tipo ?? "",
+  };
+}
+
 /* ---------------------------------- READ --------------------------------- */
 
 // GET /candidaturas
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const filtros = validar(
     candidaturaFiltrosSchema,
     req.query,
@@ -51,37 +68,59 @@ router.get("/", (req, res) => {
     situacao,
   } = filtros;
 
-  let lista = [...candidaturas];
+  const where = {};
 
   if (usuarioId) {
-    lista = lista.filter(
-      (candidatura) =>
-        candidatura.usuarioId === usuarioId,
-    );
+    where.usuarioId = usuarioId;
   }
 
   if (oportunidadeId) {
-    lista = lista.filter(
-      (candidatura) =>
-        candidatura.oportunidadeId ===
-        oportunidadeId,
-    );
+    where.oportunidadeId =
+      oportunidadeId;
   }
 
   if (situacao) {
-    lista = lista.filter(
-      (candidatura) =>
-        candidatura.situacao === situacao,
-    );
+    where.situacao = situacao;
   }
 
-  res.json(lista);
+  try {
+    const candidaturas =
+      await prisma.candidatura.findMany({
+        where,
+
+        include: {
+          oportunidade: {
+            select: {
+              titulo: true,
+              tipo: true,
+            },
+          },
+        },
+
+        orderBy: {
+          id: "asc",
+        },
+      });
+
+    res.json(
+      candidaturas.map(
+        formatarCandidatura,
+      ),
+    );
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao consultar candidaturas.",
+    });
+  }
 });
 
 /* --------------------------------- CREATE -------------------------------- */
 
 // POST /candidaturas
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const dados = validar(
     candidaturaCriacaoSchema,
     req.body,
@@ -96,81 +135,88 @@ router.post("/", (req, res) => {
     carta,
   } = dados;
 
-  const oportunidade = oportunidades.find(
-    (item) => item.id === oportunidadeId,
-  );
-
-  if (!oportunidade) {
-    return res
-      .status(404)
-      .json({
-        mensagem:
-          "Oportunidade nao encontrada.",
+  try {
+    const oportunidade =
+      await prisma.oportunidade.findUnique({
+        where: {
+          id: oportunidadeId,
+        },
       });
-  }
 
-  const candidaturaExistente =
-    candidaturas.find(
-      (item) =>
-        item.usuarioId === usuarioId &&
-        item.oportunidadeId ===
+    if (!oportunidade) {
+      return res
+        .status(404)
+        .json({
+          mensagem:
+            "Oportunidade nao encontrada.",
+        });
+    }
+
+    const candidaturaExistente =
+      await prisma.candidatura.findUnique({
+        where: {
+          usuarioId_oportunidadeId: {
+            usuarioId,
+            oportunidadeId,
+          },
+        },
+      });
+
+    if (candidaturaExistente) {
+      return res
+        .status(409)
+        .json({
+          mensagem:
+            "Voce ja se candidatou a esta oportunidade.",
+        });
+    }
+
+    const novaCandidatura =
+      await prisma.candidatura.create({
+        data: {
+          usuarioId,
           oportunidadeId,
-    );
+          carta,
+          situacao: "Em analise",
+        },
 
-  if (candidaturaExistente) {
-    return res
-      .status(409)
-      .json({
-        mensagem:
-          "Voce ja se candidatou a esta oportunidade.",
+        include: {
+          oportunidade: {
+            select: {
+              titulo: true,
+              tipo: true,
+            },
+          },
+        },
       });
+
+    res
+      .status(201)
+      .json(
+        formatarCandidatura(
+          novaCandidatura,
+        ),
+      );
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao cadastrar candidatura.",
+    });
   }
-
-  const novoId =
-    candidaturas.length > 0
-      ? Math.max(
-          ...candidaturas.map(
-            (item) => item.id,
-          ),
-        ) + 1
-      : 1;
-
-  const novaCandidatura = {
-    id: novoId,
-    usuarioId,
-    oportunidadeId,
-    oportunidadeTitulo:
-      oportunidade.titulo,
-    tipo: oportunidade.tipo,
-    dataEnvio: new Date()
-      .toISOString()
-      .slice(0, 10),
-    situacao: "Em analise",
-    carta,
-  };
-
-  candidaturas.push(novaCandidatura);
-
-  res.status(201).json(novaCandidatura);
 });
 
 /* --------------------------------- UPDATE -------------------------------- */
 
 // PUT /candidaturas/:id
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
-  const indice = candidaturas.findIndex(
-    (item) => item.id === id,
-  );
-
-  if (indice === -1) {
-    return res
-      .status(404)
-      .json({
-        mensagem:
-          "Candidatura nao encontrada.",
-      });
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({
+      mensagem: "Id invalido.",
+    });
   }
 
   const dados = validar(
@@ -181,37 +227,100 @@ router.put("/:id", (req, res) => {
 
   if (!dados) return;
 
-  candidaturas[indice] = {
-    ...candidaturas[indice],
-    ...dados,
-    id,
-  };
+  try {
+    const candidaturaExistente =
+      await prisma.candidatura.findUnique({
+        where: {
+          id,
+        },
+      });
 
-  res.json(candidaturas[indice]);
+    if (!candidaturaExistente) {
+      return res
+        .status(404)
+        .json({
+          mensagem:
+            "Candidatura nao encontrada.",
+        });
+    }
+
+    const candidatura =
+      await prisma.candidatura.update({
+        where: {
+          id,
+        },
+
+        data: dados,
+
+        include: {
+          oportunidade: {
+            select: {
+              titulo: true,
+              tipo: true,
+            },
+          },
+        },
+      });
+
+    res.json(
+      formatarCandidatura(
+        candidatura,
+      ),
+    );
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao alterar candidatura.",
+    });
+  }
 });
 
 /* --------------------------------- DELETE -------------------------------- */
 
 // DELETE /candidaturas/:id
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
-  const indice = candidaturas.findIndex(
-    (item) => item.id === id,
-  );
-
-  if (indice === -1) {
-    return res
-      .status(404)
-      .json({
-        mensagem:
-          "Candidatura nao encontrada.",
-      });
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({
+      mensagem: "Id invalido.",
+    });
   }
 
-  candidaturas.splice(indice, 1);
+  try {
+    const candidatura =
+      await prisma.candidatura.findUnique({
+        where: {
+          id,
+        },
+      });
 
-  res.status(204).send();
+    if (!candidatura) {
+      return res
+        .status(404)
+        .json({
+          mensagem:
+            "Candidatura nao encontrada.",
+        });
+    }
+
+    await prisma.candidatura.delete({
+      where: {
+        id,
+      },
+    });
+
+    res.status(204).send();
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao excluir candidatura.",
+    });
+  }
 });
 
 export default router;

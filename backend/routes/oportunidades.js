@@ -1,5 +1,5 @@
 import express from "express";
-import { oportunidades } from "../data/oportunidades.js";
+import { prisma } from "../lib/prisma.js";
 import {
   oportunidadeCriacaoSchema,
   oportunidadeAtualizacaoSchema,
@@ -10,8 +10,6 @@ const router = express.Router();
 
 /* ------------------------------- AUXILIARES ------------------------------ */
 
-// Valida os dados com Zod.
-// Se houver erro, responde 400 e interrompe a operacao.
 function validar(schema, dados, res) {
   const resultado = schema.safeParse(dados ?? {});
 
@@ -32,10 +30,26 @@ function validar(schema, dados, res) {
   return null;
 }
 
+// O Prisma devolve Date como data completa.
+// O frontend do HubBCC usa AAAA-MM-DD.
+function formatarOportunidade(oportunidade) {
+  return {
+    ...oportunidade,
+    prazoInscricao:
+      oportunidade.prazoInscricao
+        .toISOString()
+        .slice(0, 10),
+  };
+}
+
+function converterData(data) {
+  return new Date(`${data}T00:00:00.000Z`);
+}
+
 /* ---------------------------------- READ --------------------------------- */
 
 // GET /oportunidades
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const filtros = validar(
     oportunidadeFiltrosSchema,
     req.query,
@@ -51,73 +65,109 @@ router.get("/", (req, res) => {
     situacao,
   } = filtros;
 
-  let lista = [...oportunidades];
+  const where = {};
 
   if (busca) {
-    const termo = busca.toLowerCase();
-
-    lista = lista.filter(
-      (oportunidade) =>
-        oportunidade.titulo
-          .toLowerCase()
-          .includes(termo) ||
-        oportunidade.area
-          .toLowerCase()
-          .includes(termo) ||
-        oportunidade.descricao
-          .toLowerCase()
-          .includes(termo),
-    );
+    where.OR = [
+      {
+        titulo: {
+          contains: busca,
+          mode: "insensitive",
+        },
+      },
+      {
+        area: {
+          contains: busca,
+          mode: "insensitive",
+        },
+      },
+      {
+        descricao: {
+          contains: busca,
+          mode: "insensitive",
+        },
+      },
+    ];
   }
 
   if (tipo) {
-    lista = lista.filter(
-      (oportunidade) =>
-        oportunidade.tipo === tipo,
-    );
+    where.tipo = tipo;
   }
 
   if (modalidade) {
-    lista = lista.filter(
-      (oportunidade) =>
-        oportunidade.modalidade === modalidade,
-    );
+    where.modalidade = modalidade;
   }
 
   if (situacao) {
-    lista = lista.filter(
-      (oportunidade) =>
-        oportunidade.situacao === situacao,
-    );
+    where.situacao = situacao;
   }
 
-  res.json(lista);
+  try {
+    const oportunidades =
+      await prisma.oportunidade.findMany({
+        where,
+        orderBy: {
+          id: "asc",
+        },
+      });
+
+    res.json(
+      oportunidades.map(formatarOportunidade),
+    );
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao consultar oportunidades.",
+    });
+  }
 });
 
 // GET /oportunidades/:id
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
-  const oportunidade = oportunidades.find(
-    (item) => item.id === id,
-  );
-
-  if (!oportunidade) {
-    return res
-      .status(404)
-      .json({
-        mensagem:
-          "Oportunidade nao encontrada.",
-      });
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({
+      mensagem: "Id invalido.",
+    });
   }
 
-  res.json(oportunidade);
+  try {
+    const oportunidade =
+      await prisma.oportunidade.findUnique({
+        where: {
+          id,
+        },
+      });
+
+    if (!oportunidade) {
+      return res
+        .status(404)
+        .json({
+          mensagem:
+            "Oportunidade nao encontrada.",
+        });
+    }
+
+    res.json(
+      formatarOportunidade(oportunidade),
+    );
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao consultar oportunidade.",
+    });
+  }
 });
 
 /* --------------------------------- CREATE -------------------------------- */
 
 // POST /oportunidades
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const dados = validar(
     oportunidadeCriacaoSchema,
     req.body,
@@ -126,43 +176,45 @@ router.post("/", (req, res) => {
 
   if (!dados) return;
 
-  const novoId =
-    oportunidades.length > 0
-      ? Math.max(
-          ...oportunidades.map(
-            (item) => item.id,
+  try {
+    const novaOportunidade =
+      await prisma.oportunidade.create({
+        data: {
+          ...dados,
+          prazoInscricao: converterData(
+            dados.prazoInscricao,
           ),
-        ) + 1
-      : 1;
+          situacao: "Aberta",
+        },
+      });
 
-  const novaOportunidade = {
-    id: novoId,
-    ...dados,
-    situacao: "Aberta",
-  };
+    res
+      .status(201)
+      .json(
+        formatarOportunidade(
+          novaOportunidade,
+        ),
+      );
+  } catch (erro) {
+    console.error(erro);
 
-  oportunidades.push(novaOportunidade);
-
-  res.status(201).json(novaOportunidade);
+    res.status(500).json({
+      mensagem:
+        "Erro ao cadastrar oportunidade.",
+    });
+  }
 });
 
 /* --------------------------------- UPDATE -------------------------------- */
 
 // PUT /oportunidades/:id
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
-  const indice = oportunidades.findIndex(
-    (item) => item.id === id,
-  );
-
-  if (indice === -1) {
-    return res
-      .status(404)
-      .json({
-        mensagem:
-          "Oportunidade nao encontrada.",
-      });
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({
+      mensagem: "Id invalido.",
+    });
   }
 
   const dados = validar(
@@ -173,37 +225,99 @@ router.put("/:id", (req, res) => {
 
   if (!dados) return;
 
-  oportunidades[indice] = {
-    ...oportunidades[indice],
-    ...dados,
-    id,
-  };
+  try {
+    const oportunidadeExistente =
+      await prisma.oportunidade.findUnique({
+        where: {
+          id,
+        },
+      });
 
-  res.json(oportunidades[indice]);
+    if (!oportunidadeExistente) {
+      return res
+        .status(404)
+        .json({
+          mensagem:
+            "Oportunidade nao encontrada.",
+        });
+    }
+
+    const dadosAtualizados = {
+      ...dados,
+    };
+
+    if (dados.prazoInscricao) {
+      dadosAtualizados.prazoInscricao =
+        converterData(
+          dados.prazoInscricao,
+        );
+    }
+
+    const oportunidade =
+      await prisma.oportunidade.update({
+        where: {
+          id,
+        },
+        data: dadosAtualizados,
+      });
+
+    res.json(
+      formatarOportunidade(oportunidade),
+    );
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao alterar oportunidade.",
+    });
+  }
 });
 
 /* --------------------------------- DELETE -------------------------------- */
 
 // DELETE /oportunidades/:id
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
-  const indice = oportunidades.findIndex(
-    (item) => item.id === id,
-  );
-
-  if (indice === -1) {
-    return res
-      .status(404)
-      .json({
-        mensagem:
-          "Oportunidade nao encontrada.",
-      });
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({
+      mensagem: "Id invalido.",
+    });
   }
 
-  oportunidades.splice(indice, 1);
+  try {
+    const oportunidade =
+      await prisma.oportunidade.findUnique({
+        where: {
+          id,
+        },
+      });
 
-  res.status(204).send();
+    if (!oportunidade) {
+      return res
+        .status(404)
+        .json({
+          mensagem:
+            "Oportunidade nao encontrada.",
+        });
+    }
+
+    await prisma.oportunidade.delete({
+      where: {
+        id,
+      },
+    });
+
+    res.status(204).send();
+  } catch (erro) {
+    console.error(erro);
+
+    res.status(500).json({
+      mensagem:
+        "Erro ao excluir oportunidade.",
+    });
+  }
 });
 
 export default router;
