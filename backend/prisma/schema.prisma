@@ -6,6 +6,23 @@ datasource db {
   provider = "postgresql"
 }
 
+model Usuario {
+  id               Int            @id @default(autoincrement())
+  nome             String
+  email            String         @unique
+  senhaHash        String
+  perfil           String         @default("aluno")
+  matricula        String?        @unique
+  curso            String         @default("Bacharelado em Ciencia da Computacao")
+  periodo          String?
+  telefone         String         @default("")
+  iniciais         String         @default("")
+  refreshTokenHash String?
+
+  candidaturas Candidatura[]
+  oportunidades Oportunidade[] @relation("OportunidadeCriador")
+}
+
 model Oportunidade {
   id             Int           @id @default(autoincrement())
   titulo         String
@@ -24,17 +41,21 @@ model Oportunidade {
   atividades     String[]      @default([])
   situacao       String        @default("Aberta")
 
+  criadorId Int?
+  criador   Usuario? @relation("OportunidadeCriador", fields: [criadorId], references: [id], onDelete: SetNull)
+
   candidaturas Candidatura[]
 }
 
 model Candidatura {
-  id             Int          @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   usuarioId      Int
   oportunidadeId Int
   carta          String
-  situacao       String       @default("Em analise")
-  dataEnvio      DateTime     @default(now()) @db.Date
+  situacao       String   @default("Em analise")
+  dataEnvio      DateTime @default(now()) @db.Date
 
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   oportunidade Oportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
 
   @@unique([usuarioId, oportunidadeId])

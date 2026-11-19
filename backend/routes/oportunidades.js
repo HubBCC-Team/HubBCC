@@ -1,5 +1,9 @@
 import express from "express";
+
 import { prisma } from "../lib/prisma.js";
+import { autenticar } from "../middlewares/autenticacao.js";
+import { autorizarPerfis } from "../middlewares/autorizacao.js";
+
 import {
   oportunidadeCriacaoSchema,
   oportunidadeAtualizacaoSchema,
@@ -30,11 +34,10 @@ function validar(schema, dados, res) {
   return null;
 }
 
-// O Prisma devolve Date como data completa.
-// O frontend do HubBCC usa AAAA-MM-DD.
 function formatarOportunidade(oportunidade) {
   return {
     ...oportunidade,
+
     prazoInscricao:
       oportunidade.prazoInscricao
         .toISOString()
@@ -43,281 +46,363 @@ function formatarOportunidade(oportunidade) {
 }
 
 function converterData(data) {
-  return new Date(`${data}T00:00:00.000Z`);
+  return new Date(
+    `${data}T00:00:00.000Z`,
+  );
+}
+
+function podeGerenciar(
+  oportunidade,
+  usuario,
+) {
+  if (usuario.perfil === "admin") {
+    return true;
+  }
+
+  return (
+    oportunidade.criadorId ===
+    usuario.id
+  );
 }
 
 /* ---------------------------------- READ --------------------------------- */
 
 // GET /oportunidades
-router.get("/", async (req, res) => {
-  const filtros = validar(
-    oportunidadeFiltrosSchema,
-    req.query,
-    res,
-  );
-
-  if (!filtros) return;
-
-  const {
-    busca,
-    tipo,
-    modalidade,
-    situacao,
-  } = filtros;
-
-  const where = {};
-
-  if (busca) {
-    where.OR = [
-      {
-        titulo: {
-          contains: busca,
-          mode: "insensitive",
-        },
-      },
-      {
-        area: {
-          contains: busca,
-          mode: "insensitive",
-        },
-      },
-      {
-        descricao: {
-          contains: busca,
-          mode: "insensitive",
-        },
-      },
-    ];
-  }
-
-  if (tipo) {
-    where.tipo = tipo;
-  }
-
-  if (modalidade) {
-    where.modalidade = modalidade;
-  }
-
-  if (situacao) {
-    where.situacao = situacao;
-  }
-
-  try {
-    const oportunidades =
-      await prisma.oportunidade.findMany({
-        where,
-        orderBy: {
-          id: "asc",
-        },
-      });
-
-    res.json(
-      oportunidades.map(formatarOportunidade),
+router.get(
+  "/",
+  autenticar,
+  async (req, res) => {
+    const filtros = validar(
+      oportunidadeFiltrosSchema,
+      req.query,
+      res,
     );
-  } catch (erro) {
-    console.error(erro);
 
-    res.status(500).json({
-      mensagem:
-        "Erro ao consultar oportunidades.",
-    });
-  }
-});
+    if (!filtros) return;
+
+    const {
+      busca,
+      tipo,
+      modalidade,
+      situacao,
+    } = filtros;
+
+    const where = {};
+
+    if (busca) {
+      where.OR = [
+        {
+          titulo: {
+            contains: busca,
+            mode: "insensitive",
+          },
+        },
+        {
+          area: {
+            contains: busca,
+            mode: "insensitive",
+          },
+        },
+        {
+          descricao: {
+            contains: busca,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    if (tipo) {
+      where.tipo = tipo;
+    }
+
+    if (modalidade) {
+      where.modalidade = modalidade;
+    }
+
+    if (situacao) {
+      where.situacao = situacao;
+    }
+
+    try {
+      const oportunidades =
+        await prisma.oportunidade.findMany({
+          where,
+
+          orderBy: {
+            id: "asc",
+          },
+        });
+
+      res.json(
+        oportunidades.map(
+          formatarOportunidade,
+        ),
+      );
+    } catch (erro) {
+      console.error(erro);
+
+      res.status(500).json({
+        mensagem:
+          "Erro ao consultar oportunidades.",
+      });
+    }
+  },
+);
 
 // GET /oportunidades/:id
-router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+router.get(
+  "/:id",
+  autenticar,
+  async (req, res) => {
+    const id = Number(req.params.id);
 
-  if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({
-      mensagem: "Id invalido.",
-    });
-  }
-
-  try {
-    const oportunidade =
-      await prisma.oportunidade.findUnique({
-        where: {
-          id,
-        },
+    if (
+      !Number.isInteger(id) ||
+      id <= 0
+    ) {
+      return res.status(400).json({
+        mensagem: "Id invalido.",
       });
+    }
 
-    if (!oportunidade) {
-      return res
-        .status(404)
-        .json({
+    try {
+      const oportunidade =
+        await prisma.oportunidade.findUnique({
+          where: {
+            id,
+          },
+        });
+
+      if (!oportunidade) {
+        return res.status(404).json({
           mensagem:
             "Oportunidade nao encontrada.",
         });
+      }
+
+      res.json(
+        formatarOportunidade(
+          oportunidade,
+        ),
+      );
+    } catch (erro) {
+      console.error(erro);
+
+      res.status(500).json({
+        mensagem:
+          "Erro ao consultar oportunidade.",
+      });
     }
-
-    res.json(
-      formatarOportunidade(oportunidade),
-    );
-  } catch (erro) {
-    console.error(erro);
-
-    res.status(500).json({
-      mensagem:
-        "Erro ao consultar oportunidade.",
-    });
-  }
-});
+  },
+);
 
 /* --------------------------------- CREATE -------------------------------- */
 
 // POST /oportunidades
-router.post("/", async (req, res) => {
-  const dados = validar(
-    oportunidadeCriacaoSchema,
-    req.body,
-    res,
-  );
+router.post(
+  "/",
+  autenticar,
+  autorizarPerfis("monitor", "admin"),
+  async (req, res) => {
+    const dados = validar(
+      oportunidadeCriacaoSchema,
+      req.body,
+      res,
+    );
 
-  if (!dados) return;
+    if (!dados) return;
 
-  try {
-    const novaOportunidade =
-      await prisma.oportunidade.create({
-        data: {
-          ...dados,
-          prazoInscricao: converterData(
-            dados.prazoInscricao,
+    try {
+      const novaOportunidade =
+        await prisma.oportunidade.create({
+          data: {
+            ...dados,
+
+            prazoInscricao:
+              converterData(
+                dados.prazoInscricao,
+              ),
+
+            situacao: "Aberta",
+
+            // O dono vem do JWT,
+            // nunca do corpo enviado.
+            criadorId:
+              req.usuario.id,
+          },
+        });
+
+      res
+        .status(201)
+        .json(
+          formatarOportunidade(
+            novaOportunidade,
           ),
-          situacao: "Aberta",
-        },
+        );
+    } catch (erro) {
+      console.error(erro);
+
+      res.status(500).json({
+        mensagem:
+          "Erro ao cadastrar oportunidade.",
       });
-
-    res
-      .status(201)
-      .json(
-        formatarOportunidade(
-          novaOportunidade,
-        ),
-      );
-  } catch (erro) {
-    console.error(erro);
-
-    res.status(500).json({
-      mensagem:
-        "Erro ao cadastrar oportunidade.",
-    });
-  }
-});
+    }
+  },
+);
 
 /* --------------------------------- UPDATE -------------------------------- */
 
 // PUT /oportunidades/:id
-router.put("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+router.put(
+  "/:id",
+  autenticar,
+  autorizarPerfis("monitor", "admin"),
+  async (req, res) => {
+    const id = Number(req.params.id);
 
-  if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({
-      mensagem: "Id invalido.",
-    });
-  }
-
-  const dados = validar(
-    oportunidadeAtualizacaoSchema,
-    req.body,
-    res,
-  );
-
-  if (!dados) return;
-
-  try {
-    const oportunidadeExistente =
-      await prisma.oportunidade.findUnique({
-        where: {
-          id,
-        },
+    if (
+      !Number.isInteger(id) ||
+      id <= 0
+    ) {
+      return res.status(400).json({
+        mensagem: "Id invalido.",
       });
+    }
 
-    if (!oportunidadeExistente) {
-      return res
-        .status(404)
-        .json({
+    const dados = validar(
+      oportunidadeAtualizacaoSchema,
+      req.body,
+      res,
+    );
+
+    if (!dados) return;
+
+    try {
+      const oportunidadeExistente =
+        await prisma.oportunidade.findUnique({
+          where: {
+            id,
+          },
+        });
+
+      if (!oportunidadeExistente) {
+        return res.status(404).json({
           mensagem:
             "Oportunidade nao encontrada.",
         });
-    }
+      }
 
-    const dadosAtualizados = {
-      ...dados,
-    };
+      if (
+        !podeGerenciar(
+          oportunidadeExistente,
+          req.usuario,
+        )
+      ) {
+        return res.status(403).json({
+          mensagem:
+            "Voce nao tem permissao para alterar esta oportunidade.",
+        });
+      }
 
-    if (dados.prazoInscricao) {
-      dadosAtualizados.prazoInscricao =
-        converterData(
-          dados.prazoInscricao,
-        );
-    }
+      const dadosAtualizados = {
+        ...dados,
+      };
 
-    const oportunidade =
-      await prisma.oportunidade.update({
-        where: {
-          id,
-        },
-        data: dadosAtualizados,
+      if (dados.prazoInscricao) {
+        dadosAtualizados.prazoInscricao =
+          converterData(
+            dados.prazoInscricao,
+          );
+      }
+
+      const oportunidade =
+        await prisma.oportunidade.update({
+          where: {
+            id,
+          },
+
+          data: dadosAtualizados,
+        });
+
+      res.json(
+        formatarOportunidade(
+          oportunidade,
+        ),
+      );
+    } catch (erro) {
+      console.error(erro);
+
+      res.status(500).json({
+        mensagem:
+          "Erro ao alterar oportunidade.",
       });
-
-    res.json(
-      formatarOportunidade(oportunidade),
-    );
-  } catch (erro) {
-    console.error(erro);
-
-    res.status(500).json({
-      mensagem:
-        "Erro ao alterar oportunidade.",
-    });
-  }
-});
+    }
+  },
+);
 
 /* --------------------------------- DELETE -------------------------------- */
 
 // DELETE /oportunidades/:id
-router.delete("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+router.delete(
+  "/:id",
+  autenticar,
+  autorizarPerfis("monitor", "admin"),
+  async (req, res) => {
+    const id = Number(req.params.id);
 
-  if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({
-      mensagem: "Id invalido.",
-    });
-  }
+    if (
+      !Number.isInteger(id) ||
+      id <= 0
+    ) {
+      return res.status(400).json({
+        mensagem: "Id invalido.",
+      });
+    }
 
-  try {
-    const oportunidade =
-      await prisma.oportunidade.findUnique({
+    try {
+      const oportunidade =
+        await prisma.oportunidade.findUnique({
+          where: {
+            id,
+          },
+        });
+
+      if (!oportunidade) {
+        return res.status(404).json({
+          mensagem:
+            "Oportunidade nao encontrada.",
+        });
+      }
+
+      if (
+        !podeGerenciar(
+          oportunidade,
+          req.usuario,
+        )
+      ) {
+        return res.status(403).json({
+          mensagem:
+            "Voce nao tem permissao para excluir esta oportunidade.",
+        });
+      }
+
+      await prisma.oportunidade.delete({
         where: {
           id,
         },
       });
 
-    if (!oportunidade) {
-      return res
-        .status(404)
-        .json({
-          mensagem:
-            "Oportunidade nao encontrada.",
-        });
+      res.status(204).send();
+    } catch (erro) {
+      console.error(erro);
+
+      res.status(500).json({
+        mensagem:
+          "Erro ao excluir oportunidade.",
+      });
     }
-
-    await prisma.oportunidade.delete({
-      where: {
-        id,
-      },
-    });
-
-    res.status(204).send();
-  } catch (erro) {
-    console.error(erro);
-
-    res.status(500).json({
-      mensagem:
-        "Erro ao excluir oportunidade.",
-    });
-  }
-});
+  },
+);
 
 export default router;
