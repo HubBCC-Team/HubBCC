@@ -589,7 +589,7 @@ function FormAvaliar({
   function aoConfirmar(avaliacao) {
     avaliar.mutate(
       {
-        id: agendamento.id,
+        id: agendamento.atendimentoId,
         avaliacao,
       },
       {
