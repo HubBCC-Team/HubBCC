@@ -14,7 +14,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, ChevronRight, CalendarDays, Clock, MapPin } from "lucide-react";
-import { useAuth } from "../../contexts/useAuth";
 import { useToast } from "../../contexts/useToast";
 import { useOferta, useRealizarAgendamento } from "../../queries";
 import { agendamentoSchema } from "../../schemas/agendamentoSchemas";
@@ -57,13 +56,14 @@ function deISO(iso) {
 export default function RealizarAgendamento() {
   const { id } = useParams();
   const navegar = useNavigate();
-  const { usuario } = useAuth();
   const toast = useToast();
 
   const { data: oferta, isLoading, isError, error, refetch } = useOferta(id);
   const agendar = useRealizarAgendamento();
 
   const [referencia, setReferencia] = useState(() => new Date());
+  // Uma chave por abertura da tela: duplo clique no botao nao cria dois agendamentos.
+  const [chaveBase] = useState(() => crypto.randomUUID());
 
   const {
     handleSubmit,
@@ -118,7 +118,12 @@ export default function RealizarAgendamento() {
 
   function aoConfirmar({ data, hora }) {
     agendar.mutate(
-      { usuarioId: usuario.id, ofertaId: oferta.id, data, hora },
+      {
+        ofertaId: oferta.id,
+        data,
+        hora,
+        chaveIdempotencia: `${chaveBase}-${data}-${hora}`,
+      },
       {
         onSuccess: () => {
           toast.sucesso("Agendamento confirmado!");
