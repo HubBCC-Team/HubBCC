@@ -1,35 +1,44 @@
-/* ---------------------------------------------------------------------------
-   service/atividadeService.js
-   Casos de uso 19 e 20: atividades complementares e horas.
---------------------------------------------------------------------------- */
 import api from "../api/axios";
 
-// Lista as atividades do usuario (caso de uso 20).
+function montarFormData(dados) {
+  const formData = new FormData();
+  Object.entries(dados).forEach(([chave, valor]) => {
+    if (valor === undefined || valor === null || chave === "comprovanteArquivo")
+      return;
+    formData.append(chave, valor);
+  });
+  if (dados.arquivo instanceof File) {
+    formData.append("arquivo", dados.arquivo);
+  }
+  return formData;
+}
+
 export async function listarAtividades(usuarioId, filtros = {}) {
-  const { data } = await api.get("/atividades", { params: { usuarioId, ...filtros } });
+  const { data } = await api.get("/atividades", {
+    params: { usuarioId, ...filtros },
+  });
   return data;
 }
 
-// Resumo de horas: { horasAprovadas, meta, percentual, porCategoria, totalAtividades }.
-// Usado no dashboard e na tela de Atividades & Horas.
 export async function resumoHoras(usuarioId) {
-  const { data } = await api.get("/atividades/resumo", { params: { usuarioId } });
+  const { data } = await api.get("/atividades/resumo", {
+    params: { usuarioId },
+  });
   return data;
 }
 
-// Registra uma nova atividade complementar (caso de uso 19).
 export async function registrarAtividade(dados) {
-  const { data } = await api.post("/atividades", dados);
+  const payload = dados.arquivo instanceof File ? montarFormData(dados) : dados;
+  const { data } = await api.post("/atividades", payload);
   return data;
 }
 
-// Altera uma atividade ja registrada.
 export async function alterarAtividade(id, dados) {
-  const { data } = await api.put(`/atividades/${id}`, dados);
+  const payload = dados.arquivo instanceof File ? montarFormData(dados) : dados;
+  const { data } = await api.put(`/atividades/${id}`, payload);
   return data;
 }
 
-// Exclui uma atividade.
 export async function excluirAtividade(id) {
   await api.delete(`/atividades/${id}`);
 }

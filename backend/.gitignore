@@ -6,3 +6,5 @@ node_modules
 !.env.test.example
 
 /generated/prisma
+uploads/
+node_modules/

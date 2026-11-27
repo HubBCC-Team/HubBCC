@@ -19,8 +19,10 @@ model Usuario {
   iniciais         String         @default("")
   refreshTokenHash String?
 
-  candidaturas Candidatura[]
+  candidaturas  Candidatura[]
   oportunidades Oportunidade[] @relation("OportunidadeCriador")
+  agendamentos  Agendamento[]
+  atividades    Atividade[]
 }
 
 model Oportunidade {
@@ -93,4 +95,36 @@ model Atendimento {
   criadoEm      DateTime @default(now())
 
   agendamento Agendamento @relation(fields: [agendamentoId], references: [id], onDelete: Cascade)
+}
+
+model Disciplina {
+  id     Int     @id @default(autoincrement())
+  codigo String? @unique
+  nome   String  @unique
+  ativa  Boolean @default(true)
+
+  atividades Atividade[]
+}
+
+model Atividade {
+  id                 Int      @id @default(autoincrement())
+  usuarioId          Int
+  disciplinaId       Int?
+  categoria          String
+  titulo             String
+  data               DateTime @db.Date
+  horas              Int
+  descricao          String   @default("")
+  situacao           String   @default("Em analise")
+  observacao         String   @default("")
+  comprovante        String   @default("")
+  comprovantePath    String?
+  comprovanteMime    String?
+  comprovanteTamanho Int?
+  criadoEm           DateTime @default(now())
+
+  usuario    Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  disciplina Disciplina? @relation(fields: [disciplinaId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId, situacao])
 }

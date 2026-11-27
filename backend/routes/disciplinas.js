@@ -1,38 +1,166 @@
 import express from "express";
+import { prisma } from "../lib/prisma.js";
+import { autenticar } from "../middlewares/autenticacao.js";
+import { autorizarPerfis } from "../middlewares/autorizacao.js";
+import {
+  validar,
+  idDaRota,
+  naoEncontrado,
+  conflito,
+  erroInterno,
+} from "../lib/http.js";
+import {
+  disciplinaCriacaoSchema,
+  disciplinaAtualizacaoSchema,
+  disciplinaFiltrosSchema,
+} from "../schemas/disciplinaSchema.js";
+
 const router = express.Router();
 
-let disciplinas = [];
-let proximoId = 1;
+// GET /disciplinas
+router.get("/", autenticar, async (req, res) => {
+  const filtros = validar(disciplinaFiltrosSchema, req.query, res);
+  if (!filtros) return;
 
-// GET - Listar todas
-router.get("/", (req, res) => {
-  res.json(disciplinas);
+  const where = {};
+  if (filtros.ativa !== undefined) where.ativa = filtros.ativa === "true";
+  if (filtros.busca) {
+    where.OR = [
+      { nome: { contains: filtros.busca, mode: "insensitive" } },
+      { codigo: { contains: filtros.busca, mode: "insensitive" } },
+    ];
+  }
+
+  try {
+    const lista = await prisma.disciplina.findMany({
+      where,
+      orderBy: { nome: "asc" },
+    });
+    res.json(lista);
+  } catch (erro) {
+    erroInterno(res, erro);
+  }
 });
 
-// POST - Criar nova (com validação)
-router.post("/", (req, res) => {
-  const nome = req.body.nome ? req.body.nome.trim() : "";
-  if (!nome) return res.status(400).json({ mensagem: "O nome da disciplina é obrigatório." });
+// GET /disciplinas/:id
+router.get("/:id", autenticar, async (req, res) => {
+  const id = idDaRota(req, res);
+  if (!id) return;
 
-  const jaExiste = disciplinas.some((d) => d.nome.toLowerCase() === nome.toLowerCase());
-  if (jaExiste) return res.status(409).json({ mensagem: "Já existe uma disciplina cadastrada com este nome." });
-
-  const novaDisciplina = { id: proximoId++, nome, ...req.body };
-  disciplinas.push(novaDisciplina);
-  res.status(201).json(novaDisciplina);
+  try {
+    const disciplina = await prisma.disciplina.findUnique({ where: { id } });
+    if (!disciplina) return naoEncontrado(res, "Disciplina nao encontrada.");
+    res.json(disciplina);
+  } catch (erro) {
+    erroInterno(res, erro);
+  }
 });
 
-// DELETE - Remover disciplina
-router.delete("/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const index = disciplinas.findIndex((d) => d.id === id);
-  
-  if (index === -1) return res.status(404).json({ mensagem: "Disciplina não encontrada." });
-  
-  // Nota: A validação de ofertas vinculadas precisaria importar o array de ofertas, 
-  // mas num CRUD simples em memória isolado, apagamos diretamente:
-  disciplinas.splice(index, 1);
-  res.status(204).end();
-});
+// POST /disciplinas
+router.post(
+  "/",
+  autenticar,
+  autorizarPerfis("monitor", "admin"),
+  async (req, res) => {
+    const dados = validar(disciplinaCriacaoSchema, req.body, res);
+    if (!dados) return;
+
+    try {
+      const existente = await prisma.disciplina.findFirst({
+        where: { nome: { equals: dados.nome, mode: "insensitive" } },
+      });
+      if (existente) {
+        return conflito(
+          res,
+          "Ja existe uma disciplina cadastrada com este nome.",
+        );
+      }
+
+      const nova = await prisma.disciplina.create({ data: dados });
+      res.status(201).json(nova);
+    } catch (erro) {
+      if (erro?.code === "P2002") {
+        return conflito(res, "Disciplina ou codigo ja cadastrado.");
+      }
+      erroInterno(res, erro);
+    }
+  },
+);
+
+// PUT /disciplinas/:id
+router.put(
+  "/:id",
+  autenticar,
+  autorizarPerfis("monitor", "admin"),
+  async (req, res) => {
+    const id = idDaRota(req, res);
+    if (!id) return;
+
+    const dados = validar(disciplinaAtualizacaoSchema, req.body, res);
+    if (!dados) return;
+
+    try {
+      const atual = await prisma.disciplina.findUnique({ where: { id } });
+      if (!atual) return naoEncontrado(res, "Disciplina nao encontrada.");
+
+      if (dados.nome) {
+        const duplicada = await prisma.disciplina.findFirst({
+          where: {
+            id: { not: id },
+            nome: { equals: dados.nome, mode: "insensitive" },
+          },
+        });
+        if (duplicada) {
+          return conflito(
+            res,
+            "Ja existe uma disciplina cadastrada com este nome.",
+          );
+        }
+      }
+
+      const atualizada = await prisma.disciplina.update({
+        where: { id },
+        data: dados,
+      });
+      res.json(atualizada);
+    } catch (erro) {
+      if (erro?.code === "P2002") {
+        return conflito(res, "Disciplina ou codigo ja cadastrado.");
+      }
+      erroInterno(res, erro);
+    }
+  },
+);
+
+// DELETE /disciplinas/:id
+router.delete(
+  "/:id",
+  autenticar,
+  autorizarPerfis("monitor", "admin"),
+  async (req, res) => {
+    const id = idDaRota(req, res);
+    if (!id) return;
+
+    try {
+      const atual = await prisma.disciplina.findUnique({
+        where: { id },
+        include: { _count: { select: { atividades: true } } },
+      });
+      if (!atual) return naoEncontrado(res, "Disciplina nao encontrada.");
+
+      if (atual._count.atividades > 0) {
+        return conflito(
+          res,
+          "Nao e possivel excluir: existem atividades vinculadas a esta disciplina.",
+        );
+      }
+
+      await prisma.disciplina.delete({ where: { id } });
+      res.status(204).send();
+    } catch (erro) {
+      erroInterno(res, erro);
+    }
+  },
+);
 
 export default router;
